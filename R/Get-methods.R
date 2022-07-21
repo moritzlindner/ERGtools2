@@ -59,7 +59,7 @@ setGeneric(
 setMethod("GetMarkerNames",
           "ERGExam",
           function(X) {
-            unique(X@Measurements$Param)
+            unique(X@Measurements$Marker)
           })
 
 #' ------------------

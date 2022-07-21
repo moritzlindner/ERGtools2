@@ -38,8 +38,9 @@ ImportEpsionMeasures <- function(filename,
       get_content(filename, toc, "Header Table", sep = sep)
 
     # Get stimulus information
-    stim_info <-
+    stim_info <- as.data.frame(
       get_content(filename, toc, "Stimulus Table", sep = sep)
+    )
     colnames(stim_info)[colnames(stim_info) == "cd.s.m."] <-
       "Intensity"
     stim_info$Background <- NA
