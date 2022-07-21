@@ -65,6 +65,10 @@ ImportEpsion <- function(filename,
                                          skip = toc["Data Table","Top"]-1,
                                          data.table = F,
                                          header = F)))[,1]
+            if(all(resulttrace==0)){
+              stop("Average traces not included in Data Table. Re-export table or run ImportEpsionMeasures instead, to only import measures.")
+            }
+
             resultunit<-fread(filename,
                             select = Data_Header[i,"Column.1"],
                             nrows = 1,

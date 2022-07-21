@@ -2,10 +2,10 @@
 #'
 #' `r lifecycle::badge("stable")` \cr
 #' This function subsets \linkS4class{ERGExam} objects by \var{Channels}, \var{Stimuli}, \var{Repeats}, measurement \var{Markers} or \var{Measures}.
-#' @param Channels,Stimuli,Markers List of Channels/Stimuli or measurement parameters (e.g. a-wave) to get. By default will get all.
-#' @param Repeats Measurement repeats to get. Can be "ALL", to get all repeats, a numeric vector of length >=1 containing the repeats to keep, or a function of the form \code{function(x){x==max(x)}} indicating which repeats to keep.
-#' @param Measures Measures to get. A character vector. Can be \code{"Voltage"}, \code{"Time"} or both (default).
-#' @param Verbose Show warning/info messages.
+#' @Marker Channels,Stimuli,Markers List of Channels/Stimuli or measurement Markereters (e.g. a-wave) to get. By default will get all.
+#' @Marker Repeats Measurement repeats to get. Can be "ALL", to get all repeats, a numeric vector of length >=1 containing the repeats to keep, or a function of the form \code{function(x){x==max(x)}} indicating which repeats to keep.
+#' @Marker Measures Measures to get. A character vector. Can be \code{"Voltage"}, \code{"Time"} or both (default).
+#' @Marker Verbose Show warning/info messages.
 #' @return An \linkS4class{ERGExam} object.
 #' @examples
 #' \dontrun{
@@ -91,9 +91,9 @@ setMethod("GetMeasurements",
 
             OUT<-OUT[((OUT$Step %in% Stimuli) &
                              (OUT$Channel %in% Channels) &
-                             (OUT$Param %in% Markers))
+                             (OUT$Marker %in% Markers))
                            ,]
-            OUT<-OUT[with(OUT, ave(Repeat, Step,Channel,Param, FUN = function(x) {Repeats(x)})!=0),]
+            OUT<-OUT[with(OUT, ave(Repeat, Step,Channel,Marker, FUN = function(x) {Repeats(x)})!=0),]
 
             keepcols<-c(colnames(X@Measurements)[!(colnames(X@Measurements) %in% c("Voltage","Time"))],Measures)
             OUT<-OUT[,keepcols]
