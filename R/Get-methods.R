@@ -135,7 +135,7 @@ setGeneric(
 setMethod("GetPatientName",
           "ERGExam",
           function(X) {
-            X@Group
+            X@Patient
           })
 
 #' ------------------
