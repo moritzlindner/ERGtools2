@@ -87,7 +87,8 @@ ImportEpsion <- function(filename,
                                                             length(unique(Data_Header$Result[Data_Header$Step==Data_Header$Step[i]]))
                                                             )) # change this to only include channels availabe f individual step
             }
-            Steps_AVG[[Data_Header$Step[i]]][, as.numeric(Data_Header$Chan[i]), as.numeric(Data_Header$Result[i])] <-
+            Resultidx<-as.numeric(Data_Header$Result[i])-min(as.numeric(Data_Header$Result[Data_Header$Step == Data_Header$Step[i] & Data_Header$Chan == Data_Header$Chan[i] ]))+1
+            Steps_AVG[[Data_Header$Step[i]]][, as.numeric(Data_Header$Chan[i]), Resultidx] <-
               resulttrace
           }
 

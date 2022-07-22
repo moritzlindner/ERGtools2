@@ -1,12 +1,10 @@
 #' Accession methods for metadata from ERGExam objects
 #'
-#' `r lifecycle::badge("stable")` \cr
 #' These methods are used to access metadata information from \linkS4class{ERGExam} objects.
 #' @param X A \linkS4class{ERGExam} object
 #' @details These methods can be used to access metadata information stored in \linkS4class{ERGExam} objects. \cr \cr
 #' @return A character vector. For GetStimulusTable a data.frame.
 #' @name Get
-#'
 #' @describeIn Get Returns the channel names
 #' @exportMethod GetChannelNames
 #' @noMd
