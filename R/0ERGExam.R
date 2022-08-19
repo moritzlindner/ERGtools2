@@ -62,7 +62,8 @@ validERGExam <- function(object) {
     stop("No Protocol Name provided")
   }
 
-  if (object@ExamDate > as.POSIXct(object@Imported)) {
+  if (object@ExamDate > object@Imported) { # was: as.POSIXct(object@Imported))
+    cat(as.character(object@ExamDate),"-", as.character(object@Imported))
     stop("Exam date is in future.")
   }
 

@@ -55,6 +55,18 @@ setMethod("GetMeasurements",
               }
             }
 
+            # check all inputs valid
+
+            if(!all(Markers %in% GetMarkerNames(X))){
+              stop("'Markers' not in 'X'")
+            }
+            if(!all(Stimuli %in% GetStimulusNames(X))){
+              stop("'Stimuli' not in 'X'")
+            }
+            if(!all(Channels %in% GetChannelNames(X))){
+              stop("'Channels' not in 'X'")
+            }
+
             #display warnings/info
             if (Verbose) {
               if (isFALSE(all.equal(Channels, GetChannelNames(X)))) {
