@@ -37,10 +37,15 @@ ImportEpsionMeasures <- function(filename,
     recording_info <-
       get_content(filename, toc, "Header Table", sep = sep)
 
+
+    if (!all(c("Protocol", "Version", "Date performed","Test method","Animal #","DOB","Gender","Investigator", ) %in% rownames(recording_info))) {
+      stop(
+        "Table of content incomplete. Have these data been exported as anonymous? This is currently unsupported"
+      )
+    }
+
     # Get stimulus information
-    stim_info <- as.data.frame(
-      get_content(filename, toc, "Stimulus Table", sep = sep)
-    )
+    stim_info <- as.data.frame(get_content(filename, toc, "Stimulus Table", sep = sep))
     colnames(stim_info)[colnames(stim_info) == "cd.s.m."] <-
       "Intensity"
     stim_info$Background <- NA
@@ -87,7 +92,7 @@ ImportEpsionMeasures <- function(filename,
 
     # Define Channels
     channels <-
-      character(l = as.numeric(as.character(recording_info["Channels",])))
+      character(l = as.numeric(as.character(recording_info["Channels", ])))
     tmp <- unique(measurements[, c("Channel", "Eye")])
     channels[tmp$C] <- tmp$Eye
 
@@ -145,10 +150,10 @@ get_toc <- function(filename, sep = "\t") {
     # "Header Table" found twice, so its a vertical table
     EndOfTOC <-
       min(which(toc$Table == "")[which(toc$Table == "") > HeaderTabPos[1]]) # this is the first blank line after TOC
-    toc <- toc[1:EndOfTOC,]
+    toc <- toc[1:EndOfTOC, ]
   }
 
-  toc = toc[!toc$Table == "",]
+  toc = toc[!toc$Table == "", ]
   tmp <- toc$Table
   toc$Table <- NULL
   toc <-

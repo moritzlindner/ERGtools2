@@ -63,8 +63,7 @@ validERGExam <- function(object) {
   }
 
   if (object@ExamDate > object@Imported) { # was: as.POSIXct(object@Imported))
-    cat(as.character(object@ExamDate),"-", as.character(object@Imported))
-    stop("Exam date is in future.")
+    stop(paste("Exam date is in future:", as.character(object@ExamDate),"<", as.character(object@Imported) ))
   }
 
   if (object@DOB > as.POSIXct(object@ExamDate)) {
