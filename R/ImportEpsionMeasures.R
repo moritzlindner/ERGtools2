@@ -38,7 +38,7 @@ ImportEpsionMeasures <- function(filename,
       get_content(filename, toc, "Header Table", sep = sep)
 
 
-    if (!all(c("Protocol", "Version", "Date performed","Test method","Animal #","DOB","Gender","Investigator", ) %in% rownames(recording_info))) {
+    if (!all(c("Protocol", "Version", "Date performed","Test method","Animal #","DOB","Gender","Investigator") %in% rownames(recording_info))) {
       stop(
         "Table of content incomplete. Have these data been exported as anonymous? This is currently unsupported"
       )
