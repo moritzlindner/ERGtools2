@@ -125,7 +125,8 @@ ImportEpsionMeasures <- function(filename,
       Patient = recording_info["Animal #", 1],
       DOB = as.Date(as.character(recording_info["DOB", 1]), format =    "%d/%m/%Y"),
       Gender = recording_info["Gender", 1],
-      Investigator = recording_info["Investigator", 1]
+      Investigator = recording_info["Investigator", 1],
+      Imported = as.POSIXct(Sys.time())
     )
   } else{
     stop(paste(filename, " does not contain a Contents Table in first cell."))

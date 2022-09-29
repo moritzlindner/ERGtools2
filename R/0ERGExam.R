@@ -63,7 +63,7 @@ validERGExam <- function(object) {
   }
 
   if (object@ExamDate > object@Imported) { # was: as.POSIXct(object@Imported))
-    stop(paste("Exam date is in future:", as.character(object@ExamDate),"<", as.character(object@Imported) ))
+    stop(paste("Exam date is in future:", as.character(object@ExamDate),"<", object@Imported ))
   }
 
   if (object@DOB > as.POSIXct(object@ExamDate)) {
@@ -120,6 +120,5 @@ ERGExam <- setClass(
     Investigator = "character",
     Imported = "POSIXct"
   ),
-  prototype = list("Imported" = as.POSIXct(Sys.time())),
   validity = validERGExam
 )
