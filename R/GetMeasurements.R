@@ -12,7 +12,7 @@
 #' # get all measurements with the latest (highest number) repeat
 #' df<-GetMeasurements(ERG_Experiment,Repeats = function(x){x==max(x)},verbose=T)
 #' }
-#' @name GetData
+#' @name GetMeasurements
 #' @exportMethod GetMeasurements
 setGeneric(
   name = "GetMeasurements",
@@ -57,13 +57,13 @@ setMethod("GetMeasurements",
 
             # check all inputs valid
 
-            if(!all(Markers %in% GetMarkerNames(X))){
+            if (!all(Markers %in% GetMarkerNames(X))) {
               stop("'Markers' not in 'X'")
             }
-            if(!all(Stimuli %in% GetStimulusNames(X))){
+            if (!all(Stimuli %in% GetStimulusNames(X))) {
               stop("'Stimuli' not in 'X'")
             }
-            if(!all(Channels %in% GetChannelNames(X))){
+            if (!all(Channels %in% GetChannelNames(X))) {
               stop("'Channels' not in 'X'")
             }
 
@@ -102,7 +102,7 @@ setMethod("GetMeasurements",
             OUT <- OUT[((OUT$Step %in% Stimuli) &
                           (OUT$Channel %in% Channels) &
                           (OUT$Marker %in% Markers))
-                       , ]
+                       ,]
             OUT <-
               OUT[with(OUT, ave(
                 Repeat,
@@ -112,7 +112,7 @@ setMethod("GetMeasurements",
                 FUN = function(x) {
                   Repeats(x)
                 }
-              ) != 0), ]
+              ) != 0),]
 
             keepcols <-
               c(colnames(X@Measurements)[!(colnames(X@Measurements) %in% c("Voltage", "Time"))], Measures)
@@ -145,7 +145,7 @@ setMethod("GetMeasurements",
           })
 
 
-#' @describeIn GetData Returns the average traces.
+#' @describeIn GetMeasurements Returns the average traces.
 #' @exportMethod GetAverageTraces
 #' @noMd
 setGeneric(
@@ -222,10 +222,10 @@ setMethod("GetAverageTraces",
 
             for (S in Stimuli) {
               Current_Repeats <-
-                1:dim(X@Steps_AVG[[S]])[3][Repeats(1:dim(X@Steps_AVG[[S]])[3])]
+                1:dim(X@Data$Averages[[S]])[3][Repeats(1:dim(X@Data$Averages[[S]])[3])]
               for (R in Current_Repeats) {
                 curr <-
-                  as.data.frame(X@Steps_AVG[[S]][, Channels[Channels %in% 1:dim(X@Steps_AVG[[S]])[2]], R])
+                  as.data.frame(X@Data$Averages[[S]][, Channels[Channels %in% 1:dim(X@Data$Averages[[S]])[2]], R])
                 cn <-
                   GetChannelNames(X)[Channels]
                 cn[cn == ""] <-
@@ -251,3 +251,5 @@ setMethod("GetAverageTraces",
             }
             OUT
           })
+
+#' ------------------

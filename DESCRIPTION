@@ -1,22 +1,25 @@
 Package: ERGtools2
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
+Title: Importing and analysing Electroretinogram data in R
+Version: 0.2.0
 Author: person("Moritz", "Lindner", email = "moritz@lindnerlab.de", role = c("aut", "cre"))
 Maintainer: Moritz Lindner <moritz@lindnerlab.de>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: GPL (>= 3)
-Remotes: moritzlindner/ggBiosci
-Imports: 
+Remotes:
+    github::moritzlindner/EPhysData
+Depends:
+    EPhysData
+Imports:
     data.table,
-    PatchR,
-    ggplot2,
     tidyr,
     methods,
     knitr,
-    ggBiosci,
-    remotes
+    units,
+    remotes,
+    crayon,
+    EPhysData
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.0

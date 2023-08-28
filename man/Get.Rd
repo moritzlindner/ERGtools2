@@ -2,67 +2,80 @@
 % Please edit documentation in R/Get-methods.R
 \name{Get}
 \alias{Get}
-\alias{GetStimulusNames}
-\alias{GetMarkerNames}
-\alias{GetStimulusTable}
-\alias{GetProtocolName}
-\alias{GetGroupName}
-\alias{GetPatientName}
-\alias{GetExamDate}
-\alias{GetDOB}
+\alias{Eyes}
+\alias{Channels}
+\alias{Steps}
+\alias{Subject}
+\alias{StimulusTable}
+\alias{StimulusNames}
+\alias{MarkerNames}
+\alias{ProtocolName}
+\alias{GroupName}
+\alias{ExamDate}
+\alias{DOB}
+\alias{Measurements}
 \title{Accession methods for metadata from ERGExam objects}
 \usage{
-GetChannelNames(X)
+Eyes(X)
 
-GetStimulusNames(X)
+Channels(X)
 
-GetMarkerNames(X)
+Steps(X)
 
-GetStimulusTable(X)
+Subject(X)
 
-GetProtocolName(X)
+StimulusTable(X)
 
-GetGroupName(X)
+StimulusNames(X)
 
-GetPatientName(X)
+MarkerNames(X)
 
-GetExamDate(X)
+ProtocolName(X)
 
-GetDOB(X)
+GroupName(X)
 
-GetStimulusNames(X)
+ExamDate(X)
+
+DOB(X)
+
+Measurements(X)
 }
 \arguments{
-\item{X}{A \linkS4class{ERGExam} object}
+\item{X}{A \linkS4class{ERGExam} or \linkS4class{EohysRAW} object}
 }
 \value{
-A character vector. For GetStimulusTable a data.frame.
+A vector. For 'StimulusTable()' a data.frame and a function for 'GetFilterFunction()' and 'GetAverageFunction()'.
 }
 \description{
-`r lifecycle::badge("stable")` \cr
-These methods are used to access metadata information from \linkS4class{ERGExam} objects.
+These methods are used to access metadata information from \linkS4class{ERGExam} or \linkS4class{EohysRAW}  objects.
 }
 \details{
-These methods can be used to access metadata information stored in \linkS4class{ERGExam} objects. \cr \cr
+These methods can be used to access metadata information stored in \linkS4class{ERGExam} or \linkS4class{EohysRAW}  objects. \cr \cr
 }
 \section{Functions}{
 \itemize{
-\item \code{GetStimulusNames}: Returns the stimulus names.
+\item \code{Eyes}: Returns a the eyes of which the data has been recorded.
 
-\item \code{GetMarkerNames}: Returns the measurement parameter names (e.g: 'a','B','N1','P1').
+\item \code{Channels}: Returns the Channel names.
 
-\item \code{GetStimulusTable}: Returns the stimulus table
+\item \code{Steps}: Returns the steps of the exam
 
-\item \code{GetProtocolName}: Returns the recording protocol name.
+\item \code{Subject}: Returns the subject's name
 
-\item \code{GetGroupName}: Returns the group name.
+\item \code{StimulusTable}: Returns the stimulus table
 
-\item \code{GetPatientName}: Returns the subject name/ID.
+\item \code{StimulusNames}: Returns the stimulus names.
 
-\item \code{GetExamDate}: Returns the exam date.
+\item \code{MarkerNames}: Returns the measurement parameter names (e.g: 'a','B','N1','P1').
 
-\item \code{GetDOB}: Returns the date of birth.
+\item \code{ProtocolName}: Returns the recording protocol name.
 
-\item \code{GetStimulusNames}: Returns the stimulus names.
+\item \code{GroupName}: Returns the group name.
+
+\item \code{ExamDate}: Returns the exam date.
+
+\item \code{DOB}: Returns the date of birth.
+
+\item \code{Measurements}: Get Measurements table.
 }}
 

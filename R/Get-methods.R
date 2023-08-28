@@ -1,194 +1,224 @@
 #' Accession methods for metadata from ERGExam objects
 #'
-#' These methods are used to access metadata information from \linkS4class{ERGExam} objects.
-#' @param X A \linkS4class{ERGExam} object
-#' @details These methods can be used to access metadata information stored in \linkS4class{ERGExam} objects. \cr \cr
-#' @return A character vector. For GetStimulusTable a data.frame.
+#' These methods are used to access metadata information from \linkS4class{ERGExam} or \linkS4class{EohysRAW}  objects.
+#' @param X A \linkS4class{ERGExam} or \linkS4class{EohysRAW} object
+#' @details These methods can be used to access metadata information stored in \linkS4class{ERGExam} or \linkS4class{EohysRAW}  objects. \cr \cr
+#' @return A vector. For 'StimulusTable()' a data.frame and a function for 'GetFilterFunction()' and 'GetAverageFunction()'.
 #' @name Get
-#' @describeIn Get Returns the channel names
-#' @exportMethod GetChannelNames
-#' @noMd
+NULL
+
+#' @describeIn Get Returns a the eyes of which the data has been recorded.
+#' @exportMethod Eyes
 setGeneric(
-  name = "GetChannelNames",
+  name = "Eyes",
   def = function(X)
   {
-    standardGeneric("GetChannelNames")
+    standardGeneric("Eyes")
   }
 )
-
 #' @noMd
-setMethod("GetChannelNames",
+setMethod("Eyes",
           "ERGExam",
           function(X) {
-            X@Channels
+            unique(X@Metadata$Eye)
           })
-#' ------------------
-#' @describeIn Get Returns the stimulus names.
-#' @exportMethod GetStimulusNames
+
+#' @describeIn Get Returns the Channel names.
+#' @exportMethod Channels
 #' @noMd
 setGeneric(
-  name = "GetStimulusNames",
+  name = "Channels",
   def = function(X)
   {
-    standardGeneric("GetStimulusNames")
+    standardGeneric("Channels")
   }
 )
-
 #' @noMd
-setMethod("GetStimulusNames",
+setMethod("Channels",
           "ERGExam",
           function(X) {
-            X@Stimulus$Description
+            unique(X@Metadata$Channel)
           })
 
-#' ------------------
-#' @describeIn Get Returns the measurement parameter names (e.g: 'a','B','N1','P1').
-#' @exportMethod GetMarkerNames
+#' @describeIn Get Returns the steps of the exam
+#' @exportMethod Steps
 #' @noMd
 setGeneric(
-  name = "GetMarkerNames",
+  name = "Steps",
   def = function(X)
   {
-    standardGeneric("GetMarkerNames")
+    standardGeneric("Steps")
   }
 )
-
 #' @noMd
-setMethod("GetMarkerNames",
+setMethod("Steps",
           "ERGExam",
           function(X) {
-            unique(X@Measurements$Marker)
+            unique(X@Metadata$Step)
           })
 
-#' ------------------
+#' @describeIn Get Returns the subject's name
+#' @exportMethod Subject
+#' @noMd
+setGeneric(
+  name = "Subject",
+  def = function(X)
+  {
+    standardGeneric("Subject")
+  }
+)
+#' @noMd
+setMethod("Subject",
+          "ERGExam",
+          function(X) {
+            X@SubjectInfo$Subject
+          })
+
 #' @describeIn Get Returns the stimulus table
-#' @exportMethod GetStimulusTable
+#' @exportMethod StimulusTable
 #' @noMd
 setGeneric(
-  name = "GetStimulusTable",
+  name = "StimulusTable",
   def = function(X)
   {
-    standardGeneric("GetStimulusTable")
+    standardGeneric("StimulusTable")
   }
 )
 
 #' @noMd
-setMethod("GetStimulusTable",
+setMethod("StimulusTable",
           "ERGExam",
           function(X) {
             X@Stimulus
           })
 
-#' ------------------
-#' @describeIn Get Returns the recording protocol name.
-#' @exportMethod GetProtocolName
-#' @noMd
-setGeneric(
-  name = "GetProtocolName",
-  def = function(X)
-  {
-    standardGeneric("GetProtocolName")
-  }
-)
-
-#' @noMd
-setMethod("GetProtocolName",
-          "ERGExam",
-          function(X) {
-            X@ProtocolName
-          })
-
-#' ------------------
-#' @describeIn Get Returns the group name.
-#' @exportMethod GetGroupName
-#' @noMd
-setGeneric(
-  name = "GetGroupName",
-  def = function(X)
-  {
-    standardGeneric("GetGroupName")
-  }
-)
-
-#' @noMd
-setMethod("GetGroupName",
-          "ERGExam",
-          function(X) {
-            X@Group
-          })
-
-#' ------------------
-#' @describeIn Get Returns the subject name/ID.
-#' @exportMethod GetPatientName
-#' @noMd
-setGeneric(
-  name = "GetPatientName",
-  def = function(X)
-  {
-    standardGeneric("GetPatientName")
-  }
-)
-
-#' @noMd
-setMethod("GetPatientName",
-          "ERGExam",
-          function(X) {
-            X@Patient
-          })
-
-#' ------------------
-#' @describeIn Get Returns the exam date.
-#' @exportMethod GetExamDate
-#' @noMd
-setGeneric(
-  name = "GetExamDate",
-  def = function(X)
-  {
-    standardGeneric("GetExamDate")
-  }
-)
-
-#' @noMd
-setMethod("GetExamDate",
-          "ERGExam",
-          function(X) {
-            X@ExamDate
-          })
-
-#' ------------------
-#' @describeIn Get Returns the date of birth.
-#' @exportMethod GetDOB
-#' @noMd
-setGeneric(
-  name = "GetDOB",
-  def = function(X)
-  {
-    standardGeneric("GetDOB")
-  }
-)
-
-#' @noMd
-setMethod("GetDOB",
-          "ERGExam",
-          function(X) {
-            X@DOB
-          })
-
-#' ------------------
 #' @describeIn Get Returns the stimulus names.
-#' @exportMethod GetStimulusNames
+#' @exportMethod StimulusNames
 #' @noMd
 setGeneric(
-  name = "GetStimulusNames",
+  name = "StimulusNames",
   def = function(X)
   {
-    standardGeneric("GetStimulusNames")
+    standardGeneric("StimulusNames")
   }
 )
-
 #' @noMd
-setMethod("GetStimulusNames",
+setMethod("StimulusNames",
           "ERGExam",
           function(X) {
             X@Stimulus$Description
+          })
+
+#' @describeIn Get Returns the measurement parameter names (e.g: 'a','B','N1','P1').
+#' @exportMethod MarkerNames
+#' @noMd
+setGeneric(
+  name = "MarkerNames",
+  def = function(X)
+  {
+    standardGeneric("MarkerNames")
+  }
+)
+#' @noMd
+setMethod("MarkerNames",
+          "ERGExam",
+          function(X) {
+            unique(X@Measurements$Marker)
+          })
+
+#' @describeIn Get Returns the recording protocol name.
+#' @exportMethod ProtocolName
+#' @noMd
+setGeneric(
+  name = "ProtocolName",
+  def = function(X)
+  {
+    standardGeneric("ProtocolName")
+  }
+)
+
+#' @noMd
+setMethod("ProtocolName",
+          "ERGExam",
+          function(X) {
+            X@ExamInfo$ProtocolName
+          })
+
+#' @describeIn Get Returns the group name.
+#' @exportMethod GroupName
+#' @noMd
+setGeneric(
+  name = "GroupName",
+  def = function(X)
+  {
+    standardGeneric("GroupName")
+  }
+)
+
+#' @noMd
+setMethod("GroupName",
+          "ERGExam",
+          function(X) {
+            X@SubjectInfo$Group
+          })
+
+#' @describeIn Get Returns the exam date.
+#' @exportMethod ExamDate
+#' @noMd
+setGeneric(
+  name = "ExamDate",
+  def = function(X)
+  {
+    standardGeneric("ExamDate")
+  }
+)
+
+#' @noMd
+setMethod("ExamDate",
+          "ERGExam",
+          function(X) {
+            X@ExamInfo$ExamDate
+          })
+
+#' @describeIn Get Returns the date of birth.
+#' @exportMethod DOB
+#' @noMd
+setGeneric(
+  name = "DOB",
+  def = function(X)
+  {
+    standardGeneric("DOB")
+  }
+)
+
+#' @noMd
+setMethod("DOB",
+          "ERGExam",
+          function(X) {
+            X@SubjectInfo$DOB
+          })
+
+#' @describeIn Get Get Measurements table.
+#' @exportMethod Measurements
+#' @noMd
+setGeneric(
+  name = "Measurements",
+  def = function(X)
+  {
+    standardGeneric("Measurements")
+  }
+)
+#' @noMd
+setMethod("Measurements",
+          "ERGExam",
+          function(X) {
+            Measurements<-X@Measurements
+
+            Measurements<-merge(Measurements,X@Metadata, by.x="Recording",by.y = 0)
+            Measurements<-merge(Measurements,X@Stimulus, by="Step")
+            Measurements <-
+              Measurements[, c("Description", "Eye", "Channel", "Name", "Voltage", "Time")]
+            colnames(Measurements)<-c("Step", "Eye", "Channel", "Name", "Voltage", "Time")
+
+            return(Measurements)
           })

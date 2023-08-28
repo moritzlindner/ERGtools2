@@ -2,28 +2,42 @@
 % Please edit documentation in R/ImportEpsion.R
 \name{ImportEpsion}
 \alias{ImportEpsion}
-\title{Import ERG datas and measurements from CSV file}
+\title{Import ERG data and measurements from an Eosion CSV file}
 \usage{
-ImportEpsion(filename, sep = "\\t")
+ImportEpsion(
+  filename,
+  sep = "\\t",
+  Import = list("Raw", "Averaged", "Measurements")
+)
 }
 \arguments{
-\item{filename}{Path to file. Currently supported *.csv files exported from Diagnosys' Epsion that contain at least: An area with 1) a contents table, 2) a header table, 3) a stimulus table and 4) a marker table. This function in only tested on files with the default horizontal table arrangement but should function for files with a vertical arrangement as well. Behaves otherways similar to the argument \code{file} from \link[utils:read.table]{utils::read.table()}.}
+\item{filename}{Path to the file. Currently supported \code{'.csv'} or \code{'.txt'} files exported from Diagnosys' Epsion that contain at least:
+An area with 1) a contents table, 2) a header table, 3) a stimulus table, and 4) a marker table.
+This function is only tested on files with the default horizontal table arrangement but should function for files with a vertical arrangement as well.
+Behaves similarly to the argument \code{file} from \link[utils:read.table]{utils::read.table()}.}
 
-\item{sep}{The field separator character. Values on each line of the file are separated by this character. If sep = "" (the default for read.table) the separator is ‘white space’, that is one or more spaces, tabs, newlines or carriage returns.}
+\item{sep}{The field separator character. Values on each line of the file are separated by this character.
+If sep = "" (the default for read.table), the separator is ‘white space’, which includes spaces, tabs, newlines, or carriage returns.}
+
+\item{Import}{A list of character vectors specifying which parts of the data to import.
+Possible elements are "Raw" - for importing the raw recordings, "Averaged" - for importing the averaged recordings ("Results"), and "Measurements" - for importing the measured markers.}
 }
 \value{
-A \linkS4class{ERGExam} object
+A \linkS4class{ERGExam} object.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}} \cr
+\lifecycle::badge("stable")
+}
+\details{
 This function imports ERG recordings from *.csv files exported from Diagnosys' Epsion and creates an \link[=ERGExam]{ERGExam} object.
 }
 \examples{
 \dontrun{
-# import a *.csv files exported from Diagnosys' Epsion
-ERG_Experiment<-ImportEpsion("test.csv")
+# Import a *.csv file exported from Diagnosys' Epsion
+ERG_Experiment <- ImportEpsion("test.csv")
 }
+
 }
 \seealso{
-\linkS4class{ERGExam}, \link[utils:read.table]{utils::read.table()}
+\linkS4class{ERGExam}
 }
