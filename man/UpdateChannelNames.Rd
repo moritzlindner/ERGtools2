@@ -7,6 +7,8 @@
 UpdateChannelNames(X, from, to, Steps = Steps(X), Eyes = Eyes(X))
 }
 \arguments{
+\item{X}{An \code{EPhysData} object}
+
 \item{from}{A character vector with the original channel names to be replaced.}
 
 \item{to}{A character vector with the new channel names to replace the original ones.}

@@ -17,7 +17,21 @@
 )
 }
 \arguments{
+\item{X}{An \code{EPhysData} object}
+
+\item{Time}{Numeric vector of length 2 representing the time range for data extraction.
+Default is the entire time range (i.e., keep all data).}
+
+\item{TimeExclusive}{Keep only the two time points stated under \code{Time}, not the range.}
+
+\item{Repeats}{If X is an EPhysSet, this parameter can only be used if all EPhysData contained in the set has the same number of repeats.
+or a logical vector of the same length as repeats stored,}
+
+\item{Raw}{Logical indicating whether to get raw data or processed (filtered, averaged) data.}
+
 \item{Step, Eye, Channel}{Vector of values for Steps, Eyes, and Channels to subset}
+
+\item{...}{currently unused.}
 }
 \description{
 This method subsets an \code{ERGExam} object into a new object of the same class.
