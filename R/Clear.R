@@ -9,9 +9,6 @@
 #' @examples
 #' # Clear the Results slot of an ERGExam object
 #' cleared_exam <- clearResults(exam)
-#' @name Clear
-NULL
-
 #' @inheritParams Subset
 #' @export ClearMeasurements
 setGeneric(
