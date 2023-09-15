@@ -32,6 +32,10 @@ ImportEpsion <- function(filename,
                          sep = "\t",
                          Import = list ("Raw", "Averaged", "Measurements")) {
   message(paste("Importing", filename))
+  warning("Currently only supports imports with Raw data included")
+ if (!("Raw" %in% Import)){
+   Import = c(Import,"Raw")
+ }
 
   # Checks
   if (!file.exists(filename)) {
@@ -54,9 +58,9 @@ ImportEpsion <- function(filename,
     # get Table of content
     toc <- get_toc(filename, sep = sep)
 
-    if (!all(c("Header Table", "Marker Table", "Stimulus Table") %in% (rownames(toc)))) {
+    if (!all(c("Header Table", "Marker Table", "Stimulus Table", "Data Table") %in% (rownames(toc)))) {
       stop(
-        "'Header Table', 'Marker Table', 'Stimulus Table' must be included in the data set (even if they should not be imported). At least one of these is missing."
+        "'Header Table', 'Marker Table', 'Stimulus Table' and 'Data Table' must all be included in the data set (even if they should not be imported). At least one of these is missing."
       )
     }
 
@@ -77,14 +81,24 @@ ImportEpsion <- function(filename,
     # Get Measurements
     if ("Measurements" %in% Import) {
       measurements <- get_measurements(filename, toc, sep)
+      measurements$Recording<--1
     } else{
-      measurements <-  as.character(NULL)
+      measurements <-  data.frame()
     }
+    if ("Data Table" %in% rownames(toc)) {
+      tmp <- toc # modify to only get header of data table
+      tmp$Right <- tmp$Left + 5 # maximum width, if results are included
+      Data_Header <-
+        na.exclude(get_content(filename, tmp, "Data Table", sep = sep))
+      Data_Header$Eye <- tmp$Eye
+    }
+
+
 
     Metadata <- Data_Header[, c("Step", "Chan")]
     colnames(Metadata)[colnames(Metadata) == "Chan"] <- "Channel"
-    Metadata$Eye<-"Unknwon"
-    measurements$Recording<--1
+
+    Metadata$Eye<-"Unspecified"
     # Define channel types
     if ("Measurements" %in% Import) {
       tmp <- unique(measurements[, c("Step", "Eye", "Channel")])
@@ -144,17 +158,20 @@ ImportEpsion <- function(filename,
       )
     }
 
+    if (("Data Table" %in% rownames(toc))) {
+      tmp <- toc # modify to only get header of data table
+      tmp$Right <- tmp$Left + 5 # maximum width, if results are included
+      Data_Header <-
+        na.exclude(get_content(filename, tmp, "Data Table", sep = sep))
+      Data_Header$Eye <- tmp$Eye
+      Steps_RAW = vector("list", nrow(Data_Header))
+      Steps_AVG = vector("list", nrow(Data_Header))
+    }
 
     # Get Data
-    Steps_RAW=vector("list", length(stim_info$Step))
-    Steps_AVG=vector("list", length(stim_info$Step))
+
     if (("Data Table" %in% rownames(toc)) &&
         any(c("Raw", "Averaged") %in% Import)) {
-
-      tmp<-toc # modify to only get header of data table
-      tmp$Right<-tmp$Left+5 # maximum width, if results are included
-      Data_Header<-na.exclude(get_content(filename, tmp, "Data Table", sep = sep))
-      Data_Header$Eye<-tmp$Eye
 
       pb = txtProgressBar(min = 0, max = dim(Data_Header)[1], initial = 0)
       for (i in 1:dim(Data_Header)[1]){
@@ -246,16 +263,18 @@ ImportEpsion <- function(filename,
       close(pb)
     }
 
-    # Transfer Group info to recording_info table
-    if(is.null(unique(measurements$Group))){
-      measurements$Group<-""
-    }
-    recording_info["Group", 1] <- unique(measurements$Group)
+    if ("Measurements" %in% Import) {
+      # Transfer Group info to recording_info table
+      if(is.null(unique(measurements$Group))){
+        measurements$Group<-""
+      }
+      recording_info["Group", 1] <- unique(measurements$Group)
 
-    # Drop further duplicated info from measurements
-    measurements <-
-      measurements[, c("Recording", "Marker", "Voltage", "Time")]
-    colnames(measurements)[colnames(measurements)=="Marker"]<-"Name"
+      # Drop further duplicated info from measurements
+      measurements <-
+        measurements[, c("Recording", "Marker", "Voltage", "Time")]
+      colnames(measurements)[colnames(measurements)=="Marker"]<-"Name"
+    }
 
     DOB <-
       as.Date(as.character(recording_info["DOB", 1]), format =    "%d/%m/%Y")
@@ -271,7 +290,7 @@ ImportEpsion <- function(filename,
       Metadata = Metadata,
       Stimulus = stim_info,
       Averaged = Steps_AVG,
-      Measurements = measurements,# CONTINUE HERE: STEP+CHANNEL MUST BE CONVERTED INTO UNIQUE DATA ROW
+      Measurements = measurements,
       ExamInfo=list(ProtocolName = recording_info["Protocol", 1],
                     Version = recording_info["Version", 1],
                     ExamDate = as.POSIXct(strptime(recording_info["Date performed", 1], format =
@@ -288,7 +307,7 @@ ImportEpsion <- function(filename,
       )
     )
   }else{
-    stop(paste(filename, " does not begin a Contents Table."))
+    stop(paste(filename, " does not begin with a table of content."))
   }
 }
 

@@ -7,7 +7,9 @@ validERGExam <- function(object) {
   # Check if the data frame has the required columns
   required_columns <- c("Step", "Eye", "Channel")
   if (!all(required_columns %in% names(object@Metadata))) {
-    stop("Metadata provided is not in correct format. Must be a data.frame with the columns 'Step', 'Eye', and 'Channel'.")
+    stop(
+      "Metadata provided is not in correct format. Must be a data.frame with the columns 'Step', 'Eye', and 'Channel'."
+    )
   }
 
   # Check if the data types of the columns are character
@@ -22,8 +24,8 @@ validERGExam <- function(object) {
   # }
 
   # Check if Eye entries valid
-  if (!all(unique(object@Metadata$Eye) %in% c("RE","LE"))){
-    stop("Only 'RE' and 'LE' are allowed as eye identifiers")
+  if (!all(unique(object@Metadata$Eye) %in% c("RE", "LE","Unspecified"))) {
+    stop("Only 'RE', 'LE' or 'Unspecified' are allowed as eye identifiers")
   }
 
   # Rejected (inEPhysRaw) - must be the same across all channels within one eye
@@ -35,11 +37,13 @@ validERGExam <- function(object) {
       feature.df <- tryCatch(
         as.data.frame(do.call(cbind, feature.list)),
         error = function(e) {
-          stop("'Rejected' slots are filled with vectors of unequal length in step ",
-               s,
-               "eye",
-               e,
-               ".")
+          stop(
+            "'Rejected' slots are filled with vectors of unequal length in step ",
+            s,
+            "eye",
+            e,
+            "."
+          )
         }
       )
       if (!all(apply(feature.df, 1, function(x) {
@@ -62,7 +66,8 @@ validERGExam <- function(object) {
   for (s in unique(object@Metadata$Step)) {
     for (c in unique(object@Metadata$Channel[object@Metadata$Step == s])) {
       ids.equal <-
-        which(object@Metadata$Step == s & object@Metadata$Channel == c)
+        which(object@Metadata$Step == s &
+                object@Metadata$Channel == c)
       feature.list <-
         lapply(object@Data[ids.equal], function(x) {
           deparse1(FilterFunction(x))
@@ -97,7 +102,8 @@ validERGExam <- function(object) {
   for (s in unique(object@Metadata$Step)) {
     for (c in unique(object@Metadata$Channel[object@Metadata$Step == s])) {
       ids.equal <-
-        which(object@Metadata$Step == s & object@Metadata$Channel == c)
+        which(object@Metadata$Step == s &
+                object@Metadata$Channel == c)
       feature.list <-
         lapply(object@Data[ids.equal], function(x) {
           deparse1(AverageFunction(x))
@@ -128,46 +134,62 @@ validERGExam <- function(object) {
     }
   }
 
-
   # Averaged slot
   if (length(object@Averaged) != 0) {
     if (length(object@Averaged) != length(object@Data)) {
       stop("Length of 'Averaged' slot does not match that of 'Data'.")
     }
     if (!all(unlist(lapply(object@Averaged, function(x) {
-      inherits(x, "EPhysData")
+      (inherits(x, "EPhysData") | is.null(x))
     })))) {
-      stop("'Averaged' slot must be a list of EPhysData objects.")
+      stop("'Averaged' slot must be a list of 'EPhysData' objects or an empty list.")
     }
 
-   val_dim<-unique(unlist(lapply(Steps_AVG,function(x){dim(x)[2]})))
-   if (!(length(val_dim) == 1 & val_dim == 1)) {
-     stop("'Averaged' slot must be a list of EPhysData objects with no repeated measurements (i.e. one single data column).")
-   }
-
-    for (i in length(object)){
-      if(length(object@Averaged[[i]])!=length(object@Data[[i]])){
-        stop("Length of averaged data for ",Metadata(object)[i,]," does not match that of corresponding raw data.")
+    val_dim <- unique(unlist(lapply(object@Averaged, function(x) {
+      dim(x)[2]
+    })))
+    if (!is.null(val_dim)){
+      if (!(length(val_dim) == 1 & (val_dim == 1))){
+        stop(
+          "'Averaged' slot must be a list of EPhysData objects with no repeated measurements (i.e. one single data column)."
+        )
       }
     }
+
+    if (!is.null(val_dim)) {
+      for (i in length(object)) {
+        if (length(object@Averaged[[i]]) != length(object@Data[[i]])) {
+          stop(
+            "Length of averaged data for ",
+            Metadata(object)[i,],
+            " does not match that of corresponding raw data."
+          )
+        }
+      }
+    }
+
   }
 
   # Measurements slot
   if (length(object@Measurements) != 0) {
-    required_columns <- c("Recording","Name", "Time", "Voltage")
+    required_columns <- c("Recording", "Name", "Time", "Voltage")
     if (!all(required_columns %in% names(object@Measurements))) {
-      stop("Measurements provided are not in correct format. Must be a data.frame with the columns 'Recording', 'Name', 'Time', and 'Voltage'.")
+      stop(
+        "Measurements provided are not in correct format. Must be a data.frame with the columns 'Recording', 'Name', 'Time', and 'Voltage'."
+      )
     }
     if (!all(object@Measurements$Recording %in% 1:nrow(Metadata(object)))) {
       stop("'Recording'(s) specified do not match Data/Metadata defined in the object. ")
     }
-    if (!(deparse_unit(object@Measurements$Time) %in% c("us","ms","s", "min", "h", "d", "w"))) {
+    if (!(
+      deparse_unit(object@Measurements$Time) %in% c("us", "ms", "s", "min", "h", "d", "w")
+    )) {
       stop("In 'Measurements', 'Time' should be either of 'us','ms','s','min','h','d','w'")
     }
   }
 
   # Stimulus slot
-  if(!all(object@Stimulus$Step %in% unique(Metadata(object)$Step))){
+  if (!all(object@Stimulus$Step %in% unique(Metadata(object)$Step))) {
     stop("All stimuli described must correspond to a Step as defined in 'Metadata'.")
   }
 
@@ -182,9 +204,9 @@ validERGExam <- function(object) {
 
 
   # Dates
-    dob <- object@SubjectInfo$DOB
-    exam_date <- object@ExamInfo$ExamDate
-    imported_date <- object@Imported
+  dob <- object@SubjectInfo$DOB
+  exam_date <- object@ExamInfo$ExamDate
+  imported_date <- object@Imported
 
   if (("Date" %in% class(dob)) &&
       ("POSIXct" %in% class(exam_date)) &&
@@ -265,15 +287,24 @@ ERGExam <- setClass(
   "ERGExam",
   contains = "EPhysSet",
   slots = c(
-    Data = "list",  # Data is a list of EPhysData objects
-    Metadata = "data.frame",  # Metadata is a data frame
-    Stimulus = "data.frame",  # Stimulus is a data frame
-    Averaged = "list",  # Averaged is a list
-    Averaged.imported = "logical",  # Averaged.imported is a logical
-    Measurements = "data.frame",  # Measurements is a data frame
-    Measurements.imported = "logical",  # Measurements.imported is a logical
-    ExamInfo = "list",  # ExamInfo is a list
-    SubjectInfo = "list",  # SubjectInfo is a list
+    Data = "list",
+    # Data is a list of EPhysData objects
+    Metadata = "data.frame",
+    # Metadata is a data frame
+    Stimulus = "data.frame",
+    # Stimulus is a data frame
+    Averaged = "list",
+    # Averaged is a list
+    Averaged.imported = "logical",
+    # Averaged.imported is a logical
+    Measurements = "data.frame",
+    # Measurements is a data frame
+    Measurements.imported = "logical",
+    # Measurements.imported is a logical
+    ExamInfo = "list",
+    # ExamInfo is a list
+    SubjectInfo = "list",
+    # SubjectInfo is a list
     Imported = "POSIXct"
   ),
   prototype = list(
@@ -287,7 +318,7 @@ ERGExam <- setClass(
     Stimulus = data.frame(
       Step = character(),
       Description = character(),
-      Intensity = as_units(integer(),unitless),
+      Intensity = as_units(integer(), unitless),
       Background = character(),
       Type = character()
     ),
@@ -296,8 +327,8 @@ ERGExam <- setClass(
     Measurements = data.frame(
       Recording = numeric(),
       Name = character(),
-      Time = as_units(integer(),"s"),
-      Value = as_units(integer(),unitless),
+      Time = as_units(integer(), "s"),
+      Value = as_units(integer(), unitless),
       stringsAsFactors = FALSE
     ),
     Measurements.imported = logical(),
@@ -418,8 +449,8 @@ newERGExam <-
            Measurements =  data.frame(
              Recording = numeric(),
              Name = character(),
-             Time = as_units(integer(),"s"),
-             Value = as_units(integer(),unitless),
+             Time = as_units(integer(), "s"),
+             Value = as_units(integer(), unitless),
              stringsAsFactors = FALSE
            ),
            ExamInfo,
@@ -437,8 +468,8 @@ newERGExam <-
     obj@SubjectInfo <- SubjectInfo
 
     # Set default values for other slots
-    obj@Averaged.imported <- length(obj@Averaged)!=0
-    obj@Measurements.imported <- nrow(obj@Measurements)!=0
+    obj@Averaged.imported <- length(obj@Averaged) != 0
+    obj@Measurements.imported <- nrow(obj@Measurements) != 0
     obj@Imported <- as.POSIXct(Sys.time())
 
     # Call the validity method to check if the object is valid
@@ -460,17 +491,17 @@ setMethod("show",
             cat("An object of class ERGExam")
             cat(
               green("\nSubject:\t"),
-              green(Subject(X)),
+              green(Subject(object)),
               ", ",
-              as.character(DOB(X)),
+              as.character(DOB(object)),
               ", ",
               object@SubjectInfo$Gender,
               sep = ""
             )
-            cat(green("\nExam Date:\t", as.character(ExamDate(X))))
+            cat(green("\nExam Date:\t", as.character(ExamDate(object))))
             cat("\nProtocol:\t", object@ExamInfo$ProtocolName)
             cat("\nSteps:\t\t")
-            cat(X@Stimulus$Description, sep = "\n\t\t")
+            cat(object@Stimulus$Description, sep = "\n\t\t")
             cat("Eyes:\t", Eyes(object), sep = "\t")
             cat("\nChannels:\t")
             cat(Channels(object), sep = "\n\t\t")
@@ -480,14 +511,14 @@ setMethod("show",
             if (length(object@Averaged) == 0) {
               cat("\nNo averaged data stored in object.")
             } else {
-              if(X@Averaged.imported){
+              if (object@Averaged.imported) {
                 cat(green("\n*Averaged data imported from external source.*"))
               }
             }
             if (length(object@Measurements) == 0) {
               cat("\nNo measurements stored in object.")
             } else {
-              if(X@Averaged.imported){
+              if (object@Averaged.imported) {
                 cat(green("\n*Measurements imported from external source.*"))
               }
             }
