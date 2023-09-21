@@ -112,7 +112,7 @@ ImportEpsionProtocol<-function(filename){
   for (s in 1:Protocol@nSteps){
     currStep<-new("Step")
     currStep@Description <-
-      stri_enc_toutf8(StepParam[[s]]$x[rownames(StepParam[[s]]) == "Description"])
+      StepParam[[s]]$x[rownames(StepParam[[s]]) == "Description"]
     currStep@Adaptation <-
       StepParam[[s]]$x[rownames(StepParam[[s]]) == "Adaptation required"]
     currStep@SampleFrequency <-
