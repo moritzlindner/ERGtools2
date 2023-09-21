@@ -7,7 +7,8 @@
 ImportEpsion(
   filename,
   sep = "\\t",
-  Import = list("Raw", "Averaged", "Measurements")
+  Import = list("Averaged", "Measurements"),
+  Protocol = NULL
 )
 }
 \arguments{
@@ -20,7 +21,9 @@ Behaves similarly to the argument \code{file} from \link[utils:read.table]{utils
 If sep = "" (the default for read.table), the separator is ‘white space’, which includes spaces, tabs, newlines, or carriage returns.}
 
 \item{Import}{A list of character vectors specifying which parts of the data to import.
-Possible elements are "Raw" - for importing the raw recordings, "Averaged" - for importing the averaged recordings ("Results"), and "Measurements" - for importing the measured markers.}
+Possible elements are "Raw" - for importing the raw recordings, "Averaged" - for importing the averaged recordings ("Results"), and "Measurements" - for importing the measured markers. Either of "Raw" or "Averaged" must be selected.}
+
+\item{Protocol}{An S4 object of class \link[Protocol]{Protocol()} or a list thereof.}
 }
 \value{
 A \linkS4class{ERGExam} object.
@@ -39,5 +42,5 @@ ERG_Experiment <- ImportEpsion("test.csv")
 
 }
 \seealso{
-\linkS4class{ERGExam}
+\linkS4class{ERGExam} \link[Protocol]{Protocol()}
 }

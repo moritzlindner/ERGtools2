@@ -7,18 +7,18 @@
 \usage{
 GetMeasurements(
   X,
-  Channels = GetChannelNames(X),
-  Stimuli = GetStimulusNames(X),
+  Channels = Channels(X),
+  Stimuli = StimulusNames(X),
   Repeats = "ALL",
-  Markers = GetMarkerNames(X),
+  Markers = MarkerNames(X),
   Measures = c("Voltage", "Time"),
   Verbose = T
 )
 
 GetAverageTraces(
   X,
-  Channels = GetChannelNames(X),
-  Stimuli = GetStimulusNames(X),
+  Channels = Channels(X),
+  Stimuli = StimulusNames(X),
   Repeats = "ALL",
   Verbose = T
 )

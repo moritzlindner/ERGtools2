@@ -27,21 +27,3 @@ setMethod("ClearMeasurements",
               return(X)
             }
           })
-
-#' @export ClearAveraged
-setGeneric(
-  name = "ClearAveraged",
-  def = function(X) {
-    standardGeneric("ClearAveraged")
-  }
-)
-#' @noMd
-setMethod("ClearAveraged",
-          signature(X = "ERGExam"),
-          function(X) {
-            X@Averaged <- data.frame()
-            X@Averaged.imported <- F
-            if (validObject(X)) {
-              return(X)
-            }
-          })

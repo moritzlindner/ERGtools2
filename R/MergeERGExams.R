@@ -37,36 +37,52 @@ setMethod("MergeERGExams",
                 tryCatch(
                   out <- merge2ERGExams(out, ex),
                   error = function(e) {
-                    stop("Mergin Exams failed for ", )
+                    stop("Mergin Exams failed for ",)
                   }
                 )
               }
+              return(out)
             }
           })
 
 #' @noMd
 #' @keywords internal
 merge2ERGExams <- function(exam1, exam2) {
+  if ((exam1@Averaged != exam2@Averaged)) {
+    stop("Objects to merge contain averaged and unaveraged data.")
+  }
+
   # Get the maximum Step value from both objects
   maxStep <- max(exam1@Metadata$Step)
-  # Combine data, metadata adn stimulus
+  # Combine data, metadata and stimulus
   mergedData <- c(exam1@Data, exam2@Data)
   meta2 <- Metadata(exam2)
   meta2$Step <- meta2$Step + maxStep
   mergedMetadata <- rbind(Metadata(exam1), meta2)
+  stimtab1 <- StimulusTable(exam1)
+  if (is.null(stimtab1$ProtocolName)) {
+    stimtab1$ProtocolName <- ProtocolName(exam1)
+  }
   stimtab2 <- StimulusTable(exam2)
+  if (is.null(stimtab2$ProtocolName)) {
+    stimtab2$ProtocolName <- ProtocolName(exam2)
+  }
   stimtab2$Step <- stimtab2$Step + maxStep
-  mergedStimulus <- rbind(StimulusTable(exam1), stimtab2)
+  mergedStimulus <- rbind(stimtab1, stimtab2)
   measurements2 <- exam2@Measurements
-  measurements2$Recording <- measurements2$Recording + length(exam1)
   mergedMeasurements <-  rbind(exam1@Measurements, measurements2)
+
+  examinfo <- exam1@ExamInfo
+  examinfo$ExamDate <- c(ExamDate(exam1), ExamDate(exam2))
+  examinfo$Filename <-
+    c(exam1@ExamInfo$Filename, exam2@ExamInfo$Filename)
 
   # Create a new ERGExam instance with merged data and metadata
   mergedExam <- newERGExam(
     Data = c(exam1@Data, exam2@Data),
     Metadata = mergedMetadata,
     Stimulus = mergedStimulus,
-    Averaged = c(exam1@Averaged, exam2@Averaged),
+    Averaged = exam1@Averaged,
     Measurements = mergedMeasurements,
     ExamInfo = exam1@ExamInfo,
     SubjectInfo = exam1@SubjectInfo
@@ -83,7 +99,7 @@ merge2ERGExams <- function(exam1, exam2) {
     stop("ExamInfo$ExamDate should differ by a maximum of 3 hours.")
   }
 
-  if (nrow(mergedStimulus) != length(unique(mergedStimulus))) {
+  if (nrow(mergedStimulus) != nrow(unique(mergedStimulus))) {
     stop("Rows of Stimulus must be unique in the merged object.")
   }
 

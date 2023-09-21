@@ -19,6 +19,8 @@ Imports:
     units,
     remotes,
     crayon,
+    stringi,
+    stringr,
     EPhysData
 Encoding: UTF-8
 LazyData: true

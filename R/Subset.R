@@ -4,6 +4,7 @@
 #'
 #' @inheritParams EPhysData::Subset
 #' @param Step,Eye,Channel Vector of values for Steps, Eyes, and Channels to subset
+#' @param ByRecordingIndex Subset by recording index instead of \code{Step}, \code{Eye} and \code{Channel}. Default is \code{FALSE}. If set to a numeric vector,  \code{Step}, \code{Eye} and \code{Channel} will be ignored and only the recording with the given indices will be kept.
 #' @details The \code{Subset} function creates a new \code{ERGExam}  object containing a subset of the data from the original object, based on the provided parameters.
 #' @seealso \link[EPhysData:Subset]{EPhysData::Subset}
 #' @importFrom EPhysData Subset newEPhysSet Metadata
@@ -19,11 +20,32 @@ setMethod("Subset",
                    Step = Steps(X),
                    Eye = Eyes(X),
                    Channel = Channels(X),
+                   ByRecordingIndex = FALSE,
                    ...) {
-            Metadata_select <-
-              list("Step" = Step,
-                   "Eye" = Eye,
-                   "Channel" = Channel)
+
+            if(is.logical(ByRecordingIndex)){
+              if(!ByRecordingIndex){
+                Metadata_select <- make_metadata_parilist(X)
+                Metadata_select$Step <- Step
+                Metadata_select$Eye <- Eye
+                Metadata_select$Channel <- Channel
+              }else{
+                stop(ByRecordingIndex, " is not a valid value for 'ByRecordingIndex'.")
+              }
+            }else{
+              if(is.numeric(ByRecordingIndex)){
+                if(!all(ByRecordingIndex %in% 1:nrow(Metadata(X)))){
+                  stop("All elements of 'ByRecordingIndex' must be valid recording indices.")
+                }
+                Metadata_select <- pairlist()
+                df <- Metadata(X)[ByRecordingIndex,]
+                for (cn in colnames(df)) {
+                  Metadata_select[[cn]] <- unique(df[, cn])
+                }
+              }else{
+                stop("'ByRecordingIndex' must be FALSE or numeric.")
+              }
+            }
 
             # metadata subset
             MetaSubset<-array(dim=dim(Metadata(X)))
@@ -46,22 +68,9 @@ setMethod("Subset",
               Simplify = FALSE
             )
 
-
-           # subset Averaged Slot
-           Averaged_Set <- newEPhysSet(X@Averaged, X@Metadata)
-           Averaged_Set <- Subset(
-             Averaged_Set,
-             Time = Time,
-             TimeExclusive = TimeExclusive,
-             Repeats = TRUE,
-             Metadata_select = Metadata_select,
-             Raw = TRUE,
-             Simplify = FALSE
-           )
-
            X@Data <- Y@Data
            X@Stimulus<-X@Stimulus[X@Stimulus$Step %in% Y@Metadata$Step,]
-           X@Averaged <- Averaged_Set@Data
+           X@Averaged <- X@Averaged
 
            indexupdate <- as.data.frame(cbind(cumsum(MetaSubset), 1:nrow(Metadata(X))))
            colnames(indexupdate)<-c("new","old")

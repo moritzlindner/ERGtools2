@@ -11,8 +11,9 @@
 #' @param sep The field separator character. Values on each line of the file are separated by this character.
 #'   If sep = "" (the default for read.table), the separator is ‘white space’, which includes spaces, tabs, newlines, or carriage returns.
 #' @param Import A list of character vectors specifying which parts of the data to import.
-#'   Possible elements are "Raw" - for importing the raw recordings, "Averaged" - for importing the averaged recordings ("Results"), and "Measurements" - for importing the measured markers.
-#' @seealso \linkS4class{ERGExam}
+#'   Possible elements are "Raw" - for importing the raw recordings, "Averaged" - for importing the averaged recordings ("Results"), and "Measurements" - for importing the measured markers. Either of "Raw" or "Averaged" must be selected.
+#' @param Protocol An S4 object of class \link[Protocol]{Protocol()} or a list thereof.
+#' @seealso \linkS4class{ERGExam} \link[Protocol]{Protocol()}
 #'
 #' @examples
 #' \dontrun{
@@ -25,19 +26,42 @@
 #' @importFrom data.table fread
 #' @importFrom units as_units
 #' @importFrom utils read.csv
+#' @importFrom stringr str_detect str_remove str_trim
 #' @name ImportEpsion
 #' @export
 #'
 ImportEpsion <- function(filename,
                          sep = "\t",
-                         Import = list ("Raw", "Averaged", "Measurements")) {
+                         Import = list ("Averaged", "Measurements"),
+                         Protocol = NULL) {
   message(paste("Importing", filename))
-  warning("Currently only supports imports with Raw data included")
- if (!("Raw" %in% Import)){
-   Import = c(Import,"Raw")
- }
 
   # Checks
+
+  if (is.null(Protocol)) {
+    warning(
+      "Provision of the protocol is recommended and may be essential if marker table is not provided or does not include markers for each step and channel of the recording."
+    )
+  }else{
+    if (!inherits(Protocol, "Protocol")) {
+      if (is.list(Protocol)) {
+        if (!(all(unlist(lapply(Protocol, function(x) {
+          inherits(x, "Protocol")
+        }))))) {
+          stop("'Protocol' must be an object of class 'Protocol' or a list thereof.")
+        }
+      } else{
+        stop("'Protocol' must be an object of class 'Protocol' or a list thereof.")
+      }
+    }
+  }
+
+  contains_raw <- "Raw" %in% Import
+  contains_averaged <- "Averaged" %in% Import
+  if (!((contains_raw || contains_averaged) && !(contains_raw && contains_averaged))) {
+    stop("Exactly one of 'Raw' and 'Averaged' must be selected for import.")
+  }
+
   if (!file.exists(filename)) {
     stop("File ", filename, " does not exist")
   }
@@ -75,8 +99,34 @@ ImportEpsion <- function(filename,
       )
     }
 
+    # Get Protocol info
+    if (!is.null(Protocol)) {
+      tmp1<-sub(" \\[.*", "", recording_info["Protocol","Value"])
+      if(is.list(Protocol)){
+        idx<-which(tmp1==unlist(lapply(Protocol,function(x){x@Name})))
+        if(is.null(idx)){
+          stop("Required protocol not in list.")
+        }
+        if(length(idx)>1){
+          stop("Duplicate protocol entry in 'Protocols' list.")
+        }
+        Protocol<-Protocol[[idx]]
+      }else{
+        if(Protocol@Name!=tmp){
+          stop("Provided protocol is not the required.")
+        }
+      }
+    }
+
     # Get stimulus information
     stim_info<-get_stim_info(filename, toc, sep)
+
+    if(!is.null(Protocol)){
+      for (i in 1:nrow(stim_info)){
+        stim_info$Background[i]<-Protocol@Step[[stim_info$Step[i]]]@Adaptation
+      }
+
+    }
 
     # Get Measurements
     if ("Measurements" %in% Import) {
@@ -93,69 +143,132 @@ ImportEpsion <- function(filename,
       Data_Header$Eye <- tmp$Eye
     }
 
-
-
-    Metadata <- Data_Header[, c("Step", "Chan")]
+    Metadata <- Data_Header[, c("Step", "Chan","Result")]
     colnames(Metadata)[colnames(Metadata) == "Chan"] <- "Channel"
 
     Metadata$Eye<-"Unspecified"
-    # Define channel types
-    if ("Measurements" %in% Import) {
-      tmp <- unique(measurements[, c("Step", "Eye", "Channel")])
-      for (s in unique(Metadata$Step)) {
-        for (c in unique(Metadata$Channel[Metadata$Step == s])) {
-          measurements[measurements$Step == s &
-                         measurements$Channel == c, "Recording"] <-
-            which(Metadata$Step == s & Metadata$Channel == c)
-          curr_markers <- measurements[measurements$Step == s &
-                                         measurements$Channel == c, "Marker"]
-          Metadata$Eye[Metadata$Step == s &
-                         Metadata$Channel == c] <-
-            tmp$Eye[tmp$Step == s &
-                      tmp$Channel == c]
-          if (all(c("a", "B") %in% curr_markers)) {
-            Metadata$Channel[Metadata$Step == s &
-                               Metadata$Channel == c] <-
-              "ERG_auto"
 
-            measurements$Channel[measurements$Step == s &
-                                   measurements$Channel == c] <-
-              "ERG_auto"
+    # Define channel types
+    if (!is.null(Protocol)) {
+      Metadata$Channel_Name <- "Unknown"
+      for (i in 1:nrow(Metadata)) {
+        Metadata$Channel_Name[i] <-
+          Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Name
+        Metadata$Eye[i] <-
+          Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Eye
+
+        inchanneldesc <-
+          str_detect(Metadata$Channel_Name[i], c("OD", "OS", "RE", "LE"))
+        if (!any(c("OD", "OS", "RE", "LE") %in% Metadata$Eye[i])) {
+          if (sum(inchanneldesc) == 1) {
+            Metadata$Eye[i] <- c("OD", "OS", "RE", "LE")[inchanneldesc]
+          }
+        }
+        if (sum(inchanneldesc) == 1) {
+          Metadata$Channel_Name[i] <-
+            str_remove(Metadata$Channel_Name[i], c("OD", "OS", "RE", "LE")[inchanneldesc])
+          Metadata$Channel_Name[i] <-
+            str_trim(Metadata$Channel_Name[i])
+        }
+        if (Metadata$Channel_Name[i] == "") {
+          curr_markers <-
+            unlist(lapply(Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Markers, function(x) {
+              x@Name
+            }))
+          if (all(c("a", "B") %in% curr_markers)) {
+            Metadata$Channel_Name[i] <- "ERG_auto"
           }
           if (all(c("OP1", "OP2", "OP3") %in% curr_markers)) {
-            Metadata$Channel[Metadata$Step == s &
-                               Metadata$Channel == c] <- "OP_auto"
-
-            measurements$Channel[measurements$Step == s &
-                                   measurements$Channel == c] <-
-              "OP_auto"
+            Metadata$Channel_Name[i] <- "OP_auto"
           }
           suppressWarnings({
             if (all(c("N1", "P1") == curr_markers)) {
-              Metadata$Channel[Metadata$Step == s &
-                                 Metadata$Channel == c] <-
-                "ERG_Flicker"
-
-              measurements$Channel[measurements$Step == s &
-                                     measurements$Channel == c] <-
-                "ERG_Flicker"
+              Metadata$Channel_Name[i] <- "Flicker_auto"
             }
             if (all(c("N1", "P1", "N2") == curr_markers)) {
+              Metadata$Channel_Name[i] <- "VEP_auto"
+
+            }
+          })
+          if(Metadata$Channel_Name[i]==""){
+            Metadata$Channel_Name[i]<-"Unknown"
+          }
+        }
+
+      }
+      Metadata$Recording<-1:nrow(Metadata)
+      measurements <- merge(measurements, Metadata, by = c("Step", "Channel"))
+      measurements$Eye<-measurements$Eye.y
+      measurements$Eye.x<-NULL
+      measurements$Eye.y<-NULL
+      measurements$Recording<-measurements$Recording.y
+      measurements$Recording.x<-NULL
+      measurements$Recording.y<-NULL
+      measurements$Channel<-measurements$Channel_Name
+      measurements$Result<-NULL
+      measurements$Channel_Name<-NULL
+
+      Metadata$Channel<-Metadata$Channel_Name
+      Metadata$Channel_Name<-NULL
+
+    }else{
+      if ("Measurements" %in% Import) {
+        tmp <- unique(measurements[, c("Step", "Eye", "Channel","Repeat")])
+        for (s in unique(measurements$Step)) {
+          for (c in unique(measurements$Channel[measurements$Step == s])) {
+            measurements[measurements$Step == s &
+                           measurements$Channel == c, "Recording"] <-
+              which(Metadata$Step == s & Metadata$Channel == c)
+            curr_markers <- measurements[measurements$Step == s &
+                                           measurements$Channel == c, "Marker"]
+            Metadata$Eye[Metadata$Step == s &
+                           Metadata$Channel == c] <-
+              tmp$Eye[tmp$Step == s &
+                        tmp$Channel == c]
+            if (all(c("a", "B") %in% curr_markers)) {
               Metadata$Channel[Metadata$Step == s &
                                  Metadata$Channel == c] <-
-                "VEP_auto"
+                "ERG_auto"
 
               measurements$Channel[measurements$Step == s &
                                      measurements$Channel == c] <-
-                "VEP_auto"
+                "ERG_auto"
             }
-          })
+            if (all(c("OP1", "OP2", "OP3") %in% curr_markers)) {
+              Metadata$Channel[Metadata$Step == s &
+                                 Metadata$Channel == c] <- "OP_auto"
+
+              measurements$Channel[measurements$Step == s &
+                                     measurements$Channel == c] <-
+                "OP_auto"
+            }
+            suppressWarnings({
+              if (all(c("N1", "P1") == curr_markers)) {
+                Metadata$Channel[Metadata$Step == s &
+                                   Metadata$Channel == c] <-
+                  "ERG_Flicker"
+
+                measurements$Channel[measurements$Step == s &
+                                       measurements$Channel == c] <-
+                  "ERG_Flicker"
+              }
+              if (all(c("N1", "P1", "N2") == curr_markers)) {
+                Metadata$Channel[Metadata$Step == s &
+                                   Metadata$Channel == c] <-
+                  "VEP_auto"
+
+                measurements$Channel[measurements$Step == s &
+                                       measurements$Channel == c] <-
+                  "VEP_auto"
+              }
+            })
+          }
         }
+      } else {
+        warning(
+          "No information on type of recordings can be retrieved, consider including the 'Measurements' table from the raw file."
+        )
       }
-    } else {
-      warning(
-        "No information on type of recordings can be retrieved, consider including the 'Measurements' table from the raw file."
-      )
     }
 
     if (("Data Table" %in% rownames(toc))) {
@@ -164,8 +277,7 @@ ImportEpsion <- function(filename,
       Data_Header <-
         na.exclude(get_content(filename, tmp, "Data Table", sep = sep))
       Data_Header$Eye <- tmp$Eye
-      Steps_RAW = vector("list", nrow(Data_Header))
-      Steps_AVG = vector("list", nrow(Data_Header))
+      STEPS = vector("list", nrow(Data_Header))
     }
 
     # Get Data
@@ -220,7 +332,7 @@ ImportEpsion <- function(filename,
           resulttrace<-as_units(resulttrace,resultunit)
           resulttrace<-resulttrace[!is.na(resulttrace)]
 
-          Steps_AVG[[i]] <-
+          STEPS[[i]] <-
             newEPhysData(
               Data = resulttrace,
               TimeTrace = TimeTrace
@@ -229,7 +341,6 @@ ImportEpsion <- function(filename,
 
         if ("Trials" %in% colnames(Data_Header) &&
             ("Raw" %in% Import)) {
-
           trialtraces<-(na.exclude(fread(filename,
                                          select = c((Data_Header[i,"Column.1"]+1):(Data_Header[i,"Column.1"]+Data_Header[i,"Trials"])),
                                          nrows = toc["Data Table","Bottom"]-toc["Data Table","Top"],
@@ -253,7 +364,7 @@ ImportEpsion <- function(filename,
               all(!is.na(x))
             }), ])
           trialtraces<-as_units(trialtraces,trialunits)
-          Steps_RAW[[i]] <-
+          STEPS[[i]] <-
             newEPhysData(
               Data = trialtraces,
               TimeTrace = TimeTrace
@@ -286,10 +397,9 @@ ImportEpsion <- function(filename,
       as.POSIXct.numeric(as.numeric(ExamDate), origin = "1970-01-01 00:00.00 UTC")
 
     newERGExam(
-      Data = Steps_RAW,
+      Data = STEPS,
       Metadata = Metadata,
       Stimulus = stim_info,
-      Averaged = Steps_AVG,
       Measurements = measurements,
       ExamInfo=list(ProtocolName = recording_info["Protocol", 1],
                     Version = recording_info["Version", 1],
@@ -406,6 +516,9 @@ get_stim_info <- function(filename, toc, sep) {
                        stim_info[, "Description"],
                        fixed = TRUE,
                        useBytes = TRUE)] <- "Flicker"
+
+  stim_info$Description<-enc2utf8(stim_info$Description)
+
   return(stim_info)
 }
 

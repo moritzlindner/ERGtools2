@@ -11,7 +11,7 @@ setGeneric(
 )
 
 setMethod("AutoAverage",
-          "ERGExperiment",
+          "ERGExam",
           function(X,
                    SD_thresh=2,
                    Verbose = T) {
@@ -39,8 +39,7 @@ setMethod("AutoAverage",
 
               VAR_AVG<-apply(GetData(Step,
                                      Time=TIMEVECTOR,
-                                     TimeExclusive=T,
-                                     nowarnings = T),
+                                     TimeExclusive=T),
                              "Sweep",
                              mean,
                              ReturnPObject=F,
@@ -56,8 +55,7 @@ setMethod("AutoAverage",
                 score[channel,]<-apply(
                   apply(abs(GetData(Step,
                                     Time=TIMEVECTOR,
-                                    TimeExclusive=T,
-                                    nowarnings = T)@Data[[channel]]-VAR_AVG[,channel]),
+                                    TimeExclusive=T)@Data[[channel]]-VAR_AVG[,channel]),
                         1,
                         scale),
                   1,
@@ -68,8 +66,7 @@ setMethod("AutoAverage",
               # take max score from all channels
               score<-apply(score,2,max)<SD_thresh
               X@Steps_AVG[[i]]<-apply(GetData(Step,
-                                              Sweeps = GetSweepNames(Step)[score],
-                                              nowarnings = T),
+                                              Sweeps = GetSweepNames(Step)[score]),
                                       "Sweep",
                                       mean,
                                       ReturnPObject=F,

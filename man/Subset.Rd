@@ -13,6 +13,7 @@
   Step = Steps(X),
   Eye = Eyes(X),
   Channel = Channels(X),
+  ByRecordingIndex = FALSE,
   ...
 )
 }
@@ -30,6 +31,8 @@ or a logical vector of the same length as repeats stored,}
 \item{Raw}{Logical indicating whether to get raw data or processed (filtered, averaged) data.}
 
 \item{Step, Eye, Channel}{Vector of values for Steps, Eyes, and Channels to subset}
+
+\item{ByRecordingIndex}{Subset by recording index instead of \code{Step}, \code{Eye} and \code{Channel}. Default is \code{FALSE}. If set to a numeric vector,  \code{Step}, \code{Eye} and \code{Channel} will be ignored and only the recording with the given indices will be kept.}
 
 \item{...}{currently unused.}
 }

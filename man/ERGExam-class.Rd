@@ -29,7 +29,7 @@ A class representing ERG (Electroretinogram) steps with associated data and attr
 \item{Type}{A character vector describing the type of the stimulus (e.g. Flash or Flicker).}
 }}
 
-\item{\code{Averaged}}{A list of \link{EPhysData} objects. Each element corresponds to the averaged data for a specific step, eye, and channel combination. EPhysData objects contained herein must have one single column only.}
+\item{\code{Averaged}}{TRUE if the object contains averaged data, FALES indicates object contains raw traces.}
 
 \item{\code{Measurements}}{A data frame containing measurements information associated with the data.
 \describe{
@@ -43,7 +43,7 @@ A class representing ERG (Electroretinogram) steps with associated data and attr
 \describe{
 \item{ProtocolName}{A character vector indicating the name of the protocol.}
 \item{Version}{Optional: A character vector indicating the version of the protocol.}
-\item{ExamDate}{A \code{POSIXct} timestamp representing the date of the exam.}
+\item{ExamDate}{A \code{POSIXct} times tamp representing the date of the exam.}
 \item{Filename}{Optional: A character vector indicating the filename associated with the exam data.}
 \item{RecMode}{Optional: A character vector indicating the recording mode during the exam.}
 \item{Investigator}{Optional: A character vector indicating the name of the investigator conducting the exam.}

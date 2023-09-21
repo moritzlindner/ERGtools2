@@ -17,10 +17,10 @@
 setGeneric(
   name = "GetMeasurements",
   def = function(X,
-                 Channels = GetChannelNames(X),
-                 Stimuli = GetStimulusNames(X),
+                 Channels = Channels(X),
+                 Stimuli = StimulusNames(X),
                  Repeats = "ALL",
-                 Markers = GetMarkerNames(X),
+                 Markers = MarkerNames(X),
                  Measures = c("Voltage", "Time"),
                  Verbose = T)
   {
@@ -31,10 +31,10 @@ setGeneric(
 setMethod("GetMeasurements",
           "ERGExam",
           function(X,
-                   Channels = GetChannelNames(X),
-                   Stimuli = GetStimulusNames(X),
+                   Channels = Channels(X),
+                   Stimuli = StimulusNames(X),
                    Repeats = "ALL",
-                   Markers = GetMarkerNames(X),
+                   Markers = MarkerNames(X),
                    Measures = c("Voltage", "Time"),
                    Verbose = T)
           {
@@ -57,25 +57,25 @@ setMethod("GetMeasurements",
 
             # check all inputs valid
 
-            if (!all(Markers %in% GetMarkerNames(X))) {
+            if (!all(Markers %in% MarkerNames(X))) {
               stop("'Markers' not in 'X'")
             }
-            if (!all(Stimuli %in% GetStimulusNames(X))) {
+            if (!all(Stimuli %in% StimulusNames(X))) {
               stop("'Stimuli' not in 'X'")
             }
-            if (!all(Channels %in% GetChannelNames(X))) {
+            if (!all(Channels %in% Channels(X))) {
               stop("'Channels' not in 'X'")
             }
 
             #display warnings/info
             if (Verbose) {
-              if (isFALSE(all.equal(Channels, GetChannelNames(X)))) {
+              if (isFALSE(all.equal(Channels, Channels(X)))) {
                 message("Keep Channels:", Channels, "\n")
               }
-              if (isFALSE(all.equal(Stimuli, GetStimulusNames(X)))) {
+              if (isFALSE(all.equal(Stimuli, StimulusNames(X)))) {
                 message("Keep Stimuli:", Stimuli, "\n")
               }
-              if (isFALSE(all.equal(Markers, GetMarkerNames(X)))) {
+              if (isFALSE(all.equal(Markers, MarkerNames(X)))) {
                 message("Keep Markers:", Markers, "\n")
               }
               if (isFALSE(all.equal(Measures, c("Voltage", "Time")))) {
@@ -151,8 +151,8 @@ setMethod("GetMeasurements",
 setGeneric(
   name = "GetAverageTraces",
   def = function(X,
-                 Channels = GetChannelNames(X),
-                 Stimuli = GetStimulusNames(X),
+                 Channels = Channels(X),
+                 Stimuli = StimulusNames(X),
                  Repeats = "ALL",
                  Verbose = T)
   {
@@ -163,13 +163,13 @@ setGeneric(
 setMethod("GetAverageTraces",
           "ERGExam",
           function(X,
-                   Channels = GetChannelNames(X),
-                   Stimuli = GetStimulusNames(X),
+                   Channels = Channels(X),
+                   Stimuli = StimulusNames(X),
                    Repeats = "ALL",
                    Verbose = T)
           {
             # generate function for selecting Repeats
-
+warning("Depreciated")
             if (is.function(Repeats)) {
               Repeats <- Repeats
             } else{
@@ -187,10 +187,10 @@ setMethod("GetAverageTraces",
 
             #display warnings/info
             if (Verbose) {
-              if (isFALSE(all.equal(Channels, GetChannelNames(X)))) {
+              if (isFALSE(all.equal(Channels, Channels(X)))) {
                 message("Keep Channels:", Channels, "\n")
               }
-              if (isFALSE(all.equal(Stimuli, GetStimulusNames(X)))) {
+              if (isFALSE(all.equal(Stimuli, StimulusNames(X)))) {
                 message("Keep Stimuli:", Stimuli, "\n")
               }
               if (is.function(Repeats)) {
@@ -227,7 +227,7 @@ setMethod("GetAverageTraces",
                 curr <-
                   as.data.frame(X@Data$Averages[[S]][, Channels[Channels %in% 1:dim(X@Data$Averages[[S]])[2]], R])
                 cn <-
-                  GetChannelNames(X)[Channels]
+                  Channels(X)[Channels]
                 cn[cn == ""] <-
                   make.unique(rep("Unnamed", length(cn[cn == ""])))
 

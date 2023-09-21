@@ -1,5 +1,4 @@
 validERGExam <- function(object) {
-  warning("Storing EPsion Repeated Results not yet implemented")
   # if (!is.list(object@Data)) {
   #   stop("Data must be a list.")
   # }
@@ -12,20 +11,9 @@ validERGExam <- function(object) {
     )
   }
 
-  # Check if the data types of the columns are character
-  # column_types <- sapply(object@Metadata, class)
-  # if (!all(column_types[required_columns] == "character")) {
-  #   stop("Metadata provided is not in correct format. All columns must be of type 'character'.")
-  # }
-
-  # Check if Data and MetaData are of the same length
-  # if (nrow(object@Metadata) != length(object@Data)) {
-  #   stop("Metadata must have one row per each list entry in data.")
-  # }
-
   # Check if Eye entries valid
-  if (!all(unique(object@Metadata$Eye) %in% c("RE", "LE","Unspecified"))) {
-    stop("Only 'RE', 'LE' or 'Unspecified' are allowed as eye identifiers")
+  if (!all(unique(object@Metadata$Eye) %in% c("RE", "LE","OD","OS","Unspecified","Both"))) {
+    stop("Only 'RE', 'LE', 'OD', 'OS' 'Both' or 'Unspecified' are allowed as eye identifiers")
   }
 
   # Rejected (inEPhysRaw) - must be the same across all channels within one eye
@@ -135,39 +123,11 @@ validERGExam <- function(object) {
   }
 
   # Averaged slot
-  if (length(object@Averaged) != 0) {
-    if (length(object@Averaged) != length(object@Data)) {
-      stop("Length of 'Averaged' slot does not match that of 'Data'.")
+  if (object@Averaged){
+    Repeats<-unique(unlist(lapply(X@Data,function(x){dim(x)[2]})))
+    if(length(Repeats)!=1 || Repeats != 1){
+      warning("Object does not appear to contain averaged data. Multiple repeats observed.")
     }
-    if (!all(unlist(lapply(object@Averaged, function(x) {
-      (inherits(x, "EPhysData") | is.null(x))
-    })))) {
-      stop("'Averaged' slot must be a list of 'EPhysData' objects or an empty list.")
-    }
-
-    val_dim <- unique(unlist(lapply(object@Averaged, function(x) {
-      dim(x)[2]
-    })))
-    if (!is.null(val_dim)){
-      if (!(length(val_dim) == 1 & (val_dim == 1))){
-        stop(
-          "'Averaged' slot must be a list of EPhysData objects with no repeated measurements (i.e. one single data column)."
-        )
-      }
-    }
-
-    if (!is.null(val_dim)) {
-      for (i in length(object)) {
-        if (length(object@Averaged[[i]]) != length(object@Data[[i]])) {
-          stop(
-            "Length of averaged data for ",
-            Metadata(object)[i,],
-            " does not match that of corresponding raw data."
-          )
-        }
-      }
-    }
-
   }
 
   # Measurements slot
@@ -244,7 +204,7 @@ validERGExam <- function(object) {
 #' }
 #'
 #' @slot Averaged
-#' A list of \link{EPhysData} objects. Each element corresponds to the averaged data for a specific step, eye, and channel combination. EPhysData objects contained herein must have one single column only.
+#' TRUE if the object contains averaged data, FALES indicates object contains raw traces.
 #'
 #' @slot Measurements
 #' A data frame containing measurements information associated with the data.
@@ -260,7 +220,7 @@ validERGExam <- function(object) {
 #' \describe{
 #'   \item{ProtocolName}{A character vector indicating the name of the protocol.}
 #'   \item{Version}{Optional: A character vector indicating the version of the protocol.}
-#'   \item{ExamDate}{A \code{POSIXct} timestamp representing the date of the exam.}
+#'   \item{ExamDate}{A \code{POSIXct} times tamp representing the date of the exam.}
 #'   \item{Filename}{Optional: A character vector indicating the filename associated with the exam data.}
 #'   \item{RecMode}{Optional: A character vector indicating the recording mode during the exam.}
 #'   \item{Investigator}{Optional: A character vector indicating the name of the investigator conducting the exam.}
@@ -293,10 +253,8 @@ ERGExam <- setClass(
     # Metadata is a data frame
     Stimulus = "data.frame",
     # Stimulus is a data frame
-    Averaged = "list",
-    # Averaged is a list
-    Averaged.imported = "logical",
-    # Averaged.imported is a logical
+    Averaged = "logical",
+    # Averaged is a logical
     Measurements = "data.frame",
     # Measurements is a data frame
     Measurements.imported = "logical",
@@ -322,8 +280,7 @@ ERGExam <- setClass(
       Background = character(),
       Type = character()
     ),
-    Averaged = list(NULL),
-    Averaged.imported = logical(),
+    Averaged = FALSE,
     Measurements = data.frame(
       Recording = numeric(),
       Name = character(),
@@ -445,7 +402,7 @@ newERGExam <-
   function(Data,
            Metadata,
            Stimulus,
-           Averaged = list(),
+           Averaged = FALSE,
            Measurements =  data.frame(
              Recording = numeric(),
              Name = character(),
@@ -468,7 +425,6 @@ newERGExam <-
     obj@SubjectInfo <- SubjectInfo
 
     # Set default values for other slots
-    obj@Averaged.imported <- length(obj@Averaged) != 0
     obj@Measurements.imported <- nrow(obj@Measurements) != 0
     obj@Imported <- as.POSIXct(Sys.time())
 
@@ -508,17 +464,13 @@ setMethod("show",
             if (length(object@Data) == 0) {
               cat("\nRaw data not stored in object.")
             }
-            if (length(object@Averaged) == 0) {
-              cat("\nNo averaged data stored in object.")
-            } else {
-              if (object@Averaged.imported) {
-                cat(green("\n*Averaged data imported from external source.*"))
-              }
+            if (object@Averaged) {
+              cat("\nObject contains imported averaged traces.")
             }
             if (length(object@Measurements) == 0) {
               cat("\nNo measurements stored in object.")
             } else {
-              if (object@Averaged.imported) {
+              if (object@Averaged) {
                 cat(green("\n*Measurements imported from external source.*"))
               }
             }
