@@ -84,7 +84,7 @@ merge2ERGExams <- function(exam1, exam2) {
     Stimulus = mergedStimulus,
     Averaged = exam1@Averaged,
     Measurements = mergedMeasurements,
-    ExamInfo = exam1@ExamInfo,
+    ExamInfo = examinfo,
     SubjectInfo = exam1@SubjectInfo
   )
 
@@ -102,6 +102,11 @@ merge2ERGExams <- function(exam1, exam2) {
   if (nrow(mergedStimulus) != nrow(unique(mergedStimulus))) {
     stop("Rows of Stimulus must be unique in the merged object.")
   }
+  # tmp<-merge(Metadata(mergedExam),StimulusTable(mergedExam))
+  # tmp<-tmp[,c("Channel","Result","Eye","Description")]
+  # if(nrow(tmp)!=nrow(unique(tmp))){
+  #   stop("At least one type of recording (for the same eye and channel) is present in both files.")
+  # }
 
   return(mergedExam)
 }

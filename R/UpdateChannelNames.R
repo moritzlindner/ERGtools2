@@ -36,7 +36,7 @@ setGeneric(
 
 #' @noMd
 setMethod("UpdateChannelNames",
-          signature(X = "ERGSteps", from = "character", to = "character"),
+          signature(X = "ERGExam", from = "character", to = "character"),
           function(X, from, to, Steps = NULL, Eyes = NULL) {
             if (is.null(Steps)) {
               Steps <- Steps(X)
@@ -50,25 +50,25 @@ setMethod("UpdateChannelNames",
             if (length(from) != length(to)) {
               stop("The lengths of 'from' and 'to' vectors must be the same.")
             }
-            if (!all(from %in% X@Metadata$Channel)) {
-              warning("Some items in 'from' vector do not exist in the ERGSteps object.")
+            if (!all(from %in% Metadata(X)$Channel)) {
+              warning("Some items in 'from' vector do not exist in the ERGExam object.")
             }
             if (any(duplicated(to))) {
               warning("Duplicate entries found in 'to' vector.")
               dup_to<-unique(to[duplicated(to)])
               for (i in 1:length(dup_to)){
                 dup_from<-from[to==dup_to[i]]
-                matching_channels <-X@Metadata$Channel %in% dup_from
-                if(length(unique(X@Metadata$Eye[matching_channels]))<2){
+                matching_channels <-Metadata(X)$Channel %in% dup_from
+                if(length(unique(Metadata(X)$Eye[matching_channels]))<2){
                   stop("Duplicate entries results in non-unique channel names for the same eye.")
                 }
               }
             }
             for (i in 1:length(from)) {
               # Temporary variables to store matching results
-              matching_channels <- X@Metadata$Channel %in% from[i]
-              matching_steps <- X@Metadata$Step %in% Steps
-              matching_eyes <- X@Metadata$Eye %in% Eyes
+              matching_channels <- Metadata(X)$Channel %in% from[i]
+              matching_steps <- Metadata(X)$Step %in% Steps
+              matching_eyes <- Metadata(X)$Eye %in% Eyes
 
               # Apply the update only where all conditions are met
               X@Metadata$Channel[matching_channels & matching_steps & matching_eyes] <- to[i]

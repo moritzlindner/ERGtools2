@@ -4,14 +4,10 @@
 \alias{PlotExam}
 \title{Plot an ERGExam object.}
 \usage{
-PlotExam(X, labelby = "Intensity", facetby = "Eye+Channel")
+PlotExam(X)
 }
 \arguments{
 \item{X}{An ERGExam object.}
-
-\item{labelby}{A character string specifying the variable to color by (default: "Intensity").}
-
-\item{facetby}{TBC}
 }
 \value{
 A ggplot2 plot of the ERGExam data.
@@ -25,4 +21,7 @@ stimulus response curves for different label categories.
 exam_plot <- PlotExam(erg_exam)
 print(exam_plot)
 
+}
+\seealso{
+\linkS4class{ERGExam} \link[ggplot2:ggplot]{ggplot2:ggplot}
 }

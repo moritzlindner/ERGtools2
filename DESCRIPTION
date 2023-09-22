@@ -21,6 +21,9 @@ Imports:
     crayon,
     stringi,
     stringr,
+    gridExtra,
+    ggplot2,
+    ggpubr,
     EPhysData
 Encoding: UTF-8
 LazyData: true

@@ -29,9 +29,6 @@ Possible elements are "Raw" - for importing the raw recordings, "Averaged" - for
 A \linkS4class{ERGExam} object.
 }
 \description{
-\lifecycle::badge("stable")
-}
-\details{
 This function imports ERG recordings from *.csv files exported from Diagnosys' Epsion and creates an \link[=ERGExam]{ERGExam} object.
 }
 \examples{

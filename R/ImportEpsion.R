@@ -1,6 +1,5 @@
 #' Import ERG data and measurements from an Eosion CSV file
 #'
-#' \lifecycle::badge("stable")
 #'
 #' This function imports ERG recordings from *.csv files exported from Diagnosys' Epsion and creates an \link[=ERGExam]{ERGExam} object.
 #'

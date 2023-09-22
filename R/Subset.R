@@ -24,52 +24,55 @@ setMethod("Subset",
                    ...) {
 
             if(is.logical(ByRecordingIndex)){
-              if(!ByRecordingIndex){
-                Metadata_select <- make_metadata_parilist(X)
-                Metadata_select$Step <- Step
-                Metadata_select$Eye <- Eye
-                Metadata_select$Channel <- Channel
-              }else{
-                stop(ByRecordingIndex, " is not a valid value for 'ByRecordingIndex'.")
+              if(ByRecordingIndex){
+                stop("'ByRecordingIndex' can only be 'false' or a numeric vector.")
               }
             }else{
               if(is.numeric(ByRecordingIndex)){
                 if(!all(ByRecordingIndex %in% 1:nrow(Metadata(X)))){
-                  stop("All elements of 'ByRecordingIndex' must be valid recording indices.")
-                }
-                Metadata_select <- pairlist()
-                df <- Metadata(X)[ByRecordingIndex,]
-                for (cn in colnames(df)) {
-                  Metadata_select[[cn]] <- unique(df[, cn])
+                  stop("Not all values in 'ByRecordingIndex' ar valid indices for data in 'X'.")
                 }
               }else{
-                stop("'ByRecordingIndex' must be FALSE or numeric.")
+                stop("'ByRecordingIndex' can only be 'false' or a numeric vector.")
               }
             }
 
-            # metadata subset
-            MetaSubset<-array(dim=dim(Metadata(X)))
-            colnames(MetaSubset)<-colnames(Metadata(X))
-            for (i in names(Metadata_select)){
-              MetaSubset[,i]<-(Metadata(X)[,i] %in% Metadata_select[[i]])
+
+            Metadata_select <- make_metadata_parilist(X)
+            if(is.logical(ByRecordingIndex)){
+              Metadata_select$Step <- Step
+              Metadata_select$Eye <- Eye
+              Metadata_select$Channel <- Channel
+
+              # metadata subset
+              MetaSubset<-array(dim=dim(Metadata(X)))
+              colnames(MetaSubset)<-colnames(Metadata(X))
+              for (i in names(Metadata_select)){
+                MetaSubset[,i]<-(Metadata(X)[,i] %in% Metadata_select[[i]])
+              }
+
+              MetaSubset<-apply(MetaSubset,1,all)
+
+              # subset data
+              Y <- as(X, "EPhysSet")
+              Y <- Subset(
+                Y,
+                Time = Time,
+                TimeExclusive = TimeExclusive,
+                Repeats = Repeats,
+                Metadata_select = Metadata_select,
+                Raw = TRUE,
+                Simplify = FALSE
+              )
+              X@Data <- Y@Data
+              X@Stimulus<-X@Stimulus[X@Stimulus$Step %in% Y@Metadata$Step,]
+            }else{
+              X@Data<-X@Data[1:nrow(Metadata(X)) %in% ByRecordingIndex]
+              MetaSubset<-1:nrow(Metadata(X)) %in% ByRecordingIndex
+              X@Stimulus<-X@Stimulus[X@Stimulus$Step %in% Metadata(X)$Step[MetaSubset],]
             }
 
-            MetaSubset<-apply(MetaSubset,1,all)
 
-            # subset data
-            Y <- as(X, "EPhysSet")
-            Y <- Subset(
-              Y,
-              Time = Time,
-              TimeExclusive = TimeExclusive,
-              Repeats = Repeats,
-              Metadata_select = Metadata_select,
-              Raw = TRUE,
-              Simplify = FALSE
-            )
-
-           X@Data <- Y@Data
-           X@Stimulus<-X@Stimulus[X@Stimulus$Step %in% Y@Metadata$Step,]
            X@Averaged <- X@Averaged
 
            indexupdate <- as.data.frame(cbind(cumsum(MetaSubset), 1:nrow(Metadata(X))))

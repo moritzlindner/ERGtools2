@@ -239,7 +239,7 @@ validERGExam <- function(object) {
 #' A \code{POSIXct} timestamp indicating when the object was imported.
 #'
 #' @name ERGExam-class
-#' @seealso \link[EPhysData:EPhysData-package]{EPhysData::EPhysData-package}  \link[EPhysData:EPhysData]{EPhysData::EPhysData} \link[EPhysData:EphysSet]{EPhysData::EphysSet}
+#' @seealso \link[EPhysData:EPhysData-package]{EPhysData::EPhysData-package}  \link[EPhysData:EPhysData]{EPhysData::EPhysData} \link[EPhysData:EphysSet]{EPhysData::EPhysSet}
 #' @importClassesFrom EPhysData EPhysData EPhysSet
 #' @importFrom units as_units
 #' @exportClass ERGExam

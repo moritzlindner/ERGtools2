@@ -61,5 +61,5 @@ A class representing ERG (Electroretinogram) steps with associated data and attr
 }}
 
 \seealso{
-\link[EPhysData:EPhysData-package]{EPhysData::EPhysData-package}  \link[EPhysData:EPhysData]{EPhysData::EPhysData} \link[EPhysData:EphysSet]{EPhysData::EphysSet}
+\link[EPhysData:EPhysData-package]{EPhysData::EPhysData-package}  \link[EPhysData:EPhysData]{EPhysData::EPhysData} \link[EPhysData:EphysSet]{EPhysData::EPhysSet}
 }
