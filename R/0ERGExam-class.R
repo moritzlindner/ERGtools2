@@ -157,7 +157,7 @@ validERGExam <- function(object) {
   if (!(
     nzchar(object@SubjectInfo$Subject) &&
     !is.na(object@SubjectInfo$DOB) &&
-    !is.na(object@ExamInfo$ExamDate)
+    all(!is.na(object@ExamInfo$ExamDate))
   )) {
     stop("Subject Name, DOB and ExamDate must be provided.")
   }

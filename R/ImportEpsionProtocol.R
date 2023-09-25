@@ -40,10 +40,19 @@ ImportEpsionProtocol<-function(filename){
     c(
       "Description",
       "Adaptation required",
+      "Results per run",
+      "Time between results",
       "Sample frequency",
       "Sweep pre-trigger time",
       "Sweep post trigger time",
-      "Inter sweep delay"
+      "Inter sweep delay",
+      "Sweeps per result",
+      "Min no. of sweeps/results",
+      "Glitch removal",
+      "Drift removal",
+      "Baseline enabled",
+      "Baseline pre-trigger",
+      "Baseline range"
     )
   StepParam<-StepParam[keep,]
   StepParam<-unlist(apply(StepParam, 2, list), recursive = F, use.name = F)
@@ -102,7 +111,7 @@ ImportEpsionProtocol<-function(filename){
   }
 
   # convert into S4 Structure
-  Protocol<-new("Protocol")
+  Protocol<-new("ERGProtocol")
   Protocol@Name <- enc2utf8(Name)
   Protocol@Export_Date<-Exported
   Protocol@nSteps<-nSteps
@@ -110,11 +119,35 @@ ImportEpsionProtocol<-function(filename){
 
   Steps<-list()
   for (s in 1:Protocol@nSteps){
-    currStep<-new("Step")
+    currStep<-new("ERGStep")
     currStep@Description <-
       StepParam[[s]]$x[rownames(StepParam[[s]]) == "Description"]
     currStep@Adaptation <-
       StepParam[[s]]$x[rownames(StepParam[[s]]) == "Adaptation required"]
+
+    currStep@Resultsperrun <-as.numeric(
+      StepParam[[s]]$x[rownames(StepParam[[s]]) == "Results per run"]
+    )
+
+    currStep@Timebetweenresults <-
+      StepParam[[s]]$x[rownames(StepParam[[s]]) == "Time between results"]
+    currStep@Sweepsperresult <-as.numeric(
+      StepParam[[s]]$x[rownames(StepParam[[s]]) == "Sweeps per result"]
+    )
+    currStep@Sweepsperresultmin <- as.numeric(
+      StepParam[[s]]$x[make.names(rownames(StepParam[[s]])) == "Min.no..of.sweeps.results"]
+    )
+    currStep@Glitchremoval <-
+      StepParam[[s]]$x[rownames(StepParam[[s]]) == "Glitch removal"]=="On"
+    currStep@Driftremoval <-
+      StepParam[[s]]$x[rownames(StepParam[[s]]) == "Drift removal"]=="On"
+    currStep@Baselineenabled <-
+      StepParam[[s]]$x[rownames(StepParam[[s]]) == "Baseline enabled"]=="On"
+    currStep@Baselinepretrigger <-
+      StepParam[[s]]$x[rownames(StepParam[[s]]) == "Baseline pre-trigger"]
+    currStep@Baselinerange <-
+      StepParam[[s]]$x[rownames(StepParam[[s]]) == "Baseline range"]
+
     currStep@SampleFrequency <-
       StepParam[[s]]$x[rownames(StepParam[[s]]) == "Sample frequency"]
     currStep@PreTriggerTime <-
@@ -123,8 +156,9 @@ ImportEpsionProtocol<-function(filename){
       StepParam[[s]]$x[rownames(StepParam[[s]]) == "Sweep post trigger time"]
     currStep@InterSweepDelay <-
       StepParam[[s]]$x[rownames(StepParam[[s]]) == "Inter sweep delay"]
+
     for (c in 1:Protocol@nChannels) {
-      currChan<-new("Channel")
+      currChan<-new("ERGChannel")
       curr<-ChannelList[[c]][,s, drop=F]
       currChan@Name<-curr["Name",1]
       currChan@Eye<-curr["Eye being tested",1]
@@ -133,7 +167,7 @@ ImportEpsionProtocol<-function(filename){
       currChan@HighFreqCutoff<-curr["Filter high frequency cutoff",1]
       currChan@Inverted<-curr["Enabled",1]=="On"
       for (m in 1:length(MarkerList[[c]]$Names[, s])) {
-        currMarker<-new("Marker")
+        currMarker<-new("ERGMarker")
         if(!is.null(MarkerList[[c]]$Names[m, s])){
           currMarker@Name<-MarkerList[[c]]$Names[m, s]
           currMarker@RelativeTo<-MarkerList[[c]]$RelTo[m, s]
@@ -153,7 +187,7 @@ ImportEpsionProtocol<-function(filename){
 getSingleColumnChar<-function(table,key){
   value<-table[table$V1==key,]
   value<-value[1,!is.na(value[1,])]
-  paste(unlist(value[,-1]), collapse = ', ',sep = ", ")
+  paste(unlist(value[,-1]), collapse = ', ',sep = "_")
 }
 #' @noMd
 getSingleColumnNumeric<-function(table,key){

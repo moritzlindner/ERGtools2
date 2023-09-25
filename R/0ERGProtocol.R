@@ -1,6 +1,6 @@
 #' @noMd
-Marker <- setClass(
-  "Marker",
+ERGMarker <- setClass(
+  "ERGMarker",
   slots = c(
     Name = "character",
     RelativeTo = "character"
@@ -11,9 +11,11 @@ Marker <- setClass(
   )
 )
 
+
+
 #' @noMd
-Channel<-setClass(
-  "Channel",
+ERGChannel<-setClass(
+  "ERGChannel",
   slots = c(
     Name = "character",
     Eye = "character",
@@ -24,14 +26,14 @@ Channel<-setClass(
     Markers = "list"
   ),
   validity = function(object) {
-    if (!all(sapply(object@Markers, function(m) inherits(m, "Marker")))) {
-      "Markers slot should contain only objects of class 'Marker'"
+    if (!all(sapply(object@Markers, function(m) inherits(m, "ERGMarker")))) {
+      "Markers slot should contain only objects of class 'ERGMarker'"
     } else {
       TRUE
     }
   },
   prototype = list(
-    Name = NA_character_,
+    Name = character(),
     Eye = NA_character_,
     LowFreqCutoff = NA_character_,
     HighFreqCutoff = NA_character_,
@@ -41,37 +43,59 @@ Channel<-setClass(
   )
 )
 
+
+
 #' @noMd
-Step<-setClass(
-  "Step",
+ERGStep<-setClass(
+  "ERGStep",
   slots = c(
     Description = "character",
     Adaptation = "character",
+    Resultsperrun = "numeric",
+    Timebetweenresults = "character",
     SampleFrequency = "character",
     PreTriggerTime = "character",
     PostTriggerTime = "character",
     InterSweepDelay = "character",
-    Channels = "list"  # Slot for a list of 'Channel' objects
+    Sweepsperresult = "numeric",
+    Sweepsperresultmin = "numeric",
+    Glitchremoval = "logical",
+    Driftremoval = "logical",
+    Baselineenabled = "logical",
+    Baselinepretrigger = "character",
+    Baselinerange = "character",
+
+    Channels = "list"  # Slot for a list of 'ERGChannel' objects
   ),
   validity = function(object) {
-    if (!all(sapply(object@Channels, function(c) inherits(c, "Channel")))) {
-      "Channels slot should contain only objects of class 'Channel'"
+    if (!all(sapply(object@Channels, function(c) inherits(c, "ERGChannel")))) {
+      "Channels slot should contain only objects of class 'ERGChannel'"
     } else {
       TRUE
     }
   },
   prototype = list(
-    Description = NA_character_,
-    Adaptation = NA_character_,
-    SampleFrequency = NA_character_,
-    PreTriggerTime = NA_character_,
-    PostTriggerTime = NA_character_,
-    InterSweepDelay = NA_character_,
-    Channels = list()  # Empty list as a prototype for 'Channels'
+    Description = "",
+    Adaptation = "",
+    Resultsperrun = -1,
+    Timebetweenresults = "",
+    SampleFrequency = "",
+    PreTriggerTime = "",
+    PostTriggerTime = "",
+    InterSweepDelay = "",
+    Sweepsperresult = -1,
+    Sweepsperresultmin = -1,
+    Glitchremoval = FALSE,
+    Driftremoval = FALSE,
+    Baselineenabled = FALSE,
+    Baselinepretrigger = "",
+    Baselinerange = "",
+    Channels = list()  # Empty list as a prototype for 'ERGChannels'
   )
 )
 
-#' Protocol class definition
+
+#' ERGProtocol class definition
 #'
 #' This class represents an ERG protocol, as it can be impored from Epsion with Export_Date, Name, nSteps, nChannels, and Step slots.
 #'
@@ -79,11 +103,11 @@ Step<-setClass(
 #' @slot Name Character slot for the protocol name.
 #' @slot nSteps Numeric slot for the number of steps.
 #' @slot nChannels Numeric slot for the number of channels.
-#' @slot Step List slot for a list of 'Step' objects.
-#' @name Protocol
-#' @rdname Protocol
-Protocol<-setClass(
-  "Protocol",
+#' @slot Step List slot for a list of 'ERGStep' objects.
+#' @name ERGProtocol
+#' @rdname ERGProtocol
+ERGProtocol<-setClass(
+  "ERGProtocol",
   slots = c(
     Export_Date = "POSIXct",
     Name = "character",
@@ -92,7 +116,7 @@ Protocol<-setClass(
     Step = "list"  # Slot for a list of 'Channel' objects
   ),
   validity = function(object) {
-    if (!all(sapply(object@Channels, function(c) inherits(c, "Step")))) {
+    if (!all(sapply(object@Channels, function(c) inherits(c, "ERGStep")))) {
       "Channels slot should contain only objects of class 'Channel'"
     } else {
       TRUE
@@ -103,18 +127,18 @@ Protocol<-setClass(
     Name = NA_character_,
     nSteps = NA_real_,
     nChannels = NA_real_,
-    Step = list()  # Empty list as a prototype for 'Step'
+    Step = list()  # Empty list as a prototype for 'ERGStep'
   )
 )
 
-#' Show method for Protocol class
+#' Show method for ERGProtocol class
 #'
-#' @param object An instance of the Protocol class.
+#' @param object An instance of the ERGProtocol class.
 #' @param ... Additional arguments (not used).
-#' @name show.Protocol
-#' @rdname show.Protocol
-setMethod("show", signature = "Protocol", function(object) {
-  cat("Protocol Object\n")
+#' @name show.ERGProtocol
+#' @rdname show.ERGProtocol
+setMethod("show", signature = "ERGProtocol", function(object) {
+  cat("ERGProtocol Object\n")
   cat("Export Date: ", object@Export_Date, "\n")
   cat("Name: ", object@Name, "\n")
   cat("Number of Steps: ", object@nSteps, "\n")
@@ -145,7 +169,7 @@ setMethod("show", signature = "Protocol", function(object) {
   }
 })
 
-setMethod("show", signature = "Protocol", function(object) {
+setMethod("show", signature = "ERGProtocol", function(object) {
 
   print_hierarchical_list <- function(hierarchical_list, level = 0) {
     for (i in 1:length(hierarchical_list)) {
@@ -157,7 +181,7 @@ setMethod("show", signature = "Protocol", function(object) {
         print_hierarchical_list(item, level + 1)
       } else {
         # If the item is not a list, print it with the current indentation level.
-        cat(rep("\t", level), name, ": ", item, "\n", sep = "")
+        cat(rep("\t", level), name, ": ", item, "\n", sep = " ")
       }
     }
   }
@@ -227,4 +251,3 @@ setMethod("show", signature = "Protocol", function(object) {
   #protocol_list
   print_hierarchical_list(protocol_list)
 })
-
