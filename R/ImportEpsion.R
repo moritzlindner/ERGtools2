@@ -487,7 +487,7 @@ get_content <- function(filename, toc, what, sep = "\t") {
     encoding = "UTF-8"
   )
 
-  tmp <- make.unique(make.names(gsub('[\xb2]','^2',tmp)))
+  tmp <- make.unique(make.names(iconv(tmp, "ASCII//TRANSLIT", sub = '')))
 
   colnames(recording_info)<-tmp
 
