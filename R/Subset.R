@@ -4,7 +4,7 @@
 #'
 #' @inheritParams EPhysData::Subset
 #' @param Step,Eye,Channel Vector of values for Steps, Eyes, and Channels to subset
-#' @param ByRecordingIndex Subset by recording index instead of \code{Step}, \code{Eye} and \code{Channel}. Default is \code{FALSE}. If set to a numeric vector,  \code{Step}, \code{Eye} and \code{Channel} will be ignored and only the recording with the given indices will be kept.
+#' @param ExamItem Subset by exam item index instead of \code{Step}, \code{Eye} and \code{Channel}. Default is \code{NULL}. If set to a numeric vector or a logical vector of same length as rows in Metadata,  \code{Step}, \code{Eye} and \code{Channel} will be ignored and only the recording with the given indices will be kept.
 #' @details The \code{Subset} function creates a new \code{ERGExam}  object containing a subset of the data from the original object, based on the provided parameters.
 #' @seealso \link[EPhysData:Subset]{EPhysData::Subset}
 #' @importFrom EPhysData Subset newEPhysSet Metadata
@@ -20,75 +20,91 @@ setMethod("Subset",
                    Step = Steps(X),
                    Eye = Eyes(X),
                    Channel = Channels(X),
-                   ByRecordingIndex = FALSE,
+                   ExamItem = NULL,
                    ...) {
 
-            if(is.logical(ByRecordingIndex)){
-              if(ByRecordingIndex){
-                stop("'ByRecordingIndex' can only be 'false' or a numeric vector.")
+            if (!is.null(ExamItem)) {
+              # ExamItem is in use
+              if (any(Step != Steps(X)) |
+                  any(Eye != Eyes(X)) |
+                  any(Channel != Channels(X))) {
+                stop("'Step','Eye' and 'Channel' cant be used together with 'ExamItem'")
               }
-            }else{
-              if(is.numeric(ByRecordingIndex)){
-                if(!all(ByRecordingIndex %in% 1:nrow(Metadata(X)))){
-                  stop("Not all values in 'ByRecordingIndex' ar valid indices for data in 'X'.")
+              if (is.numeric(ExamItem)) {
+                if (!all(ExamItem %in% 1:nrow(Metadata(X)))) {
+                  stop("Not all values in 'ExamItem' ar valid indices for data in 'X'.")
                 }
+                ExamItem <-
+                  (1:length(X) %in% ExamItem) # transform to logical index
               }else{
-                stop("'ByRecordingIndex' can only be 'false' or a numeric vector.")
+                if (length(ExamItem) != length(X)) {
+                  # length does not match
+                  stop(
+                    "'ExamItem' can only be 'NULL' or a numeric or logical vector of same length as items in 'Metadata(X)'."
+                  )
+                }
               }
             }
 
-
-            Metadata_select <- make_metadata_parilist(X)
-            if(is.logical(ByRecordingIndex)){
-              Metadata_select$Step <- Step
-              Metadata_select$Eye <- Eye
-              Metadata_select$Channel <- Channel
-
-              # metadata subset
-              MetaSubset<-array(dim=dim(Metadata(X)))
-              colnames(MetaSubset)<-colnames(Metadata(X))
-              for (i in names(Metadata_select)){
-                MetaSubset[,i]<-(Metadata(X)[,i] %in% Metadata_select[[i]])
-              }
-
-              MetaSubset<-apply(MetaSubset,1,all)
-
-              # subset data
-              Y <- as(X, "EPhysSet")
-              Y <- Subset(
-                Y,
-                Time = Time,
-                TimeExclusive = TimeExclusive,
-                Repeats = Repeats,
-                Metadata_select = Metadata_select,
-                Raw = TRUE,
-                Simplify = FALSE
-              )
-              X@Data <- Y@Data
-              X@Stimulus<-X@Stimulus[X@Stimulus$Step %in% Y@Metadata$Step,]
-            }else{
-              X@Data<-X@Data[1:nrow(Metadata(X)) %in% ByRecordingIndex]
-              MetaSubset<-1:nrow(Metadata(X)) %in% ByRecordingIndex
-              X@Stimulus<-X@Stimulus[X@Stimulus$Step %in% Metadata(X)$Step[MetaSubset],]
+            if (!all(Step %in% Steps(X)) |
+                !all(Eye %in% Eyes(X)) | !all(Channel %in% Channels(X))) {
+              stop("Values for 'Step','Eye' and 'Channel' must exist in the metadata.")
             }
 
+            if (is.null(ExamItem)) {
+              metadata <- Metadata(X)
+              ExamItem <- array(dim = dim(metadata))
+              colnames(ExamItem) <- colnames(metadata)
+              ExamItem <- apply(ExamItem, 2, as.logical)
 
-           X@Averaged <- X@Averaged
+              ExamItem[, "Step"] <- (metadata$Step %in% Step)
+              ExamItem[, "Channel"] <-
+                (metadata$Channel %in% Channel)
+              ExamItem[, "Eye"] <- (metadata$Eye %in% Eye)
 
-           indexupdate <- as.data.frame(cbind(cumsum(MetaSubset), 1:nrow(Metadata(X))))
-           colnames(indexupdate)<-c("new","old")
+              ExamItem <-
+                apply(ExamItem, 1, function(x) {
+                  all(x, na.rm = T)
+                })
+            }
 
-           X@Measurements <-
-             X@Measurements[X@Measurements$Recording %in% seq(1:dim(Metadata(X))[1])[MetaSubset],]
-           X@Measurements$Recording <-
-             merge(X@Measurements, indexupdate, by.x = "Recording", by.y =
-                     "old")$new # update Recording indices.
+            # subset measurements slot
+            indexupdate <-
+              as.data.frame(cbind(cumsum(ExamItem)[ExamItem], which(ExamItem)))
+            colnames(indexupdate) <- c("new", "old")
 
-           X@Metadata <- Metadata(X)[MetaSubset, , drop = F]
+            measurements <- X@Measurements
+            measurements <-
+              merge(measurements, indexupdate, by.x = "Recording", by.y = "old")
+            measurements$Recording <- measurements$new
+            measurements$new <- NULL
+            X@Measurements <- measurements
+
+            # subset data
+            Y <- as(X, "EPhysSet")
+            Y <- Subset(
+              Y,
+              Time = Time,
+              TimeExclusive = TimeExclusive,
+              Repeats = Repeats,
+              SetItem = ExamItem,
+              Raw = TRUE,
+              Simplify = FALSE
+            )
+            X@Data <- Y@Data
+
+            # subset stimulus
+            X@Stimulus <-
+              StimulusTable(X)[StimulusTable(X)$Step %in% Metadata(Y)$Step, ]
+
+            # subset Metadata
+
+            X@Metadata<-Metadata(X)[ExamItem,]
+
+            # update other
+            X@Averaged <- X@Averaged
 
            if(validObject(X)){
              return(X)
-           }else{
-             stop("No valid ERGExam object obtained.")
            }
           })

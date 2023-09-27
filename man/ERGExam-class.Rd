@@ -6,12 +6,12 @@
 \alias{ERGExam}
 \title{ERGExam Class}
 \description{
-A class representing ERG (Electroretinogram) steps with associated data and attributes. This class extends the \link[EPhysData:EphysSet]{EPhysData::EphysSet} object and all methods valid for \link[EPhysData:EphysSet]{EPhysData::EphysSet} can also be applied to \code{ERGExam} objects.
+A class representing an ERG (Electroretinogram) exam with associated data and attributes. This class extends the \link[EPhysData:EphysSet]{EPhysData::EphysSet} object and all methods valid for \link[EPhysData:EphysSet]{EPhysData::EphysSet} can also be applied to \code{ERGExam} objects.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{Data}}{Data A list of \link{EPhysData} objects.}
+\item{\code{Data}}{Data A list of \link{EPhysData} objects. Each item containing a recording in respsonse to a particular Stimulus ("Step"), from a particular eye and data Channel (e.g. ERG or OP)-}
 
 \item{\code{Metadata}}{A data frame containing metadata information associated with the data, each row corresponds to one list item.
 \describe{

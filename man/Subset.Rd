@@ -13,7 +13,7 @@
   Step = Steps(X),
   Eye = Eyes(X),
   Channel = Channels(X),
-  ByRecordingIndex = FALSE,
+  ExamItem = NULL,
   ...
 )
 }
@@ -26,13 +26,13 @@ Default is the entire time range (i.e., keep all data).}
 \item{TimeExclusive}{Keep only the two time points stated under \code{Time}, not the range.}
 
 \item{Repeats}{If X is an EPhysSet, this parameter can only be used if all EPhysData contained in the set has the same number of repeats.
-or a logical vector of the same length as repeats stored,}
+Numeric index/indices or a logical vector of the same length as repeats stored,}
 
 \item{Raw}{Logical indicating whether to get raw data or processed (filtered, averaged) data.}
 
 \item{Step, Eye, Channel}{Vector of values for Steps, Eyes, and Channels to subset}
 
-\item{ByRecordingIndex}{Subset by recording index instead of \code{Step}, \code{Eye} and \code{Channel}. Default is \code{FALSE}. If set to a numeric vector,  \code{Step}, \code{Eye} and \code{Channel} will be ignored and only the recording with the given indices will be kept.}
+\item{ExamItem}{Subset by exam item index instead of \code{Step}, \code{Eye} and \code{Channel}. Default is \code{NULL}. If set to a numeric vector or a logical vector of same length as rows in Metadata,  \code{Step}, \code{Eye} and \code{Channel} will be ignored and only the recording with the given indices will be kept.}
 
 \item{...}{currently unused.}
 }
