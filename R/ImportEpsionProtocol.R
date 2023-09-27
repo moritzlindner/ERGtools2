@@ -8,6 +8,7 @@
 #'
 #' @importFrom  data.table fread
 #' @importFrom stringr str_detect
+#' @importFrom methods new
 #' @export
 ImportEpsionProtocol<-function(filename){
   Header<-fread(filename,sep = ",",header = F,fill=T,strip.white = T, nrows=85, data.table=F)

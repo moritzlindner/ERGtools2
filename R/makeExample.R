@@ -3,6 +3,7 @@
 #' This function creates an example ERGSteps object with mock data and metadata.
 #'
 #' @return An instance of the ERGSteps class containing example data and metadata.
+#' @importFrom methods new
 #'
 #' @examples
 #' example_erg_steps <- makeExampleERGSteps()

@@ -10,6 +10,7 @@
 #' # Clear the Results slot of an ERGExam object
 #' cleared_exam <- clearResults(exam)
 #' @inheritParams Subset
+#' @importFrom methods validObject
 #' @export ClearMeasurements
 setGeneric(
   name = "ClearMeasurements",

@@ -397,6 +397,7 @@ ERGExam <- setClass(
 #' @return An object of class \code{ERGExam}.
 #' @seealso \code{\link{ERGExam-class}}
 #' @importFrom units as_units
+#' @importFrom methods new validObject
 #' @export
 newERGExam <-
   function(Data,
@@ -441,6 +442,7 @@ setAs("EPhysSet", "ERGExam", function(from) {
 
 #' @noMd
 #' @importFrom crayon green
+#' @importFrom utils object.size
 setMethod("show",
           "ERGExam",
           function(object) {

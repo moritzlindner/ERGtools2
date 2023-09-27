@@ -58,7 +58,7 @@ setMethod("as.data.frame",
             nMarkers<-nrow(markers)
             if(length(nMarkers)<1){
               nMarkers<-1
-              marker<-ERGtools2:::ERGMarker()
+              marker<-ERGMarker()
               marker@Name<-""
               markers<-as.data.frame(marker)
             }

@@ -24,8 +24,10 @@
 #'
 #' @importFrom data.table fread
 #' @importFrom units as_units
-#' @importFrom utils read.csv
+#' @importFrom utils read.csv txtProgressBar setTxtProgressBar
+#' @importFrom stats na.exclude
 #' @importFrom stringr str_detect str_remove str_trim
+#' @importFrom EPhysData newEPhysData
 #' @name ImportEpsion
 #' @export
 #'
@@ -42,7 +44,7 @@ ImportEpsion <- function(filename,
       "Provision of the protocol is recommended and may be essential if marker table is not provided or does not include markers for each step and channel of the recording."
     )
   }else{
-    if (!inherits(Protocol, "Protocol")) {
+    if (!inherits(Protocol, "ERGProtocol")) {
       if (is.list(Protocol)) {
         if (!(all(unlist(lapply(Protocol, function(x) {
           inherits(x, "Protocol")

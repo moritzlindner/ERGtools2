@@ -8,6 +8,7 @@
 #' @details The \code{Subset} function creates a new \code{ERGExam}  object containing a subset of the data from the original object, based on the provided parameters.
 #' @seealso \link[EPhysData:Subset]{EPhysData::Subset}
 #' @importFrom EPhysData Subset newEPhysSet Metadata
+#' @importFrom methods validObject
 #' @name Subset
 #' @exportMethod Subset
 setMethod("Subset",
