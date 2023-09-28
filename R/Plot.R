@@ -17,6 +17,7 @@
 #' @importFrom ggpubr theme_pubr
 #' @importFrom gridExtra grid.arrange
 #' @importFrom EPhysData as.data.frame
+#' @importFrom stringr str_detect
 #' @seealso \linkS4class{ERGExam} \link[ggplot2:ggplot]{ggplot2:ggplot}
 #'
 #' @exportMethod PlotExam
@@ -35,7 +36,9 @@ setMethod(
 
     #crude downsampling
     dat <- dat[round(dat$Time / 2.5) == dat$Time / 2.5, ]
-
+    
+    colnames(dat)[str_detect(colnames(dat),"cd.")]<-"Intensity"
+    
     dat$Recording <- NULL
     stimtab <- StimulusTable(X)
     dat <- merge(dat, stimtab, by = "Step")
