@@ -37,7 +37,7 @@ setMethod("MergeERGExams",
                 tryCatch(
                   out <- merge2ERGExams(out, ex),
                   error = function(e) {
-                    stop("Mergin Exams failed for ",)
+                    stop("Mergin Exams failed for ", ProtocolName(ex), "with message: ",e)
                   }
                 )
               }
