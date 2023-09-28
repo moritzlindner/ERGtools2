@@ -213,9 +213,8 @@ setMethod("Measurements",
           "ERGExam",
           function(X) {
             Measurements<-X@Measurements
-
-            Measurements<-merge(Measurements,X@Metadata, by.x="Recording",by.y = 0)
-            Measurements<-merge(Measurements,X@Stimulus, by="Step")
+            Measurements<-cbind(Measurements,Metadata(X)[Measurements$Recording,])
+            Measurements<-merge(Measurements,StimulusTable(X), by="Step")
             Measurements <-
               Measurements[, c("Description", "Eye", "Channel", "Name", "Voltage", "Time")]
             colnames(Measurements)<-c("Step", "Eye", "Channel", "Name", "Voltage", "Time")

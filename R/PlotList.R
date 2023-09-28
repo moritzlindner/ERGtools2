@@ -62,12 +62,13 @@ PlotIntensitySequence <-
           n =
             n()
         )
+
       results$sem <-
         as_units(results$sem, deparse_unit(results$ImplicitTime))
 
     }
 
-    results$Group<-paste0(results$Group," (n=",results$n,")")
+    #results$Group<-paste0(results$Group," (n=",results$n,")")
     # PLot
 
     if (wrap_by == "Channel") {
@@ -116,7 +117,7 @@ PlotIntensitySequence <-
 #' @param Background Background condition for the exams.
 #' @param Type Type of exam (e.g., "Flash").
 #' @param Channel The channel to plot (e.g., "ERG").
-#' @param Markers Vector of markers to include in the plot.
+#' @param Markers Vector of markers to include in the plot (e.g. c("a","B)).
 #' @param wrap_by Wrapping parameter for facetting ("Channel" or NULL).
 #'
 #' @return A ggplot2 plot object.
@@ -277,6 +278,19 @@ get_measurements_for_Plot <- function(List,
   }))))) {
     stop("'List' is not a list of ERGExams.")
   }
+  if (is.null(Channel)) {
+    Channel <- unique(unlist(lapply(List,Channels)))
+  }
+  # subset object
+  List <- lapply(List, function(x) {
+    md <- merge(Metadata(x), StimulusTable(x))
+    sel <-
+      md$Background %in% Background &
+      md$Type %in% Type & md$Channel %in% Channel
+    x <- Subset(x, ExamItem = sel)
+    x
+  })
+
   results <- lapply(List, function(x) {
     df <- Measurements(x)
     df$Subject <- Subject(x)
@@ -295,14 +309,8 @@ get_measurements_for_Plot <- function(List,
   results$Step.y <- NULL
   results$Step <- iconv(results$Step, "ASCII//TRANSLIT", sub = '')
 
-  # subsetting
-  if (is.null(Channel)) {
-    Channel <- unique(results$Channel)
-  }
-
+  # subsetting list
   results <-
-    results[results$Background == Background &
-              results$Type == Type &
-              results$Channel %in% Channel &
-              results$Name %in% Markers,]
+    results[results$Name %in% Markers, ]
+  return(results)
 }

@@ -79,7 +79,6 @@ setMethod("Subset",
               merge(measurements, indexupdate, by.x = "Recording", by.y = "old")
             measurements$Recording <- measurements$new
             measurements$new <- NULL
-            X@Measurements <- measurements
 
             # subset data
             Y <- as(X, "EPhysSet")
@@ -92,20 +91,26 @@ setMethod("Subset",
               Raw = TRUE,
               Simplify = FALSE
             )
-            X@Data <- Y@Data
 
             # subset stimulus
-            X@Stimulus <-
+           stimtab <-
               StimulusTable(X)[StimulusTable(X)$Step %in% Metadata(Y)$Step, ]
 
             # subset Metadata
 
-            X@Metadata<-Metadata(X)[ExamItem,]
+            metadata<-Metadata(X)[ExamItem,]
 
-            # update other
-            X@Averaged <- X@Averaged
+            out<-new("ERGExam",
+                Data = Y@Data,
+                Metadata = metadata,
+                Stimulus = stimtab,
+                Averaged = X@Averaged,
+                Measurements = measurements,
+                ExamInfo = X@ExamInfo,
+                SubjectInfo = X@SubjectInfo,
+                Imported = X@Imported)
 
-           if(validObject(X)){
-             return(X)
+           if(validObject(out)){
+             return(out)
            }
           })

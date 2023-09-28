@@ -22,7 +22,7 @@ PlotStepSequence(
 
 \item{Channel}{The channel to plot (e.g., "ERG").}
 
-\item{Markers}{Vector of markers to include in the plot.}
+\item{Markers}{Vector of markers to include in the plot (e.g. c("a","B)).}
 
 \item{wrap_by}{Wrapping parameter for facetting ("Channel" or NULL).}
 }
