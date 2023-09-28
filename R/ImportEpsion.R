@@ -500,8 +500,7 @@ get_content <- function(filename, toc, what, sep = "\t") {
 get_stim_info <- function(filename, toc, sep) {
   stim_info <-
     as.data.frame(get_content(filename, toc, "Stimulus Table", sep = sep))
-  colnames(stim_info)[colnames(stim_info) == "cd.s.m.2"] <-
-    "Intensity"
+  colnames(stim_info)[stringr::str_detect(colnames(stim_info),"cd.")]<-"Intensity"
   stim_info$Background <- NA
   stim_info$Background[grepl("LA", stim_info[, "Description"], fixed = TRUE, useBytes = TRUE)] <-
     "LA"
