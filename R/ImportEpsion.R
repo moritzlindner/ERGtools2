@@ -47,7 +47,7 @@ ImportEpsion <- function(filename,
     if (!inherits(Protocol, "ERGProtocol")) {
       if (is.list(Protocol)) {
         if (!(all(unlist(lapply(Protocol, function(x) {
-          inherits(x, "Protocol")
+          inherits(x, "ERGProtocol")
         }))))) {
           stop("'Protocol' must be an object of class 'Protocol' or a list thereof.")
         }
