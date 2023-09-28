@@ -95,7 +95,7 @@ merge2ERGExams <- function(exam1, exam2) {
 
   exam1Date <- as.POSIXct(exam1@ExamInfo$ExamDate)
   exam2Date <- as.POSIXct(exam2@ExamInfo$ExamDate)
-  if (max(abs(difftime(exam1Date, exam2Date, units = "hours")) > 3)) {
+  if (max(abs(difftime(exam1Date, exam2Date, units = "hours"))) > 3) {
     stop("ExamInfo$ExamDate should differ by a maximum of 3 hours.")
   }
 
