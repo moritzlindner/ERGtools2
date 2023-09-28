@@ -37,8 +37,6 @@ setMethod(
     #crude downsampling
     dat <- dat[round(dat$Time / 2.5) == dat$Time / 2.5, ]
     
-    colnames(dat)[str_detect(colnames(dat),"cd.")]<-"Intensity"
-    
     dat$Recording <- NULL
     stimtab <- StimulusTable(X)
     dat <- merge(dat, stimtab, by = "Step")
@@ -52,6 +50,8 @@ setMethod(
       iconv(dat$Type, "ASCII//TRANSLIT", sub = '')
     dat$Value <- units::set_units(dat$Value, "uV")
 
+    colnames(dat)[str_detect(colnames(dat),"cd.")]<-"Intensity"
+    
     plotrows <- list()
     for (b in unique(dat$Background)) {
       for (t in unique(dat$Type[dat$Background == b])) {
