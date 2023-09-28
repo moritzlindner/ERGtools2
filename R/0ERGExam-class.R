@@ -171,7 +171,7 @@ validERGExam <- function(object) {
   if (("Date" %in% class(dob)) &&
       ("POSIXct" %in% class(exam_date)) &&
       ("POSIXct" %in% class(imported_date))) {
-    if (!all((as.POSIXct(dob) < exam_date) && all(exam_date < imported_date))) {
+    if (!all(as.POSIXct(dob) < exam_date) && all(exam_date < imported_date)) {
       stop("Temporal sequence of 'DOB', 'ExamDate', and 'Imported' is impossible. ")
     }
   } else {
