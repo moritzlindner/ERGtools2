@@ -26,7 +26,7 @@
 #' @importFrom units as_units
 #' @importFrom utils read.csv txtProgressBar setTxtProgressBar
 #' @importFrom stats na.exclude
-#' @importFrom stringr str_detect str_remove str_trim
+#' @importFrom stringr str_detect str_remove str_trim stringr
 #' @importFrom EPhysData newEPhysData
 #' @name ImportEpsion
 #' @export
