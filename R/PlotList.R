@@ -195,6 +195,7 @@ PlotStepSequence <-
 #'
 #' @importFrom ggplot2 geom_hline geom_line facet_grid scale_color_manual theme
 #' @importFrom ggpubr theme_pubclean
+#' @importFrom stringr str_detect
 #'
 #' @examples
 #' # Example usage:
@@ -206,7 +207,8 @@ PlotRecordings<-function(List,
                          Background = "DA",
                          Type = "Flash",
                          Channel = "ERG",
-                         wrap_by = "Channel"){
+                         wrap_by = "Channel",
+                         scales = "free_y"){
 
   results <- lapply(List, function(x) {
     df <- as.data.frame(x)
@@ -222,7 +224,8 @@ PlotRecordings<-function(List,
 
   results <- do.call(rbind.data.frame, results)
   # type conversion and column names
-  colnames(results)[colnames(results) == "cd.s.m"] <- "Intensity"
+  colnames(results)[str_detect(colnames(results), "cd.s.m")] <-
+    "Intensity"
   results$Step <- iconv(results$Step, "ASCII//TRANSLIT", sub = '')
 
   # subsetting
@@ -244,11 +247,11 @@ PlotRecordings<-function(List,
     geom_hline(yintercept = as_units(0,"uV"), colour = "gray") +
     geom_line() +
     facet_grid(Type+Background+Intensity+Channel~Group+Subject,
-               scales = "free_y"
+               scales = scales
     ) +
     theme_pubclean(base_size = 8) +
     #labs(x = paste0("Time [", si_x, "]"), y = paste0("Voltage [", si_y, "]")) +
-    scale_color_manual(values = c("RE" = "darkred", "LE" = "darkblue")) +
+    scale_color_manual(values = c("RE" = "darkred", "LE" = "darkblue","OD" = "darkred", "OS" = "darkblue")) +
     theme(panel.grid.major = element_line(size = .1))
 }
 
@@ -293,9 +296,25 @@ get_measurements_for_Plot <- function(List,
 
   results <- lapply(List, function(x) {
     df <- Measurements(x)
+<<<<<<< HEAD
     df$Subject <- Subject(x)
     df$Group <- x@SubjectInfo$Group
     df$ExamDate <- min(x@ExamInfo$ExamDate)
+||||||| parent of 58d8478 (Merge corrected)
+    df$Subject <- Subject(x)
+    df$Group <- x@SubjectInfo$Group
+    df$ExamDate <- x@ExamInfo$ExamDate
+=======
+    if(nrow(df)>0){
+      df$Subject <- Subject(x)
+      df$Group <- x@SubjectInfo$Group
+      df$ExamDate <- min(x@ExamInfo$ExamDate)
+    }else{
+      df$Subject <- character()
+      df$Group <- character()
+      df$ExamDate <- as.Date(x = integer(0), origin = "1970-01-01")
+    }
+>>>>>>> 58d8478 (Merge corrected)
     df <-
       merge(df,
             StimulusTable(x),
