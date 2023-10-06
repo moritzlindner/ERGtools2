@@ -26,7 +26,7 @@
 #' @importFrom units as_units
 #' @importFrom utils read.csv txtProgressBar setTxtProgressBar
 #' @importFrom stats na.exclude
-#' @importFrom stringr str_detect str_remove str_trim stringr
+#' @importFrom stringr str_detect str_remove str_trim
 #' @importFrom EPhysData newEPhysData
 #' @name ImportEpsion
 #' @export
@@ -105,7 +105,7 @@ ImportEpsion <- function(filename,
       tmp1<-sub(" \\[.*", "", recording_info["Protocol","Value"])
       if(is.list(Protocol)){
         idx<-which(tmp1==unlist(lapply(Protocol,function(x){x@Name})))
-        if(is.null(idx)){
+        if(length(idx)==0){
           stop("Required protocol not in list.")
         }
         if(length(idx)>1){
@@ -312,22 +312,30 @@ ImportEpsion <- function(filename,
             ("Averaged" %in% Import)) {
 
           # get Averages / "Results"
-          resulttrace<-(na.exclude(fread(filename,
-                                         select = Data_Header[i,"Column.1"],
-                                         nrows = toc["Data Table","Bottom"]-toc["Data Table","Top"],
-                                         skip = toc["Data Table","Top"]-1,
-                                         data.table = F,
-                                         header = F)))[,1]
+          resulttrace <- (na.exclude(
+            fread(
+              filename,
+              select = Data_Header[i, "Column.1"],
+              nrows = toc["Data Table", "Bottom"] -
+                toc["Data Table", "Top"],
+              skip = toc["Data Table", "Top"] -
+                1,
+              data.table = F,
+              header = F
+            )
+          ))[, 1]
           if(all(resulttrace==0)){
             stop("Raw trace is empty. Re-export table or run ImportEpsionMeasures instead, to only import measures.")
           }
 
-          resultunit<-fread(filename,
-                            select = Data_Header[i,"Column.1"],
-                            nrows = 1,
-                            skip = toc["Data Table","Top"]-2,
-                            data.table = F,
-                            header = F)[1,1]
+          resultunit <- fread(
+            filename,
+            select = Data_Header[i, "Column.1"],
+            nrows = 1,
+            skip = toc["Data Table", "Top"] - 2,
+            data.table = F,
+            header = F
+          )[1, 1]
 
           resultunit<-gsub("[\\(\\)]", "", regmatches(resultunit, gregexpr("\\(.*?\\)", resultunit))[[1]])
           resulttrace<-as_units(resulttrace,resultunit)
@@ -342,18 +350,28 @@ ImportEpsion <- function(filename,
 
         if ("Trials" %in% colnames(Data_Header) &&
             ("Raw" %in% Import)) {
-          trialtraces<-(na.exclude(fread(filename,
-                                         select = c((Data_Header[i,"Column.1"]+1):(Data_Header[i,"Column.1"]+Data_Header[i,"Trials"])),
-                                         nrows = toc["Data Table","Bottom"]-toc["Data Table","Top"],
-                                         skip = toc["Data Table","Top"]-1,
-                                         data.table = F,
-                                         header = F)))
-          trialunits<-fread(filename,
-                            select = c((Data_Header[i,"Column.1"]+1):(Data_Header[i,"Column.1"]+Data_Header[i,"Trials"])),
-                            nrows = 1,
-                            skip = toc["Data Table","Top"]-2,
-                            data.table = F,
-                            header = F)
+          trialtraces <- (na.exclude(
+            fread(
+              filename,
+              select = c((Data_Header[i, "Column.1"] +
+                            1):(Data_Header[i, "Column.1"] + Data_Header[i, "Trials"])),
+              nrows = toc["Data Table", "Bottom"] -
+                toc["Data Table", "Top"],
+              skip = toc["Data Table", "Top"] -
+                1,
+              data.table = F,
+              header = F
+            )
+          ))
+          trialunits <- fread(
+            filename,
+            select = c((Data_Header[i, "Column.1"] + 1):(Data_Header[i, "Column.1"] +
+                                                           Data_Header[i, "Trials"])),
+            nrows = 1,
+            skip = toc["Data Table", "Top"] - 2,
+            data.table = F,
+            header = F
+          )
 
           trialunits<-unique(gsub("[\\(\\)]", "", regmatches(trialunits, gregexpr("\\(.*?\\)", trialunits))[[1]]))
           if (length(trialunits) > 1) {

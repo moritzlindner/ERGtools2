@@ -5,7 +5,7 @@
 #' @inheritParams Subset
 #' @param examX An ERGExam object or a list of ERGExam objects to be merged with \code{X}.
 #'
-#' @return An ERGExam object representing the merged data.
+#' @return An ERGExam object representing the merged data. the file names, protocol names and dates from the individual files merged are stored as additional columns in the Stimulus table. Use \linkS4class{StimulusTable}(X, full=T) to see those.
 #'
 #' @export
 #' @examples
@@ -53,7 +53,7 @@ merge2ERGExams <- function(exam1, exam2) {
   }
 
   # Get the maximum Step value from both objects
-  maxStep <- max(exam1@Metadata$Step)
+  maxStep <- max(Steps(exam1))
   # Combine data, metadata and stimulus
   mergedData <- c(exam1@Data, exam2@Data)
   meta2 <- Metadata(exam2)
@@ -62,20 +62,23 @@ merge2ERGExams <- function(exam1, exam2) {
   stimtab1 <- StimulusTable(exam1)
   if (is.null(stimtab1$ProtocolName)) {
     stimtab1$ProtocolName <- ProtocolName(exam1)
+    stimtab1$ExamDate <- ExamDate(exam1)
+    stimtab1$Filename <- exam1@ExamInfo$Filename
   }
   stimtab2 <- StimulusTable(exam2)
   if (is.null(stimtab2$ProtocolName)) {
     stimtab2$ProtocolName <- ProtocolName(exam2)
+    stimtab2$ExamDate <- ExamDate(exam2)
+    stimtab2$Filename <- exam2@ExamInfo$Filename
   }
   stimtab2$Step <- stimtab2$Step + maxStep
   mergedStimulus <- rbind(stimtab1, stimtab2)
   measurements2 <- exam2@Measurements
+  measurements2$Recording <- measurements2$Recording +length(exam1)
   mergedMeasurements <-  rbind(exam1@Measurements, measurements2)
 
   examinfo <- exam1@ExamInfo
-  examinfo$ExamDate <- c(ExamDate(exam1), ExamDate(exam2))
-  examinfo$Filename <-
-    c(exam1@ExamInfo$Filename, exam2@ExamInfo$Filename)
+  examinfo$Filename <- "Merged Exam"
 
   # Create a new ERGExam instance with merged data and metadata
   mergedExam <- newERGExam(

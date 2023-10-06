@@ -24,7 +24,7 @@ Steps(X)
 
 Subject(X)
 
-StimulusTable(X)
+StimulusTable(X, full = F)
 
 StimulusNames(X)
 
@@ -42,6 +42,8 @@ Measurements(X)
 }
 \arguments{
 \item{X}{A \linkS4class{ERGExam} or \linkS4class{EohysRAW} object}
+
+\item{full}{For \code{StimulusTable} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \linkS4class{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.}
 }
 \value{
 A vector. For 'StimulusTable()' a data.frame and a function for 'GetFilterFunction()' and 'GetAverageFunction()'.

@@ -213,7 +213,7 @@ PlotRecordings<-function(List,
     tab <- StimulusTable(x)
     df$Subject <- Subject(x)
     df$Group <- x@SubjectInfo$Group
-    df$ExamDate <- x@ExamInfo$ExamDate
+    df$ExamDate <- min(x@ExamInfo$ExamDate)
     tab$Description <-
       iconv(tab$Description, "ASCII//TRANSLIT", sub = '')
     df <- merge(df, tab)
@@ -295,7 +295,7 @@ get_measurements_for_Plot <- function(List,
     df <- Measurements(x)
     df$Subject <- Subject(x)
     df$Group <- x@SubjectInfo$Group
-    df$ExamDate <- x@ExamInfo$ExamDate
+    df$ExamDate <- min(x@ExamInfo$ExamDate)
     df <-
       merge(df,
             StimulusTable(x),

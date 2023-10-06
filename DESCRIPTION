@@ -1,7 +1,7 @@
 Package: ERGtools2
 Type: Package
 Title: Importing and analysing Electroretinogram data in R
-Version: 0.2.0
+Version: 0.3.0
 Author: person("Moritz", "Lindner", email = "moritz@lindnerlab.de", role = c("aut", "cre"))
 Maintainer: Moritz Lindner <moritz@lindnerlab.de>
 Description: More about what it does (maybe more than one line)

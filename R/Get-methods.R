@@ -75,11 +75,13 @@ setMethod("Subject",
           })
 
 #' @describeIn Get Returns the stimulus table
+#' @param full For \code{StimulusTable} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \linkS4class{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.
 #' @exportMethod StimulusTable
 #' @noMd
 setGeneric(
   name = "StimulusTable",
-  def = function(X)
+  def = function(X,
+                 full = F)
   {
     standardGeneric("StimulusTable")
   }
@@ -88,8 +90,14 @@ setGeneric(
 #' @noMd
 setMethod("StimulusTable",
           "ERGExam",
-          function(X) {
-            X@Stimulus
+          function(X,
+                   full = F) {
+            if(!full){
+              return(X@Stimulus[, c("Step", "Description", "Intensity", "Background", "Type")])
+            }else{
+              return(X@Stimulus)
+
+            }
           })
 
 #' @describeIn Get Returns the stimulus names.
