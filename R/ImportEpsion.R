@@ -11,8 +11,8 @@
 #'   If sep = "" (the default for read.table), the separator is ‘white space’, which includes spaces, tabs, newlines, or carriage returns.
 #' @param Import A list of character vectors specifying which parts of the data to import.
 #'   Possible elements are "Raw" - for importing the raw recordings, "Averaged" - for importing the averaged recordings ("Results"), and "Measurements" - for importing the measured markers. Either of "Raw" or "Averaged" must be selected.
-#' @param Protocol An S4 object of class \link[Protocol]{Protocol()} or a list thereof.
-#' @seealso \linkS4class{ERGExam} \link[Protocol]{Protocol()}
+#' @param Protocol An S4 object of class \link[Protocol]{ERGProtocol()} or a list thereof.
+#' @seealso \linkS4class{ERGExam} \link[Protocol]{ERGProtocol()}
 #'
 #' @examples
 #' \dontrun{

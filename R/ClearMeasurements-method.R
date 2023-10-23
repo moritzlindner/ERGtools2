@@ -1,6 +1,6 @@
 #' Clear Computed Slots from an ERGExam object
 #'
-#' Clears the Averaged and Measurements slots in an ERGExam object, respectiveley, by removing any existing data.
+#' Clears the Measurements slots in an  \link[=ERGExam]{ERGExam} object, respectively, by removing any existing data.
 #'
 #'
 #' @return An ERGExam object with the Results slot cleared.
@@ -11,7 +11,7 @@
 #' cleared_exam <- clearResults(exam)
 #' @inheritParams Subset
 #' @importFrom methods validObject
-#' @export ClearMeasurements
+#' @exportMethod ClearMeasurements
 setGeneric(
   name = "ClearMeasurements",
   def = function(X) {

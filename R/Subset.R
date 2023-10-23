@@ -88,7 +88,7 @@ setMethod("Subset",
               TimeExclusive = TimeExclusive,
               Repeats = Repeats,
               SetItem = ExamItem,
-              Raw = TRUE,
+              Raw = Raw,
               Simplify = FALSE
             )
 

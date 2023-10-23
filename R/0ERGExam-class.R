@@ -41,9 +41,9 @@ validERGExam <- function(object) {
           TRUE
         }
       }))) {
-        stop("'Rejected' vectors are not identical across channels in step ",
+        warnings("'Rejected' vectors are not identical across channels in step ",
              s,
-             "eye",
+             " eye ",
              e,
              ".")
       }
@@ -238,8 +238,8 @@ validERGExam <- function(object) {
 #' @slot Imported
 #' A \code{POSIXct} timestamp indicating when the object was imported.
 #'
-#' @name ERGExam-class
-#' @seealso \link[EPhysData:EPhysData-package]{EPhysData::EPhysData-package}  \link[EPhysData:EPhysData]{EPhysData::EPhysData} \link[EPhysData:EphysSet]{EPhysData::EPhysSet}
+#' @name ERGExam
+#' @seealso \link[EPhysData:EPhysData-package]{EPhysData::EPhysData-package}\link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} \link[EPhysData:EphysSet-class]{EPhysData::EPhysSet-class}
 #' @importClassesFrom EPhysData EPhysData EPhysSet
 #' @importFrom units as_units
 #' @exportClass ERGExam
@@ -313,7 +313,7 @@ ERGExam <- setClass(
 #' @description This function creates an instance of the \code{ERGExam} class
 #' with the specified data and attributes.
 #'
-#' @param Data A list of \linkS4class{EphysRAW} objects.
+#' @param Data A list of \linkS4class{EPhysData::EPhysData} objects.
 #' @param Metadata A data frame containing metadata information associated with the data, each row corresponds to one list item.
 #' \describe{
 #'   \item{Step}{A character vector containing the steps associated with the data.}

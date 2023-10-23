@@ -23,7 +23,7 @@
 \item{Time}{Numeric vector of length 2 representing the time range for data extraction.
 Default is the entire time range (i.e., keep all data).}
 
-\item{TimeExclusive}{Keep only the two time points stated under \code{Time}, not the range.}
+\item{TimeExclusive}{Keep only the two time points stated under 'Time', not the range.}
 
 \item{Repeats}{If X is an EPhysSet, this parameter can only be used if all EPhysData contained in the set has the same number of repeats.
 Numeric index/indices or a logical vector of the same length as repeats stored,}

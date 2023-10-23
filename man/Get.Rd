@@ -41,7 +41,7 @@ DOB(X)
 Measurements(X)
 }
 \arguments{
-\item{X}{A \linkS4class{ERGExam} or \linkS4class{EohysRAW} object}
+\item{X}{A \linkS4class{ERGExam}}
 
 \item{full}{For \code{StimulusTable} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \linkS4class{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.}
 }
@@ -49,35 +49,35 @@ Measurements(X)
 A vector. For 'StimulusTable()' a data.frame and a function for 'GetFilterFunction()' and 'GetAverageFunction()'.
 }
 \description{
-These methods are used to access metadata information from \linkS4class{ERGExam} or \linkS4class{EohysRAW}  objects.
+These methods are used to access metadata information from \linkS4class{ERGExam} objects.
 }
 \details{
-These methods can be used to access metadata information stored in \linkS4class{ERGExam} or \linkS4class{EohysRAW}  objects. \cr \cr
+These methods can be used to access metadata information stored in \linkS4class{ERGExam} or objects. \cr \cr
 }
 \section{Functions}{
 \itemize{
-\item \code{Eyes}: Returns a the eyes of which the data has been recorded.
+\item \code{Eyes()}: Returns a the eyes of which the data has been recorded.
 
-\item \code{Channels}: Returns the Channel names.
+\item \code{Channels()}: Returns the Channel names.
 
-\item \code{Steps}: Returns the steps of the exam
+\item \code{Steps()}: Returns the steps of the exam
 
-\item \code{Subject}: Returns the subject's name
+\item \code{Subject()}: Returns the subject's name
 
-\item \code{StimulusTable}: Returns the stimulus table
+\item \code{StimulusTable()}: Returns the stimulus table
 
-\item \code{StimulusNames}: Returns the stimulus names.
+\item \code{StimulusNames()}: Returns the stimulus names.
 
-\item \code{MarkerNames}: Returns the measurement parameter names (e.g: 'a','B','N1','P1').
+\item \code{MarkerNames()}: Returns the measurement parameter names (e.g: 'a','B','N1','P1').
 
-\item \code{ProtocolName}: Returns the recording protocol name.
+\item \code{ProtocolName()}: Returns the recording protocol name.
 
-\item \code{GroupName}: Returns the group name.
+\item \code{GroupName()}: Returns the group name.
 
-\item \code{ExamDate}: Returns the exam date.
+\item \code{ExamDate()}: Returns the exam date.
 
-\item \code{DOB}: Returns the date of birth.
+\item \code{DOB()}: Returns the date of birth.
 
-\item \code{Measurements}: Get Measurements table.
+\item \code{Measurements()}: Get Measurements table.
+
 }}
-

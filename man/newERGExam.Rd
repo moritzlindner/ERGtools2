@@ -17,7 +17,7 @@ newERGExam(
 )
 }
 \arguments{
-\item{Data}{A list of \linkS4class{EphysRAW} objects.}
+\item{Data}{A list of \linkS4class{EPhysData::EPhysData} objects.}
 
 \item{Metadata}{A data frame containing metadata information associated with the data, each row corresponds to one list item.
 \describe{

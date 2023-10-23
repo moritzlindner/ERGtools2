@@ -9,7 +9,8 @@ PlotRecordings(
   Background = "DA",
   Type = "Flash",
   Channel = "ERG",
-  wrap_by = "Channel"
+  wrap_by = "Channel",
+  scales = "free_y"
 )
 }
 \arguments{

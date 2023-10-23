@@ -296,15 +296,12 @@ get_measurements_for_Plot <- function(List,
 
   results <- lapply(List, function(x) {
     df <- Measurements(x)
-<<<<<<< HEAD
     df$Subject <- Subject(x)
     df$Group <- x@SubjectInfo$Group
     df$ExamDate <- min(x@ExamInfo$ExamDate)
-||||||| parent of 58d8478 (Merge corrected)
     df$Subject <- Subject(x)
     df$Group <- x@SubjectInfo$Group
     df$ExamDate <- x@ExamInfo$ExamDate
-=======
     if(nrow(df)>0){
       df$Subject <- Subject(x)
       df$Group <- x@SubjectInfo$Group
@@ -314,7 +311,6 @@ get_measurements_for_Plot <- function(List,
       df$Group <- character()
       df$ExamDate <- as.Date(x = integer(0), origin = "1970-01-01")
     }
->>>>>>> 58d8478 (Merge corrected)
     df <-
       merge(df,
             StimulusTable(x),

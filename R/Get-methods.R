@@ -1,8 +1,8 @@
 #' Accession methods for metadata from ERGExam objects
 #'
-#' These methods are used to access metadata information from \linkS4class{ERGExam} or \linkS4class{EohysRAW}  objects.
-#' @param X A \linkS4class{ERGExam} or \linkS4class{EohysRAW} object
-#' @details These methods can be used to access metadata information stored in \linkS4class{ERGExam} or \linkS4class{EohysRAW}  objects. \cr \cr
+#' These methods are used to access metadata information from \linkS4class{ERGExam} objects.
+#' @param X A \linkS4class{ERGExam}
+#' @details These methods can be used to access metadata information stored in \linkS4class{ERGExam} or objects. \cr \cr
 #' @return A vector. For 'StimulusTable()' a data.frame and a function for 'GetFilterFunction()' and 'GetAverageFunction()'.
 #' @name Get
 NULL
