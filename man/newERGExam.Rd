@@ -10,8 +10,8 @@ newERGExam(
   Stimulus,
   Averaged = FALSE,
   Measurements = data.frame(Recording = numeric(), Name = character(), Time =
-    as_units(integer(), "s"), Value = as_units(integer(), unitless), stringsAsFactors =
-    FALSE),
+    as_units(integer(), "s"), Value = as_units(integer(), unitless), Relative =
+    character(), stringsAsFactors = FALSE),
   ExamInfo,
   SubjectInfo
 )

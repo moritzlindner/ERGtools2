@@ -17,6 +17,7 @@ Imports:
     ggplot2,
     ggpubr,
     gridExtra,
+    plotly,
     knitr,
     methods,
     remotes,
@@ -24,7 +25,7 @@ Imports:
     stringr,
     tidyr,
     units,
-    EPhysMethods
+    EPhysMethods (>= 0.2.0)
 Remotes:
     github::moritzlindner/EPhysData,
     github::moritzlindner/EPhysMethods

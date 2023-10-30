@@ -4,7 +4,7 @@
 #' specified in the 'from' argument to the corresponding names given in the 'to' argument for the
 #' provided \linkS4class{ERGExam} object.
 #'
-#' @inheritParams Subset
+#' @inheritParams Subset-method
 #' @param from A character vector with the original channel names to be replaced.
 #' @param to A character vector with the new channel names to replace the original ones.
 #' @param Steps (Optional) A character vector specifying the steps to consider for the update.

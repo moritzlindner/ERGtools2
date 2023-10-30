@@ -18,8 +18,8 @@
 #'
 #' @examples
 #' data(ERG)
-#' imprted_Markers<-Measurements(ERG)
-#' imprted_Markers
+#' imported_Markers<-Measurements(ERG)
+#' imported_Markers
 #' ERG<-SetStandardFunctions(ERG)
 #' ERG<-AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG_auto"))
 #' autoplaced_Markers<-Measurements(ERG)
@@ -28,9 +28,10 @@
 #' # Calling AutoPlaceAB() directly
 #' X<-ERG@Data[[1]] # get first recording
 #' AutoPlaceAB(X)
-#'
+#' @name AutoPlaceMarkers
+NULL
+#' @describeIn AutoPlaceMarkers Automatically sets markers depending on the channel (E.g. ERG, VEP, OP,...) and stimulus type (Flash, FLicker).
 #' @exportMethod AutoPlaceMarkers
-
 setGeneric(
   name = "AutoPlaceMarkers",
   def = function(X,
@@ -42,8 +43,7 @@ setGeneric(
   }
 )
 
-#' @describeIn AutoPlaceMarkers Automatically sets markers depending on the channel (E.g. ERG, VEP, OP,...) and stimulus type (Flash, FLicker).
-#' @exportMethod AutoPlaceMarkers
+#' @noMd
 setMethod(
   "AutoPlaceMarkers",
   signature = "ERGExam",
@@ -112,14 +112,14 @@ setMethod(
   }
 )
 
-#' @noMd
+#' @describeIn AutoPlaceMarkers places the a and B waves on Flash ERG data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object.
+#' @exportMethod AutoPlaceAB
 setGeneric(
   name = "AutoPlaceAB",
   def = function(X) {
     standardGeneric("AutoPlaceAB")
   }
 )
-#' @describeIn AutoPlaceMarkers places the a and B waves on Flash ERG data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object
 #' @importFrom EPhysMethods filter.bandpass
 #' @noMd
 setMethod(
@@ -145,19 +145,21 @@ setMethod(
     a_amp<-dat$Voltage[a_pos]
 
     out<-data.frame(Time = c(a_time, B_time),
-                    Voltage = c(a_amp, B_amp))
+                    Voltage = c(a_amp, B_amp),
+                    Relative = c(NA,"a"))
     rownames(out)<-c("a","B")
     return(out)
   }
 )
 
+#' @describeIn AutoPlaceMarkers places the N1 and P1 markers and determines 1/frequency (period) for Flicker ERG data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object
+#' @exportMethod AutoPlaceFlicker
 setGeneric(
   name = "AutoPlaceFlicker",
   def = function(X) {
     standardGeneric("AutoPlaceFlicker")
   }
 )
-#' @describeIn AutoPlaceMarkers places the N1 and P1 markers and determines 1/frequency (period) for Flicker ERG data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object
 #' @importFrom EPhysMethods filter.bandpass fastfourier
 #' @noMd
 setMethod(
@@ -212,21 +214,21 @@ setMethod(
     N1_amp<-dat$Voltage[N1_pos]
 
     out<-data.frame(Time = c(N1_time, P1_time,set_units(set_units(1/domfreq,"s"),units(P1_time), mode = "standard")),
-                    Voltage = c(N1_amp, P1_amp,as_units(NA,"V")))
+                    Voltage = c(N1_amp, P1_amp,as_units(NA,"V")),
+                    Relative = c(NA,"N1",NA))
     rownames(out)<-c("N1","P1","Period")
     return(out)
   }
 )
 
-
-#' @noMd
+#' @describeIn AutoPlaceMarkers places the P1, N1 and P2 markers for Flash VEP data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object
+#' @exportMethod AutoPlaceVEP
 setGeneric(
   name = "AutoPlaceVEP",
   def = function(X) {
     standardGeneric("AutoPlaceVEP")
   }
 )
-#' @describeIn AutoPlaceMarkers places the P1, N1 and P2 markers for Flash VEP data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object
 #' @importFrom EPhysMethods filter.bandpass
 #' @noMd
 setMethod(
@@ -264,7 +266,8 @@ setMethod(
 
     out <- data.frame(
       Time = c(P1_time, N1_time, P2_time),
-      Voltage = c(P1_amp, N1_amp, P2_amp)
+      Voltage = c(P1_amp, N1_amp, P2_amp),
+      Relative = c(NA,"P1","P1")
     )
     rownames(out) <- c("P1", "N1", "P2")
     return(out)
@@ -273,13 +276,14 @@ setMethod(
 
 #' @importFrom units drop_units
 #' @importFrom EPhysData TimeTrace GetData
+#' @keywords internal
 #' @noMd
 getdf<-function(X){
   sample.rate<-1/set_units(median(diff(TimeTrace(X))),"s")
   sample.rate<-drop_units(sample.rate)
 
   dat<-GetData(X,Raw = F)
-  if(!is.null(dim(dat))){
+  if(!ncol(dat)==1){
     stop("'X' has no valid Averaging Function set. Result of averaging Data must be a vector. See documentation for 'AverageFunction<-' or 'SetStandardFunctions'.")
   }
   dat<-as.data.frame(dat)

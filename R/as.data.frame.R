@@ -21,10 +21,10 @@
 #'
 #' @importFrom tidyr pivot_longer starts_with
 #' @importFrom units drop_units as_units
-#' @name as.data.frame-method
+#' @name as.data.frame
 NULL
 
-#' @describeIn as.data.frame-method Method for ERGMarker
+#' @describeIn as.data.frame Method for ERGMarker
 #' @exportMethod as.data.frame
 setMethod("as.data.frame",
           "ERGMarker",
@@ -36,7 +36,7 @@ setMethod("as.data.frame",
             return(out)
           })
 
-#' @describeIn as.data.frame-method Method for ERGChannel
+#' @describeIn as.data.frame Method for ERGChannel
 #' @exportMethod as.data.frame
 setMethod("as.data.frame",
           "ERGChannel",
@@ -71,7 +71,7 @@ setMethod("as.data.frame",
             return(cbind(out, markers))
           })
 
-#' @describeIn as.data.frame-method Method for ERGStep
+#' @describeIn as.data.frame Method for ERGStep
 #' @exportMethod as.data.frame
 setMethod("as.data.frame",
           "ERGStep",
@@ -104,7 +104,7 @@ setMethod("as.data.frame",
             result_df <- cbind(step_df, channels)
             return(result_df)
           })
-#' @describeIn as.data.frame-method Method for ERGProtocol
+#' @describeIn as.data.frame Method for ERGProtocol
 #' @exportMethod as.data.frame
 as.data.frame <- setMethod("as.data.frame",
                            signature = "ERGProtocol",

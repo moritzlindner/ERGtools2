@@ -5,7 +5,7 @@
 \alias{FilterFunction<-,ERGExam-method}
 \alias{Rejected<-,ERGExam-method}
 \alias{AverageFunction<-,ERGExam-method}
-\alias{SetStandardFunctions,ERGExam-method}
+\alias{SetStandardFunctions}
 \title{Set processing functions for ERGExam objects}
 \usage{
 \S4method{FilterFunction}{ERGExam}(X, where) <- value
@@ -14,7 +14,7 @@
 
 \S4method{AverageFunction}{ERGExam}(X, where) <- value
 
-\S4method{SetStandardFunctions}{ERGExam}(
+SetStandardFunctions(
   X,
   Stimulus.type.names = pairlist(Flash = "Flash", Flicker = "Flicker")
 )
@@ -50,7 +50,7 @@ They allow setting the functions to a subset of recordings based on the specifie
 
 \item \code{AverageFunction(ERGExam) <- value}: Update the AverageFunction for all Recordings in an \linkS4class{ERGExam}, or only those slected using \code{where}.
 
-\item \code{SetStandardFunctions(ERGExam)}: This method is used to set standard functions for processing \linkS4class{ERGExam} data. It defines default functions for averaging, filtering, and signal rejection based on the stimulus type.
+\item \code{SetStandardFunctions()}: This method is used to set standard functions for processing \linkS4class{ERGExam} data. It defines default functions for averaging, filtering, and signal rejection based on the stimulus type.
 
 }}
 \seealso{

@@ -7,7 +7,7 @@
 MergeERGExams(X, examX)
 }
 \arguments{
-\item{X}{An \code{EPhysData} object}
+\item{X}{A \linkS4class{ERGExam}}
 
 \item{examX}{An ERGExam object or a list of ERGExam objects to be merged with \code{X}.}
 }

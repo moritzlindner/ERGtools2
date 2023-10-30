@@ -132,10 +132,10 @@ validERGExam <- function(object) {
 
   # Measurements slot
   if (length(object@Measurements) != 0) {
-    required_columns <- c("Recording", "Name", "Time", "Voltage")
+    required_columns <- c("Recording", "Name", "Time", "Voltage","Relative")
     if (!all(required_columns %in% names(object@Measurements))) {
       stop(
-        "Measurements provided are not in correct format. Must be a data.frame with the columns 'Recording', 'Name', 'Time', and 'Voltage'."
+        "Measurements provided are not in correct format. Must be a data.frame with the columns 'Recording', 'Name', 'Time', 'Voltage' and 'Relative'."
       )
     }
     if (!all(object@Measurements$Recording %in% 1:nrow(Metadata(object)))) {
@@ -286,6 +286,7 @@ ERGExam <- setClass(
       Name = character(),
       Time = as_units(integer(), "s"),
       Value = as_units(integer(), unitless),
+      Relative = character(),
       stringsAsFactors = FALSE
     ),
     Measurements.imported = logical(),
@@ -409,6 +410,7 @@ newERGExam <-
              Name = character(),
              Time = as_units(integer(), "s"),
              Value = as_units(integer(), unitless),
+             Relative = character(),
              stringsAsFactors = FALSE
            ),
            ExamInfo,

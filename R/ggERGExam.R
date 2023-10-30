@@ -4,13 +4,15 @@
 #' stimulus response curves for different label categories.
 #'
 #' @param X An ERGExam object.
+#' @param return.as Whether to return as a \link[gridExtra:grid.arrange]{gridExtra::grid.arrange} grid (the default: 'return.as = "grid"') or as a list of \link[ggplot2:ggplot]{ggplot2:ggplot}s ('return.as = "list"'.
+#' @param show.markers Whether to return Marker Postitions as stored in the Measurements slot.
 #'
 #' @return A ggplot2 plot of the ERGExam data.
 #'
 #' @export
 #' @examples
 #' # Example usage:
-#' exam_plot <- PlotExam(erg_exam)
+#' exam_plot <- ggERGExam(erg_exam)
 #' print(exam_plot)
 #'
 #' @importFrom ggplot2 ggplot aes geom_line facet_grid vars ggtitle facet_wrap element_line
@@ -18,26 +20,33 @@
 #' @importFrom gridExtra grid.arrange
 #' @importFrom EPhysData as.data.frame
 #' @importFrom stringr str_detect
+#' @importFrom units set_units
 #' @seealso \linkS4class{ERGExam} \link[ggplot2:ggplot]{ggplot2:ggplot}
 #'
-#' @exportMethod PlotExam
+#' @exportMethod ggERGExam
 setGeneric(
-  name = "PlotExam",
-  def = function(X) {
-    standardGeneric("PlotExam")
+  name = "ggERGExam",
+  def = function(X, return.as = "grid", show.markers = T) {
+    standardGeneric("ggERGExam")
   }
 )
 #' @noMd
 setMethod(
-  "PlotExam",
+  "ggERGExam",
   signature = "ERGExam",
-  definition = function(X) {
+  definition = function(X, return.as = "grid", show.markers = T) {
+
+    # downsampling to approx 300 points
+    X <- lapply(X, function(x) {
+      t <- TimeTrace(x)
+      interval <- round(length(t) / 300)
+      keep <- t[round(t / interval) == t / interval]
+      x<-Subset(x, Time = keep, TimeExclusive = T, Raw = F)
+      return(x)
+    })
+
     dat <- as.data.frame(X)
 
-    #crude downsampling
-    dat <- dat[round(dat$Time / 2.5) == dat$Time / 2.5, ]
-    
-    dat$Recording <- NULL
     stimtab <- StimulusTable(X)
     dat <- merge(dat, stimtab, by = "Step")
     dat$Description <-
@@ -48,10 +57,16 @@ setMethod(
       iconv(dat$Background, "ASCII//TRANSLIT", sub = '')
     dat$Type <-
       iconv(dat$Type, "ASCII//TRANSLIT", sub = '')
-    dat$Value <- units::set_units(dat$Value, "uV")
-
+    dat$Value <- set_units(dat$Value, "uV")
     colnames(dat)[str_detect(colnames(dat),"cd.")]<-"Intensity"
-    
+
+    # Measurements
+    if(show.markers){
+      mes<-merge(X@Measurements,Metadata(X),by.x="Recording",by.y = 0)
+      mes<-merge(mes,StimulusTable(X))
+      colnames(mes)[colnames(mes)=="Voltage"]<-"Value"
+    }
+
     plotrows <- list()
     for (b in unique(dat$Background)) {
       for (t in unique(dat$Type[dat$Background == b])) {
@@ -93,6 +108,32 @@ setMethod(
             ggtitle(paste0(Subject(X), ", ", ExamDate(X), "\n", ProtocolName(X))) +
             theme_pubr(base_size = 8) +
             ggtitle((ID))
+
+          # add Measurements
+          curr.mes <-mes[mes$Background == b &
+                           mes$Type == t, ]
+
+
+          for (i in 1:nrow(curr.mes)) {
+            if (!is.na(curr.mes$Relative[i])) {
+              curr.mes$Value[i] <-
+                curr.mes$Value[i] + curr.mes$Value[curr.mes$Name == curr.mes$Relative[i] &
+                                                       curr.mes$Recording == curr.mes$Recording[i]]
+            }
+          }
+
+          # Measurements
+          if (show.markers) {
+            plotrows[[ID]] <- plotrows[[ID]] +
+              geom_line(
+                data = curr.mes,
+                aes(group = Name),
+                color = "black",
+                size = 1.0675
+              ) +
+              geom_point(data = curr.mes, aes(group = Name), color = "black")
+          }
+
         }
       }
 
@@ -126,8 +167,13 @@ setMethod(
         }
       }
     }
+    if(return.as == "grid"){
+      return(grid.arrange(grobs = plotrows, ncol = 2))
+    }
+    if(return.as == "list"){
+      return(plotrows)
+    }
 
-    return(grid.arrange(grobs = plotrows, ncol = 2))
 
   }
 )

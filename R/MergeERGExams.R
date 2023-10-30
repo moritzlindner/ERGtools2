@@ -2,7 +2,7 @@
 #'
 #' Merges two or more ERGExam objects into a single ERGExam object.
 #'
-#' @inheritParams Subset
+#' @inheritParams Subset-method
 #' @param examX An ERGExam object or a list of ERGExam objects to be merged with \code{X}.
 #'
 #' @return An ERGExam object representing the merged data. the file names, protocol names and dates from the individual files merged are stored as additional columns in the Stimulus table. Use \linkS4class{StimulusTable}(X, full=T) to see those.

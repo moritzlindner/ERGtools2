@@ -43,7 +43,7 @@ ImportEpsion <- function(filename,
     warning(
       "Provision of the protocol is recommended and may be essential if marker table is not provided or does not include markers for each step and channel of the recording."
     )
-  }else{
+  } else{
     if (!inherits(Protocol, "ERGProtocol")) {
       if (is.list(Protocol)) {
         if (!(all(unlist(lapply(Protocol, function(x) {
@@ -59,7 +59,8 @@ ImportEpsion <- function(filename,
 
   contains_raw <- "Raw" %in% Import
   contains_averaged <- "Averaged" %in% Import
-  if (!((contains_raw || contains_averaged) && !(contains_raw && contains_averaged))) {
+  if (!((contains_raw ||
+         contains_averaged) && !(contains_raw && contains_averaged))) {
     stop("Exactly one of 'Raw' and 'Averaged' must be selected for import.")
   }
 
@@ -79,11 +80,15 @@ ImportEpsion <- function(filename,
                header = F,
                sep = sep,
                nrow = 1)[1] == "Contents Table") {
-
     # get Table of content
     toc <- get_toc(filename, sep = sep)
 
-    if (!all(c("Header Table", "Marker Table", "Stimulus Table", "Data Table") %in% (rownames(toc)))) {
+    if (!all(c(
+      "Header Table",
+      "Marker Table",
+      "Stimulus Table",
+      "Data Table"
+    ) %in% (rownames(toc)))) {
       stop(
         "'Header Table', 'Marker Table', 'Stimulus Table' and 'Data Table' must all be included in the data set (even if they should not be imported). At least one of these is missing."
       )
@@ -92,9 +97,18 @@ ImportEpsion <- function(filename,
     # get protocol info
     recording_info <-
       get_content(filename, toc, "Header Table", sep = sep)
-    rownames(recording_info)<-recording_info$Parameter
-    recording_info$Parameter<-NULL
-    if (!all(c("Protocol", "Version", "Date performed","Test method","Animal #","DOB") %in%  rownames(recording_info))) {
+    rownames(recording_info) <- recording_info$Parameter
+    recording_info$Parameter <- NULL
+    if (!all(
+      c(
+        "Protocol",
+        "Version",
+        "Date performed",
+        "Test method",
+        "Animal #",
+        "DOB"
+      ) %in%  rownames(recording_info)
+    )) {
       stop(
         "Table of content incomplete. Have these data been exported as anonymous? This is currently unsupported"
       )
@@ -102,29 +116,32 @@ ImportEpsion <- function(filename,
 
     # Get Protocol info
     if (!is.null(Protocol)) {
-      tmp1<-sub(" \\[.*", "", recording_info["Protocol","Value"])
-      if(is.list(Protocol)){
-        idx<-which(tmp1==unlist(lapply(Protocol,function(x){x@Name})))
-        if(length(idx)==0){
+      tmp1 <- sub(" \\[.*", "", recording_info["Protocol", "Value"])
+      if (is.list(Protocol)) {
+        idx <- which(tmp1 == unlist(lapply(Protocol, function(x) {
+          x@Name
+        })))
+        if (length(idx) == 0) {
           stop("Required protocol not in list.")
         }
-        if(length(idx)>1){
+        if (length(idx) > 1) {
           stop("Duplicate protocol entry in 'Protocols' list.")
         }
-        Protocol<-Protocol[[idx]]
-      }else{
-        if(Protocol@Name!=tmp){
+        Protocol <- Protocol[[idx]]
+      } else{
+        if (Protocol@Name != tmp1) {
           stop("Provided protocol is not the required.")
         }
       }
     }
 
     # Get stimulus information
-    stim_info<-get_stim_info(filename, toc, sep)
+    stim_info <- get_stim_info(filename, toc, sep)
 
-    if(!is.null(Protocol)){
-      for (i in 1:nrow(stim_info)){
-        stim_info$Background[i]<-Protocol@Step[[stim_info$Step[i]]]@Adaptation
+    if (!is.null(Protocol)) {
+      for (i in 1:nrow(stim_info)) {
+        stim_info$Background[i] <-
+          Protocol@Step[[stim_info$Step[i]]]@Adaptation
       }
 
     }
@@ -132,22 +149,43 @@ ImportEpsion <- function(filename,
     # Get Measurements
     if ("Measurements" %in% Import) {
       measurements <- get_measurements(filename, toc, sep)
-      measurements$Recording<--1
+
+      # get RelativeTo
+      measurements$Relative<-as.character(NA)
+      if (!is.null(Protocol)) {
+        for (r in 1:nrow(measurements)) {
+          curr_markers <-
+            Protocol@Step[[measurements$Step[r]]]@Channels[[measurements$Channel[r]]]@Markers
+          curr_markers <- (lapply(curr_markers, function(x) {
+            c(x@Name, x@RelativeTo)
+          }))
+          curr_markers <- do.call(rbind, curr_markers)
+          if(!is.null(curr_markers)){
+            measurements$Relative[r] <-
+              curr_markers[curr_markers[, 1] == measurements$Marker[r], 2]
+
+          }
+        }
+        measurements$Relative[measurements$Relative==""]<-NA
+
+      }
+      measurements$Recording <- -1
     } else{
       measurements <-  data.frame()
     }
     if ("Data Table" %in% rownames(toc)) {
       tmp <- toc # modify to only get header of data table
-      tmp$Right <- tmp$Left + 5 # maximum width, if results are included
+      tmp$Right <-
+        tmp$Left + 5 # maximum width, if results are included
       Data_Header <-
         na.exclude(get_content(filename, tmp, "Data Table", sep = sep))
       Data_Header$Eye <- tmp$Eye
     }
 
-    Metadata <- Data_Header[, c("Step", "Chan","Result")]
+    Metadata <- Data_Header[, c("Step", "Chan", "Result")]
     colnames(Metadata)[colnames(Metadata) == "Chan"] <- "Channel"
 
-    Metadata$Eye<-"Unspecified"
+    Metadata$Eye <- "Unspecified"
 
     # Define channel types
     if (!is.null(Protocol)) {
@@ -191,30 +229,31 @@ ImportEpsion <- function(filename,
 
             }
           })
-          if(Metadata$Channel_Name[i]==""){
-            Metadata$Channel_Name[i]<-"Unknown"
+          if (Metadata$Channel_Name[i] == "") {
+            Metadata$Channel_Name[i] <- "Unknown"
           }
         }
 
       }
-      Metadata$Recording<-1:nrow(Metadata)
-      measurements <- merge(measurements, Metadata, by = c("Step", "Channel"))
-      measurements$Eye<-measurements$Eye.y
-      measurements$Eye.x<-NULL
-      measurements$Eye.y<-NULL
-      measurements$Recording<-measurements$Recording.y
-      measurements$Recording.x<-NULL
-      measurements$Recording.y<-NULL
-      measurements$Channel<-measurements$Channel_Name
-      measurements$Result<-NULL
-      measurements$Channel_Name<-NULL
+      Metadata$Recording <- 1:nrow(Metadata)
+      measurements <-
+        merge(measurements, Metadata, by = c("Step", "Channel"))
+      measurements$Eye <- measurements$Eye.y
+      measurements$Eye.x <- NULL
+      measurements$Eye.y <- NULL
+      measurements$Recording <- measurements$Recording.y
+      measurements$Recording.x <- NULL
+      measurements$Recording.y <- NULL
+      measurements$Channel <- measurements$Channel_Name
+      measurements$Result <- NULL
+      measurements$Channel_Name <- NULL
 
-      Metadata$Channel<-Metadata$Channel_Name
-      Metadata$Channel_Name<-NULL
+      Metadata$Channel <- Metadata$Channel_Name
+      Metadata$Channel_Name <- NULL
 
-    }else{
+    } else{
       if ("Measurements" %in% Import) {
-        tmp <- unique(measurements[, c("Step", "Eye", "Channel","Repeat")])
+        tmp <- unique(measurements[, c("Step", "Eye", "Channel", "Repeat")])
         for (s in unique(measurements$Step)) {
           for (c in unique(measurements$Channel[measurements$Step == s])) {
             measurements[measurements$Step == s &
@@ -274,7 +313,8 @@ ImportEpsion <- function(filename,
 
     if (("Data Table" %in% rownames(toc))) {
       tmp <- toc # modify to only get header of data table
-      tmp$Right <- tmp$Left + 5 # maximum width, if results are included
+      tmp$Right <-
+        tmp$Left + 5 # maximum width, if results are included
       Data_Header <-
         na.exclude(get_content(filename, tmp, "Data Table", sep = sep))
       Data_Header$Eye <- tmp$Eye
@@ -285,32 +325,42 @@ ImportEpsion <- function(filename,
 
     if (("Data Table" %in% rownames(toc)) &&
         any(c("Raw", "Averaged") %in% Import)) {
+      pb = txtProgressBar(min = 0,
+                          max = dim(Data_Header)[1],
+                          initial = 0)
+      for (i in 1:dim(Data_Header)[1]) {
+        setTxtProgressBar(pb, i)
+        if (as.numeric(Data_Header$Chan[i]) == T) {
+          # get time trace
+          TimeTrace <- (na.exclude(
+            fread(
+              filename,
+              select = Data_Header[i, "Column"],
+              nrows = toc["Data Table", "Bottom"] -
+                toc["Data Table", "Top"],
+              skip = toc["Data Table", "Top"] -
+                1,
+              data.table = F,
+              header = F
+            )
+          ))[, 1]
+          TimeUnit <- fread(
+            filename,
+            select = Data_Header[i, "Column"],
+            nrows = 1,
+            skip = toc["Data Table", "Top"] - 2,
+            data.table = F,
+            header = F
+          )[1, 1]
 
-      pb = txtProgressBar(min = 0, max = dim(Data_Header)[1], initial = 0)
-      for (i in 1:dim(Data_Header)[1]){
-        setTxtProgressBar(pb,i)
-        if(as.numeric(Data_Header$Chan[i])==T){ # get time trace
-          TimeTrace<-(na.exclude(fread(filename,
-                                       select = Data_Header[i,"Column"],
-                                       nrows = toc["Data Table","Bottom"]-toc["Data Table","Top"],
-                                       skip = toc["Data Table","Top"]-1,
-                                       data.table = F,
-                                       header = F)))[,1]
-          TimeUnit<-fread(filename,
-                          select = Data_Header[i,"Column"],
-                          nrows = 1,
-                          skip = toc["Data Table","Top"]-2,
-                          data.table = F,
-                          header = F)[1,1]
-
-          TimeUnit<-gsub("[\\(\\)]", "", regmatches(TimeUnit, gregexpr("\\(.*?\\)", TimeUnit))[[1]])
-          TimeTrace<-as_units(TimeTrace,TimeUnit)
-          TimeTrace<-TimeTrace[!is.na(TimeTrace)]
+          TimeUnit <-
+            gsub("[\\(\\)]", "", regmatches(TimeUnit, gregexpr("\\(.*?\\)", TimeUnit))[[1]])
+          TimeTrace <- as_units(TimeTrace, TimeUnit)
+          TimeTrace <- TimeTrace[!is.na(TimeTrace)]
         }
 
         if (("Result" %in% colnames(Data_Header)) &&
             ("Averaged" %in% Import)) {
-
           # get Averages / "Results"
           resulttrace <- (na.exclude(
             fread(
@@ -324,8 +374,10 @@ ImportEpsion <- function(filename,
               header = F
             )
           ))[, 1]
-          if(all(resulttrace==0)){
-            stop("Raw trace is empty. Re-export table or run ImportEpsionMeasures instead, to only import measures.")
+          if (all(resulttrace == 0)) {
+            stop(
+              "Raw trace is empty. Re-export table or run ImportEpsionMeasures instead, to only import measures."
+            )
           }
 
           resultunit <- fread(
@@ -337,15 +389,14 @@ ImportEpsion <- function(filename,
             header = F
           )[1, 1]
 
-          resultunit<-gsub("[\\(\\)]", "", regmatches(resultunit, gregexpr("\\(.*?\\)", resultunit))[[1]])
-          resulttrace<-as_units(resulttrace,resultunit)
-          resulttrace<-resulttrace[!is.na(resulttrace)]
+          resultunit <-
+            gsub("[\\(\\)]", "", regmatches(resultunit, gregexpr("\\(.*?\\)", resultunit))[[1]])
+          resulttrace <- as_units(resulttrace, resultunit)
+          resulttrace <- resulttrace[!is.na(resulttrace)]
 
           STEPS[[i]] <-
-            newEPhysData(
-              Data = resulttrace,
-              TimeTrace = TimeTrace
-            )
+            newEPhysData(Data = resulttrace,
+                         TimeTrace = TimeTrace)
         }
 
         if ("Trials" %in% colnames(Data_Header) &&
@@ -373,7 +424,10 @@ ImportEpsion <- function(filename,
             header = F
           )
 
-          trialunits<-unique(gsub("[\\(\\)]", "", regmatches(trialunits, gregexpr("\\(.*?\\)", trialunits))[[1]]))
+          trialunits <-
+            unique(gsub("[\\(\\)]", "", regmatches(
+              trialunits, gregexpr("\\(.*?\\)", trialunits)
+            )[[1]]))
           if (length(trialunits) > 1) {
             stop("Error importing individual trials. distict units detected.")
           }
@@ -381,13 +435,11 @@ ImportEpsion <- function(filename,
           trialtraces <-
             as.matrix(trialtraces[apply(trialtraces, 1, function(x) {
               all(!is.na(x))
-            }), ])
-          trialtraces<-as_units(trialtraces,trialunits)
+            }),])
+          trialtraces <- as_units(trialtraces, trialunits)
           STEPS[[i]] <-
-            newEPhysData(
-              Data = trialtraces,
-              TimeTrace = TimeTrace
-            )
+            newEPhysData(Data = trialtraces,
+                         TimeTrace = TimeTrace)
         }
       }
       close(pb)
@@ -395,15 +447,23 @@ ImportEpsion <- function(filename,
 
     if ("Measurements" %in% Import) {
       # Transfer Group info to recording_info table
-      if(is.null(unique(measurements$Group))){
-        measurements$Group<-""
+      if (is.null(unique(measurements$Group))) {
+        measurements$Group <- ""
       }
       recording_info["Group", 1] <- unique(measurements$Group)
 
       # Drop further duplicated info from measurements
       measurements <-
         measurements[, c("Recording", "Marker", "Voltage", "Time")]
-      colnames(measurements)[colnames(measurements)=="Marker"]<-"Name"
+      colnames(measurements)[colnames(measurements) == "Marker"] <-
+        "Name"
+
+      if(is.null(measurements$Relative)){
+        measurements$Relative<-NA
+        measurements$Relative[measurements$Name=="B"]<-"a"
+        measurements$Relative[measurements$Name=="N1"]<-"P1"
+        measurements$Relative[measurements$Name=="P2"]<-"P1"
+      }
     }
 
     DOB <-
@@ -420,13 +480,14 @@ ImportEpsion <- function(filename,
       Metadata = Metadata,
       Stimulus = stim_info,
       Measurements = measurements,
-      ExamInfo=list(ProtocolName = recording_info["Protocol", 1],
-                    Version = recording_info["Version", 1],
-                    ExamDate = as.POSIXct(strptime(recording_info["Date performed", 1], format =
-                                                     "%d/%m/%Y %H:%M:%S")),
-                    Filename = filename,
-                    RecMode = recording_info["Test method", 1],
-                    Investigator = recording_info["Investigator", 1]
+      ExamInfo = list(
+        ProtocolName = recording_info["Protocol", 1],
+        Version = recording_info["Version", 1],
+        ExamDate = as.POSIXct(strptime(recording_info["Date performed", 1], format =
+                                         "%d/%m/%Y %H:%M:%S")),
+        Filename = filename,
+        RecMode = recording_info["Test method", 1],
+        Investigator = recording_info["Investigator", 1]
       ),
       SubjectInfo = list(
         Subject = recording_info["Animal #", 1],
@@ -435,7 +496,7 @@ ImportEpsion <- function(filename,
         Group = unique(measurements$Group)
       )
     )
-  }else{
+  } else{
     stop(paste(filename, " does not begin with a table of content."))
   }
 }
@@ -458,10 +519,10 @@ get_toc <- function(filename, sep = "\t") {
     # "Header Table" found twice, so its a vertical table
     EndOfTOC <-
       min(which(toc$Table == "")[which(toc$Table == "") > HeaderTabPos[1]]) # this is the first blank line after TOC
-    toc <- toc[1:EndOfTOC,]
+    toc <- toc[1:EndOfTOC, ]
   }
 
-  toc = toc[!toc$Table == "",]
+  toc = toc[!toc$Table == "", ]
   tmp <- toc$Table
   toc$Table <- NULL
   toc <-
@@ -507,9 +568,10 @@ get_content <- function(filename, toc, what, sep = "\t") {
     encoding = "UTF-8"
   )
 
-  tmp <- make.unique(make.names(iconv(tmp, "ASCII//TRANSLIT", sub = '')))
+  tmp <-
+    make.unique(make.names(iconv(tmp, "ASCII//TRANSLIT", sub = '')))
 
-  colnames(recording_info)<-tmp
+  colnames(recording_info) <- tmp
 
   return(recording_info)
 }
@@ -518,7 +580,8 @@ get_content <- function(filename, toc, what, sep = "\t") {
 get_stim_info <- function(filename, toc, sep) {
   stim_info <-
     as.data.frame(get_content(filename, toc, "Stimulus Table", sep = sep))
-  colnames(stim_info)[stringr::str_detect(colnames(stim_info),"cd.")]<-"Intensity"
+  colnames(stim_info)[stringr::str_detect(colnames(stim_info), "cd.")] <-
+    "Intensity"
   stim_info$Background <- NA
   stim_info$Background[grepl("LA", stim_info[, "Description"], fixed = TRUE, useBytes = TRUE)] <-
     "LA"
@@ -535,7 +598,7 @@ get_stim_info <- function(filename, toc, sep) {
                        fixed = TRUE,
                        useBytes = TRUE)] <- "Flicker"
 
-  stim_info$Description<-enc2utf8(stim_info$Description)
+  stim_info$Description <- enc2utf8(stim_info$Description)
 
   return(stim_info)
 }
@@ -557,13 +620,12 @@ get_measurements <- function(filename, toc, sep) {
   TimeUnit <-
     colnames(measurements)[colnames(measurements) == "ms"]
   colnames(measurements)[colnames(measurements) == "ms"] <- "Time"
-  measurements$Time<-as_units(measurements$Time,TimeUnit)
+  measurements$Time <- as_units(measurements$Time, TimeUnit)
 
   voltageunit <-
     colnames(measurements)[colnames(measurements) == "uV"]
   colnames(measurements)[colnames(measurements) == "uV"] <-
     "Voltage"
-  measurements$Voltage<-as_units(measurements$Voltage,voltageunit)
+  measurements$Voltage <- as_units(measurements$Voltage, voltageunit)
   return(measurements)
 }
-

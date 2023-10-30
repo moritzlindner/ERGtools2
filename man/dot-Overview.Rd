@@ -65,22 +65,38 @@ After setting the functions, the accession methods inherited from \link[EPhysDat
 
 \itemize{
 \item \link[=MergeERGExams]{MergeERGExams} (for \link[=ERGExam]{ERGExam} objects) \cr\cr
-\item \link[=UpdateMeasurements]{UpdateMeasurements} Update the measurements slot in an 'ERGExam' object with new data.
+\item \link[=UpdateMeasurements]{UpdateMeasurements} and \link[=´[<-´]{´[<-´} Update the measurements slot in an \link[=ERGExam]{ERGExam} object with new data.
 \item \link[=UpdateChannelNames]{UpdateChannelNames} Update or replace channel names.
-\item \link[=ClearMeasurements]{ClearMeasurements}  Clear the Measurements slots in an  \link[=ERGExam]{ERGExam} object.
+\item \link[=ClearMeasurements]{ClearMeasurements}  Clear the Measurements slots in an \link[=ERGExam]{ERGExam} object.
 }
 }
 
 \section{Plot methods}{
 
-FIXME Tbc.
-PlotExam	Plot an ERGExam object.
+\itemize{
+\item \link[=ggERGTrace]{ggERGTrace} Generate a \link[ggplot2:ggplot]{ggplot2::ggplot} plot for a single trace from an \linkS4class{ERGExam} objects.
+\item \link[=ggERGExam]{ggERGExam}	Plot a complete \linkS4class{ERGExam} object.
 PlotIntensitySequence	Plot intensity sequence for ERG exams
-' PlotRecordings	Plot ERG recordings
+PlotRecordings	Plot ERG recordings
+PlotStepSequence	Plot step sequence for ERG exams
+}
+
+FIXME Document Protocol Objects
 }
 
 \examples{
-FIXME Tbc.
+# a typical workflow
+data(ERG) # load example data
+StimulusTable(ERG) # have a look whtts inside
+Metadata(ERG)
+
+ggERGTrace(ERG, Step = 3, Eye = "RE", Channel ="ERG_auto", Result = 1) # pick one and have a look at the traces as imported
+
+ERG<-SetStandardFunctions(ERG) # set functions for processing raw data
+
+ERG <- AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG_auto")) # automatically place markers
+
+ggERGTrace(ERG, Step = 3, Eye = "RE", Channel ="ERG_auto", Result = 1) # pick one and have a look at the traces after processing.
 
 }
 \author{

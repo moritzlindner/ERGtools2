@@ -6,7 +6,6 @@
 #' @param X An \linkS4class{ERGExam} object
 #' @param where A \link[base:pairlist]{base::pairlist} allowing select criteria for which recordings the functions should be set. Tags/Keys in the pairlist must represent valid column names of \link{Metadata} or\link{StimulusTable}
 #' @param Stimulus.type.names A \link[base:pairlist]{base::pairlist} specifying the names identifying the different stimulus types, e.g., \code{Flash="Flash"} or \code{Flash="Blitz"}.
-
 #' @return An updated ERGExan object.
 #'
 #' #' @examples
@@ -38,7 +37,9 @@ setMethod("AverageFunction<-", signature = "ERGExam", function(X, where, value) 
   return(functionunpdater(X, where, value, "AverageFunction<-"))
 })
 
-#' @noMd
+#' @describeIn UpdateProcessingMethods This method is used to set standard functions for processing \linkS4class{ERGExam} data. It defines default functions for averaging, filtering, and signal rejection based on the stimulus type.
+#' @importFrom EPhysMethods filter.detrend autoreject.by.signalfree autoreject.by.distance
+#' @exportMethod SetStandardFunctions
 setGeneric(
   name = "SetStandardFunctions",
   def = function(X,
@@ -48,9 +49,8 @@ setGeneric(
   }
 )
 
-#' @describeIn UpdateProcessingMethods This method is used to set standard functions for processing \linkS4class{ERGExam} data. It defines default functions for averaging, filtering, and signal rejection based on the stimulus type.
-#' @importFrom EPhysMethods filter.detrend autoreject.by.signalfree autoreject.by.distance
-#' @exportMethod SetStandardFunctions
+#' @importFrom EPhysMethods filter.lin.detrend autoreject.by.signalfree autoreject.by.distance
+#' @noMd
 setMethod(
   "SetStandardFunctions",
   signature = "ERGExam",
@@ -60,9 +60,9 @@ setMethod(
     Md <- merge(Metadata(X), StimulusTable(X))
     for (i in 1:nrow(Md)) {
       AverageFunction(X@Data[[i]]) <- mean
-      FilterFunction(X@Data[[i]]) <- filter.detrend
+      FilterFunction(X@Data[[i]]) <- filter.lin.detrend
       if (Md$Type[i] %in% Stimulus.type.names$Flash) {
-        Rejected(X@Data[[i]]) <- autoreject.by.signalfree
+        Rejected(X@Data[[i]]) <- autoreject.by.signalfree  # select by signal amplitude???
       }
       if (Md$Type[i] %in% Stimulus.type.names$Flicker) {
         Rejected(X@Data[[i]]) <- autoreject.by.distance
@@ -76,6 +76,7 @@ setMethod(
 
 #'
 #' @importFrom EPhysData Metadata AverageFunction<- Rejected<- FilterFunction<-
+#' @keywords internal
 #' @noMd
 functionunpdater<-function(X, where, value, what) {
   Md <- merge(Metadata(X),StimulusTable(X))
@@ -89,7 +90,7 @@ functionunpdater<-function(X, where, value, what) {
     if (!(tag %in% colnames(Md))) {
       stop(paste("Invalid column name:", tag))
     }
-    if(!any(where[tag] %in% Md[,tag])){
+    if(!any(where[[tag]] %in% Md[,tag])){
       stop(paste0("None of the values given for ",tag, " (", where[tag], ") are present in the Metadata of Stimulus Table of 'X'"))
     }
   }

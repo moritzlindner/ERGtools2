@@ -136,7 +136,7 @@ ERGProtocol<-setClass(
 #' @param object An instance of the ERGProtocol class.
 #' @param ... Additional arguments (not used).
 #' @name show.ERGProtocol
-#' @rdname show.ERGProtocol
+#' @noMd
 setMethod("show", signature = "ERGProtocol", function(object) {
   cat("ERGProtocol Object\n")
   cat("Export Date: ", object@Export_Date, "\n")

@@ -4,7 +4,7 @@
 #'
 #' @docType data
 #'
-#' @name ERGExam-data
+#' @name .SampleData
 #'
 #' @usage data(ERG)
 #'
@@ -16,4 +16,4 @@
 #' data(ERG)
 #' ERG
 #' PlotExam(ERG)
-"ERGExam-data"
+NULL

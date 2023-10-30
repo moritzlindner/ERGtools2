@@ -7,15 +7,11 @@
 ClearMeasurements(X)
 }
 \arguments{
-\item{X}{An \code{EPhysData} object}
+\item{X}{A \linkS4class{ERGExam}}
 }
 \value{
 An ERGExam object with the Results slot cleared.
 }
 \description{
 Clears the Measurements slots in an  \link[=ERGExam]{ERGExam} object, respectively, by removing any existing data.
-}
-\examples{
-# Clear the Results slot of an ERGExam object
-cleared_exam <- clearResults(exam)
 }

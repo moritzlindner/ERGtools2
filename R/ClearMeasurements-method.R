@@ -2,14 +2,8 @@
 #'
 #' Clears the Measurements slots in an  \link[=ERGExam]{ERGExam} object, respectively, by removing any existing data.
 #'
-#'
 #' @return An ERGExam object with the Results slot cleared.
-#'
-#' @export
-#' @examples
-#' # Clear the Results slot of an ERGExam object
-#' cleared_exam <- clearResults(exam)
-#' @inheritParams Subset
+#' @inheritParams Subset-method
 #' @importFrom methods validObject
 #' @exportMethod ClearMeasurements
 setGeneric(

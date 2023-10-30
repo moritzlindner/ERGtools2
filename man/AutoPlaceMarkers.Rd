@@ -2,10 +2,9 @@
 % Please edit documentation in R/AutoPlaceMarkers.R
 \name{AutoPlaceMarkers}
 \alias{AutoPlaceMarkers}
-\alias{AutoPlaceMarkers,ERGExam-method}
-\alias{AutoPlaceAB,EPhysData-method}
-\alias{AutoPlaceFlicker,EPhysData-method}
-\alias{AutoPlaceVEP,EPhysData-method}
+\alias{AutoPlaceAB}
+\alias{AutoPlaceFlicker}
+\alias{AutoPlaceVEP}
 \title{AutoPlaceMarkers for ERG/VEP Recordings}
 \usage{
 AutoPlaceMarkers(
@@ -14,17 +13,11 @@ AutoPlaceMarkers(
   Stimulus.type.names = pairlist(Flash = "Flash", Flicker = "Flicker")
 )
 
-\S4method{AutoPlaceMarkers}{ERGExam}(
-  X,
-  Channel.names = pairlist(ERG = "ERG", VEP = "VEP"),
-  Stimulus.type.names = pairlist(Flash = "Flash", Flicker = "Flicker")
-)
+AutoPlaceAB(X)
 
-\S4method{AutoPlaceAB}{EPhysData}(X)
+AutoPlaceFlicker(X)
 
-\S4method{AutoPlaceFlicker}{EPhysData}(X)
-
-\S4method{AutoPlaceVEP}{EPhysData}(X)
+AutoPlaceVEP(X)
 }
 \arguments{
 \item{X}{An \linkS4class{ERGExam} object for \code{AutoPlaceMarkers()} or an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object for the lower level methods \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} or \link[=AutoPlaceVEP]{AutoPlaceVEP}.}
@@ -52,19 +45,19 @@ Currently, supported are:
 }
 \section{Functions}{
 \itemize{
-\item \code{AutoPlaceMarkers(ERGExam)}: Automatically sets markers depending on the channel (E.g. ERG, VEP, OP,...) and stimulus type (Flash, FLicker).
+\item \code{AutoPlaceMarkers()}: Automatically sets markers depending on the channel (E.g. ERG, VEP, OP,...) and stimulus type (Flash, FLicker).
 
-\item \code{AutoPlaceAB(EPhysData)}: places the a and B waves on Flash ERG data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object
+\item \code{AutoPlaceAB()}: places the a and B waves on Flash ERG data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object.
 
-\item \code{AutoPlaceFlicker(EPhysData)}: places the N1 and P1 markers and determines 1/frequency (period) for Flicker ERG data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object
+\item \code{AutoPlaceFlicker()}: places the N1 and P1 markers and determines 1/frequency (period) for Flicker ERG data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object
 
-\item \code{AutoPlaceVEP(EPhysData)}: places the P1, N1 and P2 markers for Flash VEP data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object
+\item \code{AutoPlaceVEP()}: places the P1, N1 and P2 markers for Flash VEP data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object
 
 }}
 \examples{
 data(ERG)
-imprted_Markers<-Measurements(ERG)
-imprted_Markers
+imported_Markers<-Measurements(ERG)
+imported_Markers
 ERG<-SetStandardFunctions(ERG)
 ERG<-AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG_auto"))
 autoplaced_Markers<-Measurements(ERG)
@@ -73,5 +66,4 @@ autoplaced_Markers
 # Calling AutoPlaceAB() directly
 X<-ERG@Data[[1]] # get first recording
 AutoPlaceAB(X)
-
 }

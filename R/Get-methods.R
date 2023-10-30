@@ -224,8 +224,8 @@ setMethod("Measurements",
             Measurements<-cbind(Measurements,Metadata(X)[Measurements$Recording,])
             Measurements<-merge(Measurements,StimulusTable(X), by="Step")
             Measurements <-
-              Measurements[, c("Description", "Eye", "Channel", "Name", "Voltage", "Time")]
-            colnames(Measurements)<-c("Step", "Eye", "Channel", "Name", "Voltage", "Time")
+              Measurements[, c("Description", "Eye", "Channel", "Name", "Voltage", "Time", "Relative")]
+            colnames(Measurements)<-c("Step", "Eye", "Channel", "Name", "Voltage", "Time", "Relative")
 
             return(Measurements)
           })
