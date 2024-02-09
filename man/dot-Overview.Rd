@@ -82,6 +82,10 @@ PlotStepSequence	Plot step sequence for ERG exams
 }
 
 FIXME Document Protocol Objects
+FIXME Document CheckAvgFxSet
+FIXME Document IndexOf
+FIXME Document [
+FIXME Document [<-
 }
 
 \examples{

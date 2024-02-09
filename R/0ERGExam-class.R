@@ -24,7 +24,7 @@ validERGExam <- function(object) {
       feature.list <- lapply(object@Data[ids.equal], Rejected)
       feature.df <- tryCatch(
         as.data.frame(do.call(cbind, feature.list)),
-        error = function(e) {
+        error = function(er) {
           stop(
             "'Rejected' slots are filled with vectors of unequal length in step ",
             s,
@@ -186,20 +186,20 @@ validERGExam <- function(object) {
 #' A class representing an ERG (Electroretinogram) exam with associated data and attributes. This class extends the \link[EPhysData:EphysSet]{EPhysData::EphysSet} object and all methods valid for \link[EPhysData:EphysSet]{EPhysData::EphysSet} can also be applied to \code{ERGExam} objects.
 #'
 #' @slot Data Data A list of \link{EPhysData} objects. Each item containing a recording in respsonse to a particular Stimulus ("Step"), from a particular eye and data Channel (e.g. ERG or OP)-
-#' @slot Metadata  A data frame containing metadata information associated with the data, each row corresponds to one list item.
+#' @slot Metadata  A data frame containing metadata information associated with the data, each row corresponds to one item in \code{data}.
 #' \describe{
-#'   \item{Step}{A character vector containing the steps associated with the data.}
-#'   \item{Eye}{A character vector containing the possible values "RE" (right eye) and "LE" (left eye).}
-#'   \item{Channel}{A character vector containing the unique names of the third level of \code{Data}.}
+#'   \item{Step}{A character vector containing the step name. A step describes data recorded in response to the same type of stimulus.}
+#'   \item{Eye}{A character vector. Possible values "RE" (right eye) and "LE" (left eye).}
+#'   \item{Channel}{A character vector containing the channel name. This can be "ERG", "VEP" or "OP" for instance.}
 #' }
 #'
 #' @slot Stimulus
-#' A data frame containing stimulus information associated with the data.
+#' A data frame containing stimulus information.
 #' \describe{
-#'   \item{Step}{A character vector containing the steps associated with the stimulus.}
-#'   \item{Description}{A character vector describing the stimuli.}
-#'   \item{Intensity}{An integer vector representing the intensity of the stimulus (unitless).}
-#'   \item{Background}{A character vector describing the adaptation state of the stimulus (DA or LA).}
+#'   \item{Step}{A character vector containing the step the given stimulus is associated with.}
+#'   \item{Description}{A character vector describing the stimulus.}
+#'   \item{Intensity}{An integer vector representing the intensity of the stimulus.}
+#'   \item{Background}{A character vector describing the adaptation state of the retina for that stimulus (DA or LA).}
 #'   \item{Type}{A character vector describing the type of the stimulus (e.g. Flash or Flicker).}
 #' }
 #'
@@ -207,12 +207,12 @@ validERGExam <- function(object) {
 #' TRUE if the object contains averaged data, FALES indicates object contains raw traces.
 #'
 #' @slot Measurements
-#' A data frame containing measurements information associated with the data.
+#' A data frame containing measurements obtained from the data.
 #' \describe{
-#'   \item{Recording}{A numeric vector representing recording identifiers corresponding to the data.}
-#'   \item{Name}{A character vector containing the names of the measurements.}
-#'   \item{Time}{A numeric vector representing time measurements (seconds).}
-#'   \item{Value}{A numeric vector representing measurement values (unitless).}
+#'   \item{Recording}{A numeric vector representing the recording (item in \code{data] the measurements have been performed on.}
+#'   \item{Name}{A character vector containing a names identifier for the measurements, also called marker (e.g. "a","B" or "OP1").}
+#'   \item{Time}{A numeric vector storing the time on the trace at which the measurement was perfmed / marker position.}
+#'   \item{Value}{A numeric vector storing value of the trace at that position.}
 #' }
 #'
 #' @slot ExamInfo
@@ -220,19 +220,19 @@ validERGExam <- function(object) {
 #' \describe{
 #'   \item{ProtocolName}{A character vector indicating the name of the protocol.}
 #'   \item{Version}{Optional: A character vector indicating the version of the protocol.}
-#'   \item{ExamDate}{A \code{POSIXct} times tamp representing the date of the exam.}
-#'   \item{Filename}{Optional: A character vector indicating the filename associated with the exam data.}
-#'   \item{RecMode}{Optional: A character vector indicating the recording mode during the exam.}
+#'   \item{ExamDate}{A \code{POSIXct} The date of the exam.}
+#'   \item{Filename}{Optional: The filename associated where exam raw data have been imported from.}
+#'   \item{RecMode}{Optional: A character vector indicating the recording mode.}
 #'   \item{Investigator}{Optional: A character vector indicating the name of the investigator conducting the exam.}
 #' }
 #'
 #' @slot SubjectInfo
 #' A list containing subject-related information.
 #' \describe{
-#'   \item{Subject}{A character vector indicating the name of the patient.}
-#'   \item{DOB}{A \code{Date} object indicating the date of birth of the patient.}
-#'   \item{Gender}{Optional: A character vector indicating the gender of the patient.}
-#'   \item{Group}{Optional: A character vector indicating the group to which the patient belongs.}
+#'   \item{Subject}{A character vector indicating the name of the subject}
+#'   \item{DOB}{A \code{Date} object indicating the date of birth of the subject}
+#'   \item{Gender}{Optional: A character vector indicating the gender of the subject}
+#'   \item{Group}{Optional: A character vector indicating the study group to which the subject belongs.}
 #' }
 #'
 #' @slot Imported

@@ -33,6 +33,11 @@ setMethod("Subset",
                    Channel = Channels(X),
                    ExamItem = NULL,
                    ...) {
+warning("1) Strange behaviour after setting std fx. repex below, 2) use IndexOF")
+#repex
+# X <- SetStandardFunctions(X)
+# X <- Subset(X, Step = Steps(X)[c(1, 2, 3)])
+# X <- SetStandardFunctions(X)
 
             if (!is.null(ExamItem)) {
               # ExamItem is in use
@@ -85,6 +90,15 @@ setMethod("Subset",
             colnames(indexupdate) <- c("new", "old")
 
             measurements <- X@Measurements
+            if(length(measurements)==0){
+              measurements <- data.frame(
+                Recording = character(),
+                Name = character(),
+                Voltage = as_units(numeric(), "uV"),
+                Time = as_units(numeric(), "ms"),
+                Relative = character()
+              )
+            }
             measurements <-
               merge(measurements, indexupdate, by.x = "Recording", by.y = "old")
             measurements$Recording <- measurements$new

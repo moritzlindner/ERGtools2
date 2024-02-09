@@ -7,17 +7,25 @@
 \usage{
 UpdateMeasurements(X, values)
 
-\S4method{[}{ERGExam}(x, Marker.Name, Step, Eye, Channel, Result, Time) <- value
+\S4method{[}{ERGExam}(x, i, j, ...) <- value
 }
 \arguments{
 \item{X}{A \linkS4class{ERGExam}}
 
-\item{values}{A data.frame containing new measurement values with columns 'Recording', 'Name', 'Voltage', and 'Time'.}
+\item{values}{FIXME A data.frame containing new measurement values with columns 'Recording', 'Name', 'Voltage', and 'Time'.}
 
-\item{Step, Eye, Channel}{Vector of values for Steps, Eyes, and Channels to subset}
+\item{...}{Additional parameters.
+These additional parameters provide flexibility for users to specify the Recording the measurement should be assigned to by either giving the index, or parameters defining the recording.
+- \code{Marker.Name}: A character string specifying the marker name. Mandatory for setting the marker value.
+- \code{Recording}: The index of the recording where the marker value will be set. If not provided, the parameters \code{Step}, \code{Eye}, \code{Channel}, and \code{Result} must be provided instead.
+- \code{Step}: The step index. Required if \code{Recording} is not provided.
+- \code{Eye}: The eye identifier. Required if \code{Recording} is not provided.
+- \code{Channel}: The channel identifier. Required if \code{Recording} is not provided.
+- \code{Result}: The result index. Required if \code{Recording} is not provided.}
 
-\item{Time}{Numeric vector of length 2 representing the time range for data extraction.
-Default is the entire time range (i.e., keep all data).}
+\item{value}{The value to set. This can be either a numeric value giving the time position of the measurement or a pair list containing 'Voltage', 'Time', and optionally 'Relative' entries.}
+
+\item{Time}{The time on trace at which the measurement was taken}
 }
 \value{
 An updated \link[=ERGExam]{ERGExam} object with the measurements replaced or added based on the data.frame provided by the \code{values} attribute.
@@ -32,6 +40,6 @@ This method is used to update the measurements of an \link[=ERGExam]{ERGExam} ob
 \itemize{
 \item \code{UpdateMeasurements()}: Flexibly updates the Measurements slot of an \link[=ERGExam]{ERGExam} object. Replaces marker times and values where already existent and adds them where not.
 
-\item \code{`[`(ERGExam) <- value}: Update parts of the Measurements slot in an ERGExam object: Sets a new time for a given marker, the corresponding value is extracted automatically from the trace.
+\item \code{`[`(ERGExam) <- value}: Update or add a line to the Measurements slot in an ERGExam object: Either a new time for a given marker can be provided and the corresponding value is extracted automatically from the trace or a combination of time, voltage and information on whether the measurement was performed relative to another marker can be provided.
 
 }}

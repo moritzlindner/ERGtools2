@@ -14,6 +14,7 @@
 \alias{ExamDate}
 \alias{DOB}
 \alias{Measurements}
+\alias{[,ERGExam-method}
 \title{Accession methods for metadata from ERGExam objects}
 \usage{
 Eyes(X)
@@ -39,6 +40,16 @@ ExamDate(X)
 DOB(X)
 
 Measurements(X)
+
+\S4method{[}{ERGExam}(
+  x,
+  Recording = NULL,
+  Step = NULL,
+  Eye = NULL,
+  Channel = NULL,
+  Result = NULL,
+  Marker.Name
+)
 }
 \arguments{
 \item{X}{A \linkS4class{ERGExam}}
@@ -79,5 +90,7 @@ These methods can be used to access metadata information stored in \linkS4class{
 \item \code{DOB()}: Returns the date of birth.
 
 \item \code{Measurements()}: Get Measurements table.
+
+\item \code{[}: Get one specific Measurement, defined by recording index or a combination of Step, Eye, Channel and Result.
 
 }}

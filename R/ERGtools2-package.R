@@ -60,11 +60,15 @@
 #'
 #'
 #' FIXME Document Protocol Objects
+#' FIXME Document CheckAvgFxSet
+#' FIXME Document IndexOf
+#' FIXME Document [
+#' FIXME Document [<-
 #'
 #' @examples
 #' # a typical workflow
 #' data(ERG) # load example data
-#' StimulusTable(ERG) # have a look whtts inside
+#' StimulusTable(ERG) # have a look whats inside
 #' Metadata(ERG)
 #'
 #' ggERGTrace(ERG, Step = 3, Eye = "RE", Channel ="ERG_auto", Result = 1) # pick one and have a look at the traces as imported
