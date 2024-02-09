@@ -268,8 +268,8 @@ setMethod("[",
             }
 
             if (is.null(Recording)) {
-              if (all(!is.null(Step),!is.null(Eye),!is.null(Channel),!is.null(Result))) {
-                stop("Either 'Step','Eye', and 'Channel' must or only Recording must be provided.")
+              if (!all(!is.null(Step),!is.null(Eye),!is.null(Channel),!is.null(Result))) {
+                stop("Either 'Step','Eye', and 'Channel' or only Recording must be provided.")
               }
               # Check if Step, Eye, and Channel are characters
               if (!is.character(Eye) || !is.character(Channel)) {
