@@ -282,10 +282,10 @@ setMethod("[",
               Recording <-
                 IndexOf(
                   x,
-                  Step %in% Step,
-                  Eye %in% Eye,
-                  Channel %in% Channel,
-                  Result %in% Result
+                  Step = Step,
+                  Eye = Eye,
+                  Channel = Channel,
+                  Result = Result
                 )
             } else {
               if (!is.numeric(Recording)) {
