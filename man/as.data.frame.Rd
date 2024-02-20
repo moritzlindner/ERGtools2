@@ -29,7 +29,7 @@ A data frame representing the \link{ERGProtocol}, ERGStep, ERGChannel or ERGMark
 }
 \description{
 Converts an \link{ERGExam}, \link{ERGProtocol}, ERGStep, ERGChannel or ERGMarker object to a data frame format.
-Note that the \code{as.data.frame} method for \link{ERGExam} objects is inherited from the \link[EPhysData]{EPhysData-package} package. See: \link[EPhysData:as.data.frame]{EPhysData::as.data.frame}
+Note that the \code{as.data.frame} method for \link{ERGExam} objects is inherited from the \link[EPhysData]{EPhysData-package} package. See: \link[EPhysData:as.data.frame]{EPhysData::as.data.frame-method}
 }
 \section{Functions}{
 \itemize{
@@ -43,15 +43,10 @@ Note that the \code{as.data.frame} method for \link{ERGExam} objects is inherite
 
 }}
 \examples{
-# Create an example EPhysData object
-new_data <- makeExampleEPhysData()
-# Convert EPhysData to a data frame
-new_data <- as.data.frame(new_data)
-new_data
-
-# Create an example EPhysSet object
-new_data <- makeExampleEPhysSet()
-new_data <- as.data.frame(new_data)
+data(ERG)
+ERG <- SetStandardFunctions(ERG)
+ERG <- Subset(ERG,Step=1,Eye="RE") # converting the whole object would return a hughe data.frame
+heas(as.data.frame(ERG))
 
 }
 \keyword{datasets}

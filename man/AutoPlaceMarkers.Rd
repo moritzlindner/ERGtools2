@@ -56,12 +56,12 @@ Currently, supported are:
 }}
 \examples{
 data(ERG)
-imported_Markers<-Measurements(ERG)
-imported_Markers
 ERG<-SetStandardFunctions(ERG)
+imported_Markers<-Measurements(ERG)
+head(imported_Markers)
 ERG<-AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG_auto"))
 autoplaced_Markers<-Measurements(ERG)
-autoplaced_Markers
+head(autoplaced_Markers)
 
 # Calling AutoPlaceAB() directly
 X<-ERG@Data[[1]] # get first recording

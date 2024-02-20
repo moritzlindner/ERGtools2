@@ -4,7 +4,7 @@
 #'
 #' @docType data
 #'
-#' @name .SampleData
+#' @name .SampleERGExam
 #'
 #' @usage data(ERG)
 #'

@@ -4,7 +4,7 @@
 \alias{IndexOf}
 \title{Get index of a recording}
 \usage{
-IndexOf(X, Step, Eye, Channel, Result)
+IndexOf(X, Step = Steps(X), Eye = Eyes(X), Channel = Channels(X), Result = 1)
 }
 \arguments{
 \item{X}{A \linkS4class{ERGExam}}

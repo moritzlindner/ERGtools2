@@ -23,5 +23,5 @@ This method generates a \link[ggplot2:ggplot]{ggplot2::ggplot} plot for a single
 data(ERG)
 AverageFunction(ERG, where=pairlist(Step = 3,Channel = "ERG_auto",Result = 1)) <- mean
 ggERGTrace(ERG, Step = 3, Eye = "RE", Channel ="ERG_auto", Result = 1, Interactive = T) # Generate a ggplot2 plot
-ERG[Marker.Name = "a", Step = 3, Eye = "RE", Channel ="ERG_auto", Result = 1] <- as_units(10,"ms") # the information obtained from the interactive plot can be used e.g. to update marker positions.
+# the information obtained from the interactive plot can be used e.g. to update marker positions.
 }

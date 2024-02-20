@@ -2,27 +2,29 @@
 % Please edit documentation in R/ggERGExam.R
 \name{ggERGExam}
 \alias{ggERGExam}
-\title{Plot an ERGExam object.}
+\title{Generates a ggplot2 plot from an ERGExam object.}
 \usage{
 ggERGExam(X, return.as = "grid", show.markers = T)
 }
 \arguments{
 \item{X}{An ERGExam object.}
 
-\item{return.as}{Whether to return as a \link[gridExtra:grid.arrange]{gridExtra::grid.arrange} grid (the default: 'return.as = "grid"') or as a list of \link[ggplot2:ggplot]{ggplot2:ggplot}s ('return.as = "list"'.}
+\item{return.as}{Whether to return as a \link[gridExtra:grid.arrange]{gridExtra::grid.arrange} grid (the default: 'return.as = "grid"') or as a list of \link[ggplot2:ggplot]{ggplot2:ggplot}s ('return.as = "list"').}
 
 \item{show.markers}{Whether to return Marker Postitions as stored in the Measurements slot.}
 }
 \value{
-A ggplot2 plot of the ERGExam data.
+A \link[ggplot2:ggplot]{ggplot2:ggplot} plot of the ERGExam data.
 }
 \description{
-This function creates a plot of an ERGExam object, including line plots of
+This function creates a \link[ggplot2:ggplot]{ggplot2:ggplot} plot of an ERGExam object, including line plots of
 stimulus response curves for different label categories.
 }
 \examples{
 # Example usage:
-exam_plot <- ggERGExam(erg_exam)
+data(ERG)
+ERG<-SetStandardFunctions(ERG)
+exam_plot <- ggERGExam(ERG)
 print(exam_plot)
 
 }

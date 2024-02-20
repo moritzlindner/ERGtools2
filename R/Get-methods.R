@@ -2,8 +2,58 @@
 #'
 #' These methods are used to access metadata information from \linkS4class{ERGExam} objects.
 #' @param X A \linkS4class{ERGExam}
-#' @details These methods can be used to access metadata information stored in \linkS4class{ERGExam} or objects. \cr \cr
+#' @details These methods can be used to access metadata information stored in \linkS4class{ERGExam} objects. \cr \cr
 #' @return A vector. For 'StimulusTable()' a data.frame and a function for 'GetFilterFunction()' and 'GetAverageFunction()'.
+#' FIXME: Return in not up to date
+#' FIXME not only for Class ERGExma
+
+#' @examples
+#' # Get Data to work with
+#' data(ERG)
+#' data(Measurements)
+#'
+#' # Accessing eyes from ERGExam object
+#' Eyes(ERG)
+#'
+#' # Accessing channels from ERGExam object
+#' Channels(ERG)
+#'
+#' # Accessing steps from ERGExam object
+#' Steps(ERG)
+#'
+#' # Accessing steps from ERGExam object
+#' Results(ERG)
+#'
+#' # Accessing subject from ERGExam object
+#' Subject(ERG)
+#'
+#' # Accessing stimulus table from ERGExam object
+#' StimulusTable(ERG)
+#'
+#' # Accessing stimulus names from ERGExam object
+#' StimulusNames(ERG)
+#'
+#' # Accessing marker names from ERGMeasurements object
+#' MarkerNames(Measurements)
+#'
+#' # Accessing protocol name from ERGExam object
+#' ProtocolName(ERG)
+#'
+#' # Accessing group name from ERGExam object
+#' GroupName(ERG)
+#'
+#' # Accessing exam date from ERGExam object
+#' ExamDate(ERG)
+#'
+#' # Accessing date of birth from ERGExam object
+#' DOB(ERG)
+#'
+#' # Accessing marker table from ERGMeasurements object
+#' Markers(Measurements)
+#'
+#' # Converting measurements to absolute amplitudes
+#' ConvertMeasurementsToAbsolute(Measurements)
+
 #' @name Get
 NULL
 
@@ -25,6 +75,8 @@ setMethod("Eyes",
 
 #' @describeIn Get Returns the Channel names.
 #' @exportMethod Channels
+#' @family ERGMeasurements functions
+#' @family ERGExam functions
 #' @noMd
 setGeneric(
   name = "Channels",
@@ -38,6 +90,12 @@ setMethod("Channels",
           "ERGExam",
           function(X) {
             unique(X@Metadata$Channel)
+          })
+#' @noMd
+setMethod("Channels",
+          "ERGMeasurements",
+          function(X) {
+            unique(X@Marker$Channel)
           })
 
 #' @describeIn Get Returns the steps of the exam
@@ -55,6 +113,27 @@ setMethod("Steps",
           "ERGExam",
           function(X) {
             unique(X@Metadata$Step)
+          })
+
+#' @describeIn Get Returns the indices of individual results contained in an ERG exam.
+#' @exportMethod Results
+#' @noMd
+setGeneric(
+  name = "Results",
+  def = function(X)
+  {
+    standardGeneric("Results")
+  }
+)
+#' @noMd
+setMethod("Results",
+          "ERGExam",
+          function(X) {
+            res<-unique(X@Metadata$Result)
+            if(length(res)!=1 || res!=1){
+              warning("Using multiple Results is still experimental. When creating the ERGExam, set Results to 1, if not needed.")
+            }
+            return(res)
           })
 
 #' @describeIn Get Returns the subject's name
@@ -75,7 +154,7 @@ setMethod("Subject",
           })
 
 #' @describeIn Get Returns the stimulus table
-#' @param full For \code{StimulusTable} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \linkS4class{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.
+#' @param full For \code{StimulusTable} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \link{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.
 #' @exportMethod StimulusTable
 #' @noMd
 setGeneric(
@@ -118,6 +197,8 @@ setMethod("StimulusNames",
           })
 
 #' @describeIn Get Returns the measurement parameter names (e.g: 'a','B','N1','P1').
+#' @family ERGMeasurements functions
+#' @family ERGExam functions
 #' @exportMethod MarkerNames
 #' @noMd
 setGeneric(
@@ -129,9 +210,15 @@ setGeneric(
 )
 #' @noMd
 setMethod("MarkerNames",
+          "ERGMeasurements",
+          function(X) {
+            unique(X@Marker$Name)
+          })
+#' @noMd
+setMethod("MarkerNames",
           "ERGExam",
           function(X) {
-            unique(X@Measurements$Marker)
+            MarkerNames(X@Measurements)
           })
 
 #' @describeIn Get Returns the recording protocol name.
@@ -205,113 +292,3 @@ setMethod("DOB",
           function(X) {
             X@SubjectInfo$DOB
           })
-
-#' @describeIn Get Get Measurements table.
-#' @exportMethod Measurements
-#' @noMd
-setGeneric(
-  name = "Measurements",
-  def = function(X)
-  {
-    standardGeneric("Measurements")
-  }
-)
-#' @noMd
-setMethod("Measurements",
-          "ERGExam",
-          function(X) {
-            Measurements<-X@Measurements
-            if(nrow(Measurements)!=0){
-              Measurements<-merge(Measurements,Metadata(X), by.x="Recording",by.y=0)
-              Measurements<-merge(Measurements,StimulusTable(X), by="Step")
-              Measurements <-
-                Measurements[, c("Description", "Eye", "Channel", "Name", "Voltage", "Time", "Relative")]
-              colnames(Measurements)<-c("Step", "Eye", "Channel", "Name", "Voltage", "Time", "Relative")
-            } else {
-              Measurements <- data.frame(
-                Step = character(),
-                Eye = character(),
-                Channel = character(),
-                Name = character(),
-                Voltage = as_units(numeric(), "uV"),
-                Time = as_units(numeric(), "ms"),
-                Relative = character()
-              )
-            }
-warning("FIXME: Impelentation of multiple Results needed!")
-            return(Measurements)
-          })
-
-#' @describeIn Get Get one specific Measurement, defined by recording index or a combination of Step, Eye, Channel and Result.
-#' @exportMethod Measurements
-#' @noMd
-setMethod("[",
-          "ERGExam",
-          function(x,
-                   Recording = NULL,
-                   Step = NULL,
-                   Eye = NULL,
-                   Channel = NULL,
-                   Result = NULL,
-                   Marker.Name) {
-            # Check completeness and correctness of params
-            if (is.null(Marker.Name)) {
-              stop("A marker name must be provided.")
-            }
-
-            if (!is.character(Marker.Name)) {
-              stop("Marker.name must be a character string.")
-            }
-
-            if (length(Marker.Name) != 1) {
-              stop("Marker.name must be a single value.")
-            }
-
-            if (is.null(Recording)) {
-              if (!all(!is.null(Step),!is.null(Eye),!is.null(Channel),!is.null(Result))) {
-                stop("Either 'Step','Eye', and 'Channel' or only Recording must be provided.")
-              }
-              # Check if Step, Eye, and Channel are characters
-              if (!is.character(Eye) || !is.character(Channel)) {
-                stop("Eye and Channel must be characters.")
-              }
-              # Check if Result is numeric
-              if (!is.numeric(Step) || !is.numeric(Result)) {
-                stop("Step and Result must be numeric.")
-              }
-              Recording <-
-                IndexOf(
-                  x,
-                  Step = Step,
-                  Eye = Eye,
-                  Channel = Channel,
-                  Result = Result
-                )
-            } else {
-              if (!is.numeric(Recording)) {
-                stop("Recording must be numeric.")
-              }
-            }
-            return(x@Measurements[x@Measurements$Recording %in% Recording &
-                                    x@Measurements$Name %in% Marker.Name, ])
-
-          })
-
-#' @describeIn ConvertMeasurementsToAbsolute Converts the output of the Measurements method from relative to absolute amplitudes
-#' @noMd
-ConvertMeasurementsToAbsolute <- function(data) {
-  for (i in seq_along(data$Voltage)) {
-    if (!is.na(data$Relative[i])) {
-      match_row <- which(data$Description == data$Description[i] &
-                           data$Eye == data$Eye[i] &
-                           data$Channel == data$Channel[i] &
-                           data$Name == data$Relative[i])
-
-      if (length(match_row) > 0) {
-        data$Voltage[i] <- data$Voltage[i] + data$Voltage[match_row]
-      }
-    }
-  }
-  colnames(data)[colnames(data)=="Relative"]<-".Relative"
-  return(data)
-}

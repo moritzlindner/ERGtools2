@@ -18,12 +18,12 @@
 #'
 #' @examples
 #' data(ERG)
-#' imported_Markers<-Measurements(ERG)
-#' imported_Markers
 #' ERG<-SetStandardFunctions(ERG)
+#' imported_Markers<-Measurements(ERG)
+#' head(imported_Markers)
 #' ERG<-AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG_auto"))
 #' autoplaced_Markers<-Measurements(ERG)
-#' autoplaced_Markers
+#' head(autoplaced_Markers)
 #'
 #' # Calling AutoPlaceAB() directly
 #' X<-ERG@Data[[1]] # get first recording
@@ -54,39 +54,47 @@ setMethod(
                                                   Flicker = "Flicker")) {
     markerlist<-list()
     Md<-merge(Metadata(X),StimulusTable(X))
+    pb = txtProgressBar(min = 0, max = length(X@Data), initial = 0)
     for(i in 1:length(X@Data)){
+      x <- X@Data[[i]]
+      update<-F
       # FLASH ERGs
       tryCatch({
         if (Md$Channel[i] %in% Channel.names$ERG &
             Md$Type[i]  %in%  Stimulus.type.names$Flash) {
-          x <- X@Data[[i]]
           Markers <- AutoPlaceAB(x)
-          Markers$Name <- rownames(Markers)
-          Markers$Recording <- i
-          markerlist[[i]] <- Markers
+          update<-T
         }
         # Flicker ERGs
         if (Md$Channel[i] %in% Channel.names$ERG &
             Md$Type[i]  %in%  Stimulus.type.names$Flicker) {
-          x <- X@Data[[i]]
           Markers <- AutoPlaceFlicker(x)
-          Markers$Name <- rownames(Markers)
-          Markers$Recording <- i
-          markerlist[[i]] <- Markers
+          update<-T
         }
         # Flash VEP
         if (Md$Channel[i] %in% Channel.names$VEP &
             Md$Type[i]  %in%  Stimulus.type.names$Flicker) {
-          x <- X@Data[[i]]
           Markers <- AutoPlaceVEP(x)
+          update<-T
+        }
+
+        if(update){
           Markers$Name <- rownames(Markers)
-          Markers$Recording <- i
-          markerlist[[i]] <- Markers
+          for (m in nrow(Markers[is.na(Markers$Relative)])) {
+            Measurements(
+              X,
+              Marker = Markers$Name[m],
+              Recording = i,
+              create.marker.if.missing = T,
+              Relative = Markers$Relative[m],
+              ChannelBinding = Md$Channel[i]
+            ) <- Markers$Time[m]
+          }
         }
       },
       error = function(e) {
         currMd <- merge(Metadata(X), StimulusTable(X))[i, ]
-
+        close(pb)
         stop(
           "Auto placement of markers failed for recording ",
           i,
@@ -102,12 +110,9 @@ setMethod(
           e
         )
       })
+      setTxtProgressBar(pb,i)
     }
-    Marker.df<-do.call(rbind,markerlist)
-
-    Marker.df$Voltage<-set_units(Marker.df$Voltage,"uV")
-
-    X <- UpdateMeasurements(X, Marker.df)
+    close(pb)
     return(X)
   }
 )
@@ -276,6 +281,7 @@ setMethod(
 
 #' @importFrom units drop_units
 #' @importFrom EPhysData TimeTrace GetData
+#' @importFrom stats median
 #' @keywords internal
 #' @noMd
 getdf<-function(X){

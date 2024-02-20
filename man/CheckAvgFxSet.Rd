@@ -4,12 +4,10 @@
 \alias{CheckAvgFxSet}
 \title{Check if all recordings in an ERGExam object have a valid averaging function set.}
 \usage{
-CheckAvgFxSet(X, fatal = TRUE)
+CheckAvgFxSet(X)
 }
 \arguments{
 \item{X}{An ERGExam object.}
-
-\item{fatal}{Logical, indicating whether to stop with an error message if not all recordings have a valid averaging function.}
 }
 \value{
 Logical, TRUE if all recordings have a valid averaging function, FALSE otherwise.
@@ -18,7 +16,10 @@ Logical, TRUE if all recordings have a valid averaging function, FALSE otherwise
 Check if all recordings in an ERGExam object have a valid averaging function set.
 }
 \examples{
-CheckAvgFxSet(myERGExamObject)
+data(ERG)
+CheckAvgFxSet(ERG)
+ERG<-SetStandardFunctions(ERG)
+CheckAvgFxSet(ERG)
 
 }
 \seealso{

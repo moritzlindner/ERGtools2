@@ -1,18 +1,20 @@
-#' Plot an ERGExam object.
+#' Generates a ggplot2 plot from an ERGExam object.
 #'
-#' This function creates a plot of an ERGExam object, including line plots of
+#' This function creates a \link[ggplot2:ggplot]{ggplot2:ggplot} plot of an ERGExam object, including line plots of
 #' stimulus response curves for different label categories.
 #'
 #' @param X An ERGExam object.
-#' @param return.as Whether to return as a \link[gridExtra:grid.arrange]{gridExtra::grid.arrange} grid (the default: 'return.as = "grid"') or as a list of \link[ggplot2:ggplot]{ggplot2:ggplot}s ('return.as = "list"'.
+#' @param return.as Whether to return as a \link[gridExtra:grid.arrange]{gridExtra::grid.arrange} grid (the default: 'return.as = "grid"') or as a list of \link[ggplot2:ggplot]{ggplot2:ggplot}s ('return.as = "list"').
 #' @param show.markers Whether to return Marker Postitions as stored in the Measurements slot.
 #'
-#' @return A ggplot2 plot of the ERGExam data.
+#' @return A \link[ggplot2:ggplot]{ggplot2:ggplot} plot of the ERGExam data.
 #'
 #' @export
 #' @examples
 #' # Example usage:
-#' exam_plot <- ggERGExam(erg_exam)
+#' data(ERG)
+#' ERG<-SetStandardFunctions(ERG)
+#' exam_plot <- ggERGExam(ERG)
 #' print(exam_plot)
 #'
 #' @importFrom ggplot2 ggplot aes geom_line facet_grid vars ggtitle facet_wrap element_line
@@ -36,7 +38,9 @@ setMethod(
   signature = "ERGExam",
   definition = function(X, return.as = "grid", show.markers = T) {
 
-    # downsampling to approx 300 points
+    # ggplot workaround
+    Time<-Value<-Eye<-Channel<-colourby<-NULL
+
     X <- lapply(X, function(x) {
       t <- TimeTrace(x)
       interval <- round(length(t) / 300)
@@ -47,6 +51,7 @@ setMethod(
 
     dat <- as.data.frame(X)
 
+    warning("This is specific for Epsion")
     stimtab <- StimulusTable(X)
     dat <- merge(dat, stimtab, by = "Step")
     dat$Description <-
@@ -62,8 +67,7 @@ setMethod(
 
     # Measurements
     if(show.markers){
-      mes<-merge(X@Measurements,Metadata(X),by.x="Recording",by.y = 0)
-      mes<-merge(mes,StimulusTable(X))
+      mes<-Measurements(X)
       colnames(mes)[colnames(mes)=="Voltage"]<-"Value"
     }
 
@@ -113,27 +117,27 @@ setMethod(
           curr.mes <-mes[mes$Background == b &
                            mes$Type == t, ]
 
-
-          for (i in 1:nrow(curr.mes)) {
-            if (!is.na(curr.mes$Relative[i])) {
-              curr.mes$Value[i] <-
-                curr.mes$Value[i] + curr.mes$Value[curr.mes$Name == curr.mes$Relative[i] &
+          if(nrow(curr.mes)>0){
+            for (i in 1:nrow(curr.mes)) {
+              if (!is.na(curr.mes$Relative[i])) {
+                curr.mes$Value[i] <-
+                  curr.mes$Value[i] + curr.mes$Value[curr.mes$Name == curr.mes$Relative[i] &
                                                        curr.mes$Recording == curr.mes$Recording[i]]
+              }
+            }
+
+            # Measurements
+            if (show.markers) {
+              plotrows[[ID]] <- plotrows[[ID]] +
+                geom_line(
+                  data = curr.mes,
+                  aes(group = Name),
+                  color = "black",
+                  size = 1.0675
+                ) +
+                geom_point(data = curr.mes, aes(group = Name), color = "black")
             }
           }
-
-          # Measurements
-          if (show.markers) {
-            plotrows[[ID]] <- plotrows[[ID]] +
-              geom_line(
-                data = curr.mes,
-                aes(group = Name),
-                color = "black",
-                size = 1.0675
-              ) +
-              geom_point(data = curr.mes, aes(group = Name), color = "black")
-          }
-
         }
       }
 
@@ -173,7 +177,5 @@ setMethod(
     if(return.as == "list"){
       return(plotrows)
     }
-
-
   }
 )

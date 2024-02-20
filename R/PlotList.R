@@ -1,6 +1,6 @@
-#' Plot intensity sequence for ERG exams
+#' Uses ggplot2 to plot intensity sequence for ERG exams
 #'
-#' This function generates a plot of intensity sequence data for ERG exams.
+#' This function generates a \link[ggplot2:ggplot]{ggplot2:ggplot} plot of intensity sequence data for ERG exams.
 #'
 #' @param List A list of ERG exams.
 #' @param Background Background condition for the exams.
@@ -13,17 +13,21 @@
 #' @return A ggplot2 plot object.
 #'
 #' @importFrom units as_units deparse_unit
-#' @import ggplot2
-#' @importFrom ggpubr theme_pubclean
+#' @importFrom ggplot2 ggplot aes geom_line geom_point geom_errorbar scale_x_log10 facet_wrap labs
+#' @importFrom ggpubr theme_pubr
 #' @import dplyr
+#' @seealso  \link[ggplot2:ggplot]{ggplot2:ggplot}
 #'
 #' @examples
 #' # Example usage:
-#' data <- list(ERGExam1, ERGExam2)
-#' PlotIntensitySequence(data, Background = "DA", Type = "Flash", Channel = "ERG")
+#' data(ERG)
+#' data <- list(ERG, ERG)
+#' ERG<-SetStandardFunctions(ERG)
+#' ERG <- AutoPlaceMarkers(ERG)
+#' ggIntensitySequence(data, Background = "DA", Type = "Flash", Channel = "ERG")
 #'
 #' @export
-PlotIntensitySequence <-
+ggIntensitySequence <-
   function(List,
            Background = "DA",
            Type = "Flash",
@@ -32,13 +36,16 @@ PlotIntensitySequence <-
            Parameter =  "Amplitude",
            wrap_by = "Channel") {
 
+    # dplyr workaround
+    Group<-Name<-Intensity<-Voltage<-sd<-Time<-Amplitude<-sem<-ImplicitTime<-NULL
+
     # Extract Measurements and related info
     results <- get_measurements_for_Plot(
-      List,
-      Background,
-      Type,
-      Channel,
-      Markers
+      List = List,
+      Background = Background,
+      Type = Type,
+      Channel = Channel,
+      Markers = Markers
     )
 
     # Stats
@@ -109,9 +116,14 @@ PlotIntensitySequence <-
     return(plt)
   }
 
-#' Plot step sequence for ERG exams
+#' @export
+#' @noRd
+PlotIntensitySequence<-ggIntensitySequence
+
+
+#' Uses ggplot2 to plot step sequence for multiple ERG exams
 #'
-#' This function generates a plot of step sequence data for ERG exams.
+#' This function generates a \link[ggplot2:ggplot]{ggplot2:ggplot} plot of step sequence (i.e. sequential recordings within a single protocol) data for multiple ERG exams.
 #'
 #' @param List A list of ERG exams.
 #' @param Background Background condition for the exams.
@@ -120,19 +132,23 @@ PlotIntensitySequence <-
 #' @param Markers Vector of markers to include in the plot (e.g. c("a","B)).
 #' @param wrap_by Wrapping parameter for facetting ("Channel" or NULL).
 #'
-#' @return A ggplot2 plot object.
+#' @return A \link[ggplot2:ggplot]{ggplot2:ggplot} plot object.
 #'
-#' @import ggplot2
+#' @importFrom ggplot2 ggplot aes geom_line geom_point geom_errorbar scale_x_log10 facet_wrap labs
 #' @importFrom ggpubr theme_pubr
 #' @import dplyr
+#' @seealso \link[ggplot2:ggplot]{ggplot2:ggplot}
 #'
 #' @examples
 #' # Example usage:
-#' data <- list(ERGExam1, ERGExam2)
-#' PlotStepSequence(data, Background = "DA", Type = "Flash", Channel = "ERG")
+#' data(ERG)
+#' data <- list(ERG, ERG)
+#' ERG<-SetStandardFunctions(ERG)
+#' ERG <- AutoPlaceMarkers(ERG)
+#' ggStepSequence(data, Background = "DA", Type = "Flash", Channel = "ERG")
 #'
 #' @export
-PlotStepSequence <-
+ggStepSequence <-
   function(List,
            Background = "DA",
            Type = "Flash",
@@ -140,13 +156,17 @@ PlotStepSequence <-
            Markers = c("N1", "P1"),
            wrap_by = "Channel") {
 
+    #dplyr workaround
+    Step<-Group<-Name<-Intensity<-Voltage<-sd<-Time<-Amplitude<-sem<-ImplicitTime<-NULL
+
+
     # Extract Measurements and related info
     results <- get_measurements_for_Plot(
-      List,
-      Background,
-      Type,
-      Channel,
-      Markers
+      List = List,
+      Background = Background,
+      Type = Type,
+      Channel = Channel,
+      Markers = Markers
     )
 
     # Stats
@@ -181,9 +201,14 @@ PlotStepSequence <-
     return(plt)
   }
 
-#' Plot ERG recordings
+#' @export
+#' @noRd
+PlotStepSequence<-ggStepSequence
+
+
+#' Uses ggplot2 to plot ERG traces from multiple ERGExam objects
 #'
-#' This function generates a plot of ERG recordings.
+#' This function generates a \link[ggplot2:ggplot]{ggplot2:ggplot} plot of ERG traces from multiple ERGExam objects.
 #'
 #' @param List A list of ERG exams.
 #' @param Background Background condition for the exams.
@@ -199,16 +224,23 @@ PlotStepSequence <-
 #'
 #' @examples
 #' # Example usage:
-#' data <- list(ERGExam1, ERGExam2)
-#' PlotRecordings(data, Background = "DA", Type = "Flash", Channel = "ERG")
+#' data(ERG)
+#' data <- list(ERG, ERG)
+#' ERG<-SetStandardFunctions(ERG)
+#' ERG <- AutoPlaceMarkers(ERG)
+#' data <- list(ERG, ERG)
+#' ggPlotRecordings(data, Background = "DA", Type = "Flash", Channel = "ERG")
 #'
 #' @export
-PlotRecordings<-function(List,
+ggPlotRecordings<-function(List,
                          Background = "DA",
                          Type = "Flash",
                          Channel = "ERG",
                          wrap_by = "Channel",
                          scales = "free_y"){
+
+  # ggplot workaround
+  Time<-Value<-Eye<-Result<-NULL
 
   results <- lapply(List, function(x) {
     df <- as.data.frame(x)
@@ -255,6 +287,11 @@ PlotRecordings<-function(List,
     theme(panel.grid.major = element_line(size = .1))
 }
 
+#' @export
+#' @noRd
+PlotRecordings<-ggPlotRecordings
+
+
 #' Get measurements for plotting
 #'
 #' This function extracts measurements and related information for plotting.
@@ -265,10 +302,15 @@ PlotRecordings<-function(List,
 #' @param Channel The channel to plot (e.g., "ERG").
 #' @param Markers Vector of markers to include in the plot.
 #'
-#' @return A data frame with measurements for plotting.
-#'
+#' @return A data frame with measurements for plotting.#'
 #' @import dplyr
-#'
+#' @importFrom EPhysData AverageFunction `AverageFunction<-` Rejected `Rejected<-` FilterFunction `FilterFunction<-`
+#' @examples
+#' data(ERG)
+#' data <- list(ERG, ERG)
+#' ERG<-SetStandardFunctions(ERG)
+#' ERG <- AutoPlaceMarkers(ERG)
+#' get_measurements_for_Plot(list(ERG,ERG), Background = "DA", Type = "Flash", Channel = NULL)
 #' @noRd
 get_measurements_for_Plot <- function(List,
                                       Background = "DA",
@@ -286,12 +328,39 @@ get_measurements_for_Plot <- function(List,
   }
   # subset object
   List <- lapply(List, function(x) {
+    if(!CheckAvgFxSet(x)){
+      stop("Average functions must be set for all objects in the list.")
+    }
     md <- merge(Metadata(x), StimulusTable(x))
     sel <-
       md$Background %in% Background &
       md$Type %in% Type & md$Channel %in% Channel
-    x <- Subset(x, ExamItem = sel)
-    x
+    avg.fx.buffer <-
+      lapply(x, function(y) {
+        AverageFunction(y)
+      }, ReturnEPhysSet = F)
+    avg.fx.buffer <- avg.fx.buffer[sel]
+
+    rejected.buffer <-
+      lapply(x, function(y) {
+        Rejected(y)
+      }, ReturnEPhysSet = F)
+    rejected.buffer <- rejected.buffer[sel]
+
+    filter.fx.buffer <-
+      lapply(x, function(y) {
+        FilterFunction(y)
+      }, ReturnEPhysSet = F)
+    filter.fx.buffer <- filter.fx.buffer[sel]
+
+    x <- Subset(x, Recording = which(sel))
+
+    for (y in 1:length(x)) {
+      AverageFunction(x[[y]])<-avg.fx.buffer[[y]]
+      Rejected(x[[y]])<-as.vector(Rejected(x[[y]]))
+      FilterFunction(x[[y]])<-filter.fx.buffer[[y]]
+    }
+    return(x)
   })
 
   results <- lapply(List, function(x) {
@@ -315,7 +384,7 @@ get_measurements_for_Plot <- function(List,
       merge(df,
             StimulusTable(x),
             by.x = "Step",
-            by.y = "Description")
+            by.y = "Step")
     return(df)
   })
   results <- do.call(rbind.data.frame, results)

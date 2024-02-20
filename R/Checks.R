@@ -1,7 +1,6 @@
 #' Check if all recordings in an ERGExam object have a valid averaging function set.
 #'
 #' @param X An ERGExam object.
-#' @param fatal Logical, indicating whether to stop with an error message if not all recordings have a valid averaging function.
 #'
 #' @return Logical, TRUE if all recordings have a valid averaging function, FALSE otherwise.
 #'
@@ -27,13 +26,14 @@ setMethod("CheckAvgFxSet",
           "ERGExam",
           function(X) {
             fx.set <- unlist(lapply(X@Data, function(x) {
-              dat <-
-                GetData(x, Raw = FALSE, Time = c(min(TimeTrace(x)), min(min(
-                  TimeTrace(x)[5], max(TimeTrace(x))
-                ))))
+              suppressWarnings({
+                dat <-
+                  GetData(x, Raw = FALSE, Time = c(min(TimeTrace(x)), min(min(
+                    TimeTrace(x)[5], max(TimeTrace(x))
+                  ))))
+              })
               return(as.logical(ncol(dat) == 1))
             }))
-
             if (!all(fx.set)) {
                 warning("No valid averaging function found for Recoding ",
                         paste0(which(!fx.set), ","))

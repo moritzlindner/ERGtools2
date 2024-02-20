@@ -13,7 +13,8 @@
   Step = Steps(X),
   Eye = Eyes(X),
   Channel = Channels(X),
-  ExamItem = NULL,
+  Result = Results(X),
+  Recording = NULL,
   ...
 )
 }
@@ -32,7 +33,7 @@ Numeric index/indices or a logical vector of the same length as repeats stored.}
 
 \item{Step, Eye, Channel}{Vector of values for Steps, Eyes, and Channels to subset}
 
-\item{ExamItem}{Subset by exam item index instead of \code{Step}, \code{Eye} and \code{Channel}. Default is \code{NULL}. If set to a numeric vector or a logical vector of same length as rows in Metadata,  \code{Step}, \code{Eye} and \code{Channel} will be ignored and only the recording with the given indices will be kept.}
+\item{Recording}{Subset by exam item index instead of \code{Step}, \code{Eye} and \code{Channel}. Default is \code{NULL}. If set to a numeric vector or a logical vector of same length as rows in Metadata,  \code{Step}, \code{Eye} and \code{Channel} will be ignored and only the recording with the given indices will be kept.}
 }
 \description{
 This method subsets an \code{ERGExam} object into a new object of the same class.
@@ -40,6 +41,10 @@ This method subsets an \code{ERGExam} object into a new object of the same class
 \details{
 The \code{Subset} function creates a new \code{ERGExam}  object containing a subset of the data from the original object, based on the provided parameters.
 }
+\examples{
+data(ERG)
+Subset(ERG,Channel="ERG_auto")
+}
 \seealso{
-\link[EPhysData:Subset-methods]{EPhysData::Subset-methods}
+\link[EPhysData:Subset-method]{EPhysData::Subset-method}
 }

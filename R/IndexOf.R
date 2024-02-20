@@ -35,7 +35,15 @@ setMethod("IndexOf",
               stop("Step and Result must be numeric.")
             }
 
+            if (!all(Step %in% Steps(X)) |
+                !all(Eye %in% Eyes(X)) |
+                !all(Channel %in% Channels(X))|
+                !all(Result %in% Results(X))) {
+              stop("Values for 'Step','Eye', 'Channel' and 'Result' must exist in the metadata.")
+            }
+
             Md <- Metadata(X)
+
             which <-
               which(Md$Step  %in% Step &
                       Md$Eye %in% Eye &

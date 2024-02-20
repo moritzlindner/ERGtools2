@@ -8,11 +8,12 @@
 #' @importFrom ggplot2 geom_label
 #' @importFrom plotly ggplotly
 #' @importFrom units deparse_unit set_units
+#' @importFrom EPhysData ggEPhysData Rejected
 #' @examples
 #' data(ERG)
 #' AverageFunction(ERG, where=pairlist(Step = 3,Channel = "ERG_auto",Result = 1)) <- mean
 #' ggERGTrace(ERG, Step = 3, Eye = "RE", Channel ="ERG_auto", Result = 1, Interactive = T) # Generate a ggplot2 plot
-#' ERG[Marker.Name = "a", Step = 3, Eye = "RE", Channel ="ERG_auto", Result = 1] <- as_units(10,"ms") # the information obtained from the interactive plot can be used e.g. to update marker positions.
+#' # the information obtained from the interactive plot can be used e.g. to update marker positions.
 #' @name ggERGTrace
 #' @exportMethod ggERGTrace
 setGeneric(
@@ -36,30 +37,35 @@ setMethod("ggERGTrace",
                    Channel,
                    Result = 1,
                    Interactive = F) {
-            Md <- Metadata(X)
             which <-
-              (Md$Step == Step &
-                 Md$Eye == Eye &
-                 Md$Channel == Channel &
-                 Md$Result == Result)
+              IndexOf(
+                X,
+                Step = Step,
+                Eye = Eye,
+                Channel = Channel,
+                Result = Result
+              )
 
-            if (sum(which) == 0) {
+            if (length(which) == 0) {
               stop("No item matches selection.")
             }
-            if (sum(which) > 1) {
+            if (length(which) > 1) {
               stop("Multiple items match the selection criteria.")
             }
-            sel <- X[[which(which)]]
+            sel <- X[[which]]
 
             Rejected(sel) <-
-              as.vector(Rejected(sel)) #workaround in case of non-vector resulst of the Rejected function
-            un <- Measurements(X)$Voltage[1]
+              as.vector(Rejected(sel)) #workaround in case of non-vector results of the Rejected function
+            un <- Measurements(X,
+                               Recording = which)$Voltage[1]
             sel@Data <-
               set_units(sel@Data, deparse_unit(un), mode = "standard")
             out <- ggEPhysData(sel)
-            if (any(X@Measurements$Recording == which(which))) {
+            mes<-Measurements(X,
+                              Recording = which)
+            if (any(mes$Recording == which)) {
               mes <-
-                X@Measurements[X@Measurements$Recording == which(which), ]
+                mes[mes$Recording == which, ]
 
               for (i in 1:nrow(mes)) {
                 if (!is.na(mes$Relative[i])) {

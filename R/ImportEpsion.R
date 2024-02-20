@@ -60,7 +60,8 @@ ImportEpsion <- function(filename,
   contains_raw <- "Raw" %in% Import
   contains_averaged <- "Averaged" %in% Import
   if (!((contains_raw ||
-         contains_averaged) && !(contains_raw && contains_averaged))) {
+         contains_averaged) &&
+        !(contains_raw && contains_averaged))) {
     stop("Exactly one of 'Raw' and 'Averaged' must be selected for import.")
   }
 
@@ -151,7 +152,7 @@ ImportEpsion <- function(filename,
       measurements <- get_measurements(filename, toc, sep)
 
       # get RelativeTo
-      measurements$Relative<-as.character(NA)
+      measurements$Relative <- as.character(NA)
       if (!is.null(Protocol)) {
         for (r in 1:nrow(measurements)) {
           curr_markers <-
@@ -160,13 +161,13 @@ ImportEpsion <- function(filename,
             c(x@Name, x@RelativeTo)
           }))
           curr_markers <- do.call(rbind, curr_markers)
-          if(!is.null(curr_markers)){
+          if (!is.null(curr_markers)) {
             measurements$Relative[r] <-
               curr_markers[curr_markers[, 1] == measurements$Marker[r], 2]
 
           }
         }
-        measurements$Relative[measurements$Relative==""]<-NA
+        measurements$Relative[measurements$Relative == ""] <- NA
 
       }
       measurements$Recording <- -1
@@ -452,18 +453,17 @@ ImportEpsion <- function(filename,
       }
       recording_info["Group", 1] <- unique(measurements$Group)
 
-      # Drop further duplicated info from measurements
-      measurements <-
-        measurements[, c("Recording", "Marker", "Voltage", "Time")]
       colnames(measurements)[colnames(measurements) == "Marker"] <-
         "Name"
 
-      if(is.null(measurements$Relative)){
-        measurements$Relative<-NA
-        measurements$Relative[measurements$Name=="B"]<-"a"
-        measurements$Relative[measurements$Name=="N1"]<-"P1"
-        measurements$Relative[measurements$Name=="P2"]<-"P1"
+      if (is.null(measurements$Relative)) {
+        measurements$Relative <- NA
+        measurements$Relative[measurements$Name == "B"] <- "a"
+        measurements$Relative[measurements$Name == "N1"] <- "P1"
+        measurements$Relative[measurements$Name == "P2"] <- "P1"
       }
+
+      M <- newERGMeasurements(measurements)
     }
 
     DOB <-
@@ -479,7 +479,7 @@ ImportEpsion <- function(filename,
       Data = STEPS,
       Metadata = Metadata,
       Stimulus = stim_info,
-      Measurements = measurements,
+      Measurements = M,
       ExamInfo = list(
         ProtocolName = recording_info["Protocol", 1],
         Version = recording_info["Version", 1],
@@ -617,8 +617,7 @@ get_measurements <- function(filename, toc, sep) {
   colnames(measurements)[colnames(measurements) == "R"] <-
     "Repeat"
 
-  TimeUnit <-
-    colnames(measurements)[colnames(measurements) == "ms"]
+  TimeUnit <-enc2utf8( colnames(measurements)[colnames(measurements) == "ms"])
   colnames(measurements)[colnames(measurements) == "ms"] <- "Time"
   measurements$Time <- as_units(measurements$Time, TimeUnit)
 
@@ -626,6 +625,7 @@ get_measurements <- function(filename, toc, sep) {
     colnames(measurements)[colnames(measurements) == "uV"]
   colnames(measurements)[colnames(measurements) == "uV"] <-
     "Voltage"
-  measurements$Voltage <- as_units(measurements$Voltage, voltageunit)
+  measurements$Voltage <-
+    as_units(measurements$Voltage, voltageunit)
   return(measurements)
 }

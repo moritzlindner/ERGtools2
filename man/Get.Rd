@@ -5,6 +5,7 @@
 \alias{Eyes}
 \alias{Channels}
 \alias{Steps}
+\alias{Results}
 \alias{Subject}
 \alias{StimulusTable}
 \alias{StimulusNames}
@@ -13,8 +14,6 @@
 \alias{GroupName}
 \alias{ExamDate}
 \alias{DOB}
-\alias{Measurements}
-\alias{[,ERGExam-method}
 \title{Accession methods for metadata from ERGExam objects}
 \usage{
 Eyes(X)
@@ -22,6 +21,8 @@ Eyes(X)
 Channels(X)
 
 Steps(X)
+
+Results(X)
 
 Subject(X)
 
@@ -38,32 +39,22 @@ GroupName(X)
 ExamDate(X)
 
 DOB(X)
-
-Measurements(X)
-
-\S4method{[}{ERGExam}(
-  x,
-  Recording = NULL,
-  Step = NULL,
-  Eye = NULL,
-  Channel = NULL,
-  Result = NULL,
-  Marker.Name
-)
 }
 \arguments{
 \item{X}{A \linkS4class{ERGExam}}
 
-\item{full}{For \code{StimulusTable} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \linkS4class{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.}
+\item{full}{For \code{StimulusTable} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \link{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.}
 }
 \value{
 A vector. For 'StimulusTable()' a data.frame and a function for 'GetFilterFunction()' and 'GetAverageFunction()'.
+FIXME: Return in not up to date
+FIXME not only for Class ERGExma
 }
 \description{
 These methods are used to access metadata information from \linkS4class{ERGExam} objects.
 }
 \details{
-These methods can be used to access metadata information stored in \linkS4class{ERGExam} or objects. \cr \cr
+These methods can be used to access metadata information stored in \linkS4class{ERGExam} objects. \cr \cr
 }
 \section{Functions}{
 \itemize{
@@ -72,6 +63,8 @@ These methods can be used to access metadata information stored in \linkS4class{
 \item \code{Channels()}: Returns the Channel names.
 
 \item \code{Steps()}: Returns the steps of the exam
+
+\item \code{Results()}: Returns the indices of individual results contained in an ERG exam.
 
 \item \code{Subject()}: Returns the subject's name
 
@@ -89,8 +82,53 @@ These methods can be used to access metadata information stored in \linkS4class{
 
 \item \code{DOB()}: Returns the date of birth.
 
-\item \code{Measurements()}: Get Measurements table.
-
-\item \code{[}: Get one specific Measurement, defined by recording index or a combination of Step, Eye, Channel and Result.
-
 }}
+\examples{
+# Get Data to work with
+data(ERG)
+data(Measurements)
+
+# Accessing eyes from ERGExam object
+Eyes(ERG)
+
+# Accessing channels from ERGExam object
+Channels(ERG)
+
+# Accessing steps from ERGExam object
+Steps(ERG)
+
+# Accessing steps from ERGExam object
+Results(ERG)
+
+# Accessing subject from ERGExam object
+Subject(ERG)
+
+# Accessing stimulus table from ERGExam object
+StimulusTable(ERG)
+
+# Accessing stimulus names from ERGExam object
+StimulusNames(ERG)
+
+# Accessing marker names from ERGMeasurements object
+MarkerNames(Measurements)
+
+# Accessing protocol name from ERGExam object
+ProtocolName(ERG)
+
+# Accessing group name from ERGExam object
+GroupName(ERG)
+
+# Accessing exam date from ERGExam object
+ExamDate(ERG)
+
+# Accessing date of birth from ERGExam object
+DOB(ERG)
+
+# Accessing marker table from ERGMeasurements object
+Markers(Measurements)
+
+# Converting measurements to absolute amplitudes
+ConvertMeasurementsToAbsolute(Measurements)
+}
+\concept{ERGExam functions}
+\concept{ERGMeasurements functions}

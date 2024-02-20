@@ -1,8 +1,6 @@
+#' @importFrom EPhysData Rejected FilterFunction AverageFunction
+#' @importFrom stats var
 validERGExam <- function(object) {
-  # if (!is.list(object@Data)) {
-  #   stop("Data must be a list.")
-  # }
-
   # Check if the data frame has the required columns
   required_columns <- c("Step", "Eye", "Channel")
   if (!all(required_columns %in% names(object@Metadata))) {
@@ -124,7 +122,7 @@ validERGExam <- function(object) {
 
   # Averaged slot
   if (object@Averaged){
-    Repeats<-unique(unlist(lapply(X@Data,function(x){dim(x)[2]})))
+    Repeats<-unique(unlist(lapply(object@Data,function(x){dim(x)[2]})))
     if(length(Repeats)!=1 || Repeats != 1){
       warning("Object does not appear to contain averaged data. Multiple repeats observed.")
     }
@@ -132,19 +130,21 @@ validERGExam <- function(object) {
 
   # Measurements slot
   if (length(object@Measurements) != 0) {
-    required_columns <- c("Recording", "Name", "Time", "Voltage","Relative")
-    if (!all(required_columns %in% names(object@Measurements))) {
-      stop(
-        "Measurements provided are not in correct format. Must be a data.frame with the columns 'Recording', 'Name', 'Time', 'Voltage' and 'Relative'."
-      )
+    if (any(!("ERGMeasurements" %in% class(object@Measurements)),
+            !validObject(object@Measurements))) {
+      stop("'Measurements' slot must contain a valid ERGMeasurements object.")
     }
-    if (!all(object@Measurements$Recording %in% 1:nrow(Metadata(object)))) {
-      stop("'Recording'(s) specified do not match Data/Metadata defined in the object. ")
-    }
-    if (!(
-      deparse_unit(object@Measurements$Time) %in% c("us", "ms", "s", "min", "h", "d", "w")
-    )) {
-      stop("In 'Measurements', 'Time' should be either of 'us','ms','s','min','h','d','w'")
+
+    # check if ChannelBinding matches Channel of Recording
+    measurements<-Measurements(object@Measurements)
+    for (r in unique(measurements$Recording)){
+      cb<-unique(measurements$ChannelBinding[measurements$Recording ==r])
+      if(length(cb)>1){
+        stop("Measurements object malformed: multiple Channel Bindings for a single recording.")
+      }
+      if (Metadata(object)$Channel[r]!=cb){
+        stop("ChannelBinding stored in Measurements slot does not match the channel of the respective recoding as stored in the parent object. Error orcurred for recording #", r,".")
+      }
     }
   }
 
@@ -162,7 +162,6 @@ validERGExam <- function(object) {
     stop("Subject Name, DOB and ExamDate must be provided.")
   }
 
-
   # Dates
   dob <- object@SubjectInfo$DOB
   exam_date <- object@ExamInfo$ExamDate
@@ -178,12 +177,15 @@ validERGExam <- function(object) {
     stop("DOB, ExamDate, and Imported should be of class Date ('DOB'), POSIXct.")
   }
 
+  if(object@Imported<"2024-02-01"){
+    message("This ERGExam object is outdated. Please run UpdateERGExam().")
+  }
   TRUE
 }
 
 #' ERGExam Class
 #'
-#' A class representing an ERG (Electroretinogram) exam with associated data and attributes. This class extends the \link[EPhysData:EphysSet]{EPhysData::EphysSet} object and all methods valid for \link[EPhysData:EphysSet]{EPhysData::EphysSet} can also be applied to \code{ERGExam} objects.
+#' A class representing an ERG (Electroretinogram) exam with associated data and attributes. This class extends the \link[EPhysData:EPhysSet]{EPhysData::EPhysSet} object and all methods valid for \link[EPhysData:EphysSet]{EPhysData::EphysSet} can also be applied to \code{ERGExam} objects.
 #'
 #' @slot Data Data A list of \link{EPhysData} objects. Each item containing a recording in respsonse to a particular Stimulus ("Step"), from a particular eye and data Channel (e.g. ERG or OP)-
 #' @slot Metadata  A data frame containing metadata information associated with the data, each row corresponds to one item in \code{data}.
@@ -191,6 +193,7 @@ validERGExam <- function(object) {
 #'   \item{Step}{A character vector containing the step name. A step describes data recorded in response to the same type of stimulus.}
 #'   \item{Eye}{A character vector. Possible values "RE" (right eye) and "LE" (left eye).}
 #'   \item{Channel}{A character vector containing the channel name. This can be "ERG", "VEP" or "OP" for instance.}
+#'   \item{Channel}{A numeric vector containing the indices of individual results contained in an ERG exam. E.g., if a recording to one identical stimulus is performed twice, these would be distinguished by different indices in the Result column. Warning: This is currently experimental}
 #' }
 #'
 #' @slot Stimulus
@@ -207,13 +210,7 @@ validERGExam <- function(object) {
 #' TRUE if the object contains averaged data, FALES indicates object contains raw traces.
 #'
 #' @slot Measurements
-#' A data frame containing measurements obtained from the data.
-#' \describe{
-#'   \item{Recording}{A numeric vector representing the recording (item in \code{data] the measurements have been performed on.}
-#'   \item{Name}{A character vector containing a names identifier for the measurements, also called marker (e.g. "a","B" or "OP1").}
-#'   \item{Time}{A numeric vector storing the time on the trace at which the measurement was perfmed / marker position.}
-#'   \item{Value}{A numeric vector storing value of the trace at that position.}
-#' }
+#' An object of class \linkS4class{ERGMeasurements}
 #'
 #' @slot ExamInfo
 #' A list containing exam-related information.
@@ -239,9 +236,10 @@ validERGExam <- function(object) {
 #' A \code{POSIXct} timestamp indicating when the object was imported.
 #'
 #' @name ERGExam
-#' @seealso \link[EPhysData:EPhysData-package]{EPhysData::EPhysData-package}\link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} \link[EPhysData:EphysSet-class]{EPhysData::EPhysSet-class}
+#' @seealso \link[EPhysData:EPhysData]{EPhysData::EPhysData-package} \link[EPhysData:EPhysData]{EPhysData::EPhysData-class} \link[EPhysData:EPhysSet]{EPhysData::EPhysSet-class}
 #' @importClassesFrom EPhysData EPhysData EPhysSet
 #' @importFrom units as_units
+#' @aliases ERGExam-class
 #' @exportClass ERGExam
 ERGExam <- setClass(
   "ERGExam",
@@ -255,10 +253,8 @@ ERGExam <- setClass(
     # Stimulus is a data frame
     Averaged = "logical",
     # Averaged is a logical
-    Measurements = "data.frame",
+    Measurements = "ERGMeasurements",
     # Measurements is a data frame
-    Measurements.imported = "logical",
-    # Measurements.imported is a logical
     ExamInfo = "list",
     # ExamInfo is a list
     SubjectInfo = "list",
@@ -281,15 +277,7 @@ ERGExam <- setClass(
       Type = character()
     ),
     Averaged = FALSE,
-    Measurements = data.frame(
-      Recording = numeric(),
-      Name = character(),
-      Time = as_units(integer(), "s"),
-      Value = as_units(integer(), unitless),
-      Relative = character(),
-      stringsAsFactors = FALSE
-    ),
-    Measurements.imported = logical(),
+    Measurements =  new("ERGMeasurements"),
     ExamInfo = list(
       ProtocolName = character(),
       Version = character(),
@@ -331,13 +319,7 @@ ERGExam <- setClass(
 #'   \item{Intensity}{An integer vector representing the intensity of the stimulus (unitless).}
 #' }
 #' @param Averaged A list of averaged data.
-#' @param Measurements A data frame containing measurements information associated with the data.
-#' \describe{
-#'   \item{Recording}{A numeric vector specifying recording identifiers corresponding to the data.}
-#'   \item{Name}{A character vector specifying the names of the measurements.}
-#'   \item{Time}{A numeric vector specifying time measurements (seconds).}
-#'   \item{Value}{A numeric vector specifying measurement values (unitless).}
-#' }
+#' @param Measurements An object of class \linkS4class{ERGMeasurements}.
 #' @param ExamInfo A list containing exam-related information.
 #' \describe{
 #'   \item{ProtocolName}{A character vector indicating the name of the protocol.}
@@ -396,7 +378,7 @@ ERGExam <- setClass(
 #'   )
 #'
 #' @return An object of class \code{ERGExam}.
-#' @seealso \code{\link{ERGExam-class}}
+#' @seealso \linkS4class{ERGExam}
 #' @importFrom units as_units
 #' @importFrom methods new validObject
 #' @export
@@ -405,14 +387,7 @@ newERGExam <-
            Metadata,
            Stimulus,
            Averaged = FALSE,
-           Measurements =  data.frame(
-             Recording = numeric(),
-             Name = character(),
-             Time = as_units(integer(), "s"),
-             Value = as_units(integer(), unitless),
-             Relative = character(),
-             stringsAsFactors = FALSE
-           ),
+           Measurements =  new("ERGMeasurements"),
            ExamInfo,
            SubjectInfo) {
     # Call the default constructor
@@ -428,7 +403,6 @@ newERGExam <-
     obj@SubjectInfo <- SubjectInfo
 
     # Set default values for other slots
-    obj@Measurements.imported <- nrow(obj@Measurements) != 0
     obj@Imported <- as.POSIXct(Sys.time())
 
     # Call the validity method to check if the object is valid
@@ -443,7 +417,7 @@ setAs("EPhysSet", "ERGExam", function(from) {
 })
 
 #' @noMd
-#' @importFrom crayon green
+#' @importFrom crayon green yellow
 #' @importFrom utils object.size
 setMethod("show",
           "ERGExam",
@@ -478,5 +452,10 @@ setMethod("show",
                 cat(green("\n*Measurements imported from external source.*"))
               }
             }
-            cat("\nSize:", format(object.size(object), "auto"))
+            if(!CheckAvgFxSet(object)){
+              cat(yellow("\nAn averge function has not been set for this object."))
+            }else{
+              cat("\nAn averge function has been set for this object.")
+            }
+            cat("\nSize:", format(object.size(object), "auto"),"\n")
           })

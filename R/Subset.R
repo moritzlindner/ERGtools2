@@ -14,12 +14,15 @@
 #' @param Step,Eye,Channel Vector of values for Steps, Eyes, and Channels to subset
 #' @param Repeats If X is an EPhysSet, this parameter can only be used if all EPhysData contained in the set has the same number of repeats.
 #'                Numeric index/indices or a logical vector of the same length as repeats stored.
-#' @param ExamItem Subset by exam item index instead of \code{Step}, \code{Eye} and \code{Channel}. Default is \code{NULL}. If set to a numeric vector or a logical vector of same length as rows in Metadata,  \code{Step}, \code{Eye} and \code{Channel} will be ignored and only the recording with the given indices will be kept.
+#' @param Recording Subset by exam item index instead of \code{Step}, \code{Eye} and \code{Channel}. Default is \code{NULL}. If set to a numeric vector or a logical vector of same length as rows in Metadata,  \code{Step}, \code{Eye} and \code{Channel} will be ignored and only the recording with the given indices will be kept.
 #' @details The \code{Subset} function creates a new \code{ERGExam}  object containing a subset of the data from the original object, based on the provided parameters.
-#' @seealso \link[EPhysData:Subset-methods]{EPhysData::Subset-methods}
+#' @seealso \link[EPhysData:Subset-method]{EPhysData::Subset-method}
 #' @importFrom EPhysData Subset newEPhysSet Metadata
-#' @importFrom methods validObject
+#' @importFrom methods validObject as
 #' @name Subset-method
+#' @examples
+#' data(ERG)
+#' Subset(ERG,Channel="ERG_auto")
 #' @exportMethod Subset
 setMethod("Subset",
           signature(X = "ERGExam"),
@@ -31,78 +34,52 @@ setMethod("Subset",
                    Step = Steps(X),
                    Eye = Eyes(X),
                    Channel = Channels(X),
-                   ExamItem = NULL,
+                   Result = Results(X),
+                   Recording = NULL,
                    ...) {
-warning("1) Strange behaviour after setting std fx. repex below, 2) use IndexOF")
-#repex
-# X <- SetStandardFunctions(X)
-# X <- Subset(X, Step = Steps(X)[c(1, 2, 3)])
-# X <- SetStandardFunctions(X)
 
-            if (!is.null(ExamItem)) {
-              # ExamItem is in use
-              if (any(Step != Steps(X)) |
-                  any(Eye != Eyes(X)) |
-                  any(Channel != Channels(X))) {
-                stop("'Step','Eye' and 'Channel' cant be used together with 'ExamItem'")
+            if (any(Step != Steps(X),
+                    Eye != Eyes(X),
+                    Channel != Channels(X),
+                    Result != Results(X))) {
+              if (!is.null(Recording)) {
+                stop(
+                  "If 'Recording' is provided, none of 'Step', 'Channel', 'Result' or 'Eye' may be provided as well."
+                )
               }
-              if (is.numeric(ExamItem)) {
-                if (!all(ExamItem %in% 1:nrow(Metadata(X)))) {
-                  stop("Not all values in 'ExamItem' ar valid indices for data in 'X'.")
-                }
-                ExamItem <-
-                  (1:length(X) %in% ExamItem) # transform to logical index
-              }else{
-                if (length(ExamItem) != length(X)) {
-                  # length does not match
-                  stop(
-                    "'ExamItem' can only be 'NULL' or a numeric or logical vector of same length as items in 'Metadata(X)'."
-                  )
-                }
+              Recording <- IndexOf(X, Step, Eye, Channel, Result)
+              rm("Step","Eye","Channel","Result")
+            }
+            if (is.numeric(Recording)) {
+              if (!all(Recording %in% 1:nrow(Metadata(X)))) {
+                stop("Not all values in 'Recording' ar valid indices for data in 'X'.")
               }
-            }
-
-            if (!all(Step %in% Steps(X)) |
-                !all(Eye %in% Eyes(X)) | !all(Channel %in% Channels(X))) {
-              stop("Values for 'Step','Eye' and 'Channel' must exist in the metadata.")
-            }
-
-            if (is.null(ExamItem)) {
-              metadata <- Metadata(X)
-              ExamItem <- array(dim = dim(metadata))
-              colnames(ExamItem) <- colnames(metadata)
-              ExamItem <- apply(ExamItem, 2, as.logical)
-
-              ExamItem[, "Step"] <- (metadata$Step %in% Step)
-              ExamItem[, "Channel"] <-
-                (metadata$Channel %in% Channel)
-              ExamItem[, "Eye"] <- (metadata$Eye %in% Eye)
-
-              ExamItem <-
-                apply(ExamItem, 1, function(x) {
-                  all(x, na.rm = T)
-                })
+              Recording.numeric <- Recording
+              Recording <-
+                (1:length(X) %in% Recording) # transform to logical index
+            } else{
+              if (length(Recording) != length(X)) {
+                # length does not match
+                stop(
+                  "'Recording' can only be 'NULL' or a numeric or logical vector of same length as items in 'Metadata(X)'."
+                )
+              }
             }
 
             # subset measurements slot
             indexupdate <-
-              as.data.frame(cbind(cumsum(ExamItem)[ExamItem], which(ExamItem)))
+              as.data.frame(cbind(cumsum(Recording)[Recording], which(Recording)))
             colnames(indexupdate) <- c("new", "old")
 
-            measurements <- X@Measurements
-            if(length(measurements)==0){
-              measurements <- data.frame(
-                Recording = character(),
-                Name = character(),
-                Voltage = as_units(numeric(), "uV"),
-                Time = as_units(numeric(), "ms"),
-                Relative = character()
-              )
-            }
+            measurements<-X@Measurements@Measurements[X@Measurements@Measurements$Recording %in% Recording.numeric ,]
+
             measurements <-
               merge(measurements, indexupdate, by.x = "Recording", by.y = "old")
             measurements$Recording <- measurements$new
             measurements$new <- NULL
+
+            X@Measurements@Measurements<-measurements
+            measurements<-X@Measurements
 
             # subset data
             Y <- as(X, "EPhysSet")
@@ -111,7 +88,7 @@ warning("1) Strange behaviour after setting std fx. repex below, 2) use IndexOF"
               Time = Time,
               TimeExclusive = TimeExclusive,
               Repeats = Repeats,
-              SetItem = ExamItem,
+              SetItem = Recording,
               Raw = Raw,
               Simplify = FALSE
             )
@@ -122,7 +99,8 @@ warning("1) Strange behaviour after setting std fx. repex below, 2) use IndexOF"
 
             # subset Metadata
 
-            metadata<-Metadata(X)[ExamItem,]
+            metadata<-Metadata(X)[Recording,]
+            rownames(metadata)<-NULL
 
             out<-new("ERGExam",
                 Data = Y@Data,
