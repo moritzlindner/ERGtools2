@@ -1,14 +1,14 @@
 Type: Package
 Package: ERGtools2
 Title: Importing and analysing Electroretinogram data in R
-Version: 0.4.5
+Version: 0.5.0
 Author: person("Moritz", "Lindner", email = "moritz@lindnerlab.de", role =
     c("aut", "cre"))
 Maintainer: Moritz Lindner <moritz@lindnerlab.de>
 Description: This package contains an environment for working with electroretinogram data. It contains an import method for Diagnosys Espion data, but allows reading in of data also from other manufacturers with limited coding effort. Standard procedures like averaging, subsetting an visualization of individual exams are supported.
 License: GPL (>= 3)
 Depends: 
-    EPhysData (>= 0.9.5),
+    EPhysData (>= 0.9.3),
     R (>= 2.10)
 Imports:
     crayon,

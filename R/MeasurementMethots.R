@@ -298,8 +298,10 @@ setMethod("Measurements", "ERGMeasurements",
             rownames(merged_df) <- NULL
 
             if (!emptyobject) {
-              if (!(Recording %in% merged_df$Recording) && !quiet) {
-                warning("'Recording' is not a valid Index of a Measurement already contained in the object.")
+              if(length(Recording)!=0){
+                if (!(Recording %in% merged_df$Recording) && !quiet) {
+                  warning("'Recording' is not a valid Index of a Measurement already contained in the object.")
+                }
               }
             }
 
@@ -614,17 +616,20 @@ newERGMeasurements <- function(data) {
       M <- AddMarker(M, m, rel, c)
       for (r in data$Recording[data$Channel == c &
                                data$Name == m]) {
-        Measurements(
-          M,
-          Marker = m,
-          Recording = r,
-          Relative = rel,
-          create.marker.if.missing = F
-        ) <-
-          data$Time[data$Channel == c &
-                      data$Name == m &
-                      data$Recording == r]
-      }
+        suppressWarnings({
+          Measurements(
+            X = M,
+            Marker = m,
+            Recording = r,
+            Relative = rel,
+            create.marker.if.missing = F,
+            ChannelBinding = NULL
+          ) <-
+            data$Time[data$Channel == c &
+                        data$Name == m &
+                        data$Recording == r]
+        })
+        }
     }
   }
   #then dependent markers
