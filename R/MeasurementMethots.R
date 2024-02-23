@@ -1,6 +1,7 @@
 #' Modify the Measurements slot of an ERGExam or ERGMeasurements object
 #'
 #' These methods enable modification of the Measurements slot of an \linkS4class{ERGExam} object or the underlying \linkS4class{ERGMeasurements} object directly.
+#' \strong{Note:} the \code{Measurements(X, ...) <- value} methods require that all arguments are provided. Set to NULL if not needed.
 #'
 #' @param X An \linkS4class{ERGExam} or  \linkS4class{ERGMeasurements} object.
 #' @param Marker Name of the marker.
@@ -20,6 +21,7 @@
 #' # Load example data
 #' data(ERG)
 #' data(Measurements)
+#' stop("Further examples required")
 #'
 #' @name Measurements-Methods
 NULL
@@ -106,9 +108,11 @@ setMethod("AddMarker", "ERGExam",
 #' @describeIn Measurements-Methods Drop marker by name and channel
 #' @examples
 #' # Drop a Marker from an ERGMeasurements object
-#' Markers(Measurements)
+#' data(Measurements.data)
+#' Measurements.data
+#' Markers(Measurements.data)
 #'
-#' new_erg_measurements <- DropMarker(Measurements, Marker = "N1", ChannelBinding = "VEP", drop.dependent = TRUE)
+#' new_erg_measurements <- DropMarker(Measurements.data, Marker = "N1", ChannelBinding = "VEP", drop.dependent = TRUE)
 #' new_erg_measurements
 #' Markers(new_erg_measurements)
 #'
@@ -175,7 +179,9 @@ setMethod("DropMarker",
             # Remove the corresponding rows from the Measurements slot
             measurements_to_remove <-
               which(X@Measurements$Marker %in% indices_to_remove)
-            X@Measurements <- X@Measurements[-measurements_to_remove, ]
+            if(length(measurements_to_remove)>0){
+              X@Measurements <- X@Measurements[-measurements_to_remove, ]
+            }
             rownames(X@Measurements)<-NULL
 
             # Move the pointers in relative accordingly
@@ -197,8 +203,13 @@ setMethod("DropMarker",
 setMethod("DropMarker",
           "ERGExam",
           function(X, Marker, ChannelBinding = Channels(X), drop.dependent = FALSE) {
-            X@Measurements <- DropMarker(X, Marker, ChannelBinding, drop.dependent)
-            return(X)
+            X@Measurements <-
+              DropMarker(X@Measurements , Marker, ChannelBinding, drop.dependent)
+            if(validObject(X)){
+              return(X)
+            } else {
+              stop("Object validation failed after dropping Markers")
+            }
           })
 
 #' @describeIn Measurements-Methods Get Markers.
@@ -311,6 +322,7 @@ setMethod("Measurements", "ERGMeasurements",
 
 
 #' @describeIn Measurements-Methods Get Measurements table from an \linkS4class{ERGExam} object
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom EPhysData Metadata AverageFunction
 #' @noMd
 setMethod("Measurements",
@@ -341,6 +353,7 @@ setMethod("Measurements",
 
             measurements <- Measurements(X@Measurements, Recording, Marker, quiet)
             if (nrow(measurements) != 0) {
+              extracols<-ExtraMetaColumns(X)
               measurements <-
                 merge(measurements,
                       Metadata(X)[, c("Step", "Channel", "Result",  "Eye")],
@@ -372,8 +385,9 @@ setMethod("Measurements",
               pb = txtProgressBar(min = 0, max = nrow(measurements), initial = 0)
               for (i in 1:nrow(measurements)) {
                 sel <- X[[measurements$Recording[i]]]
-                if (length(AverageFunction(sel)(1:3))!=1){
+                if (length(AverageFunction(sel)(1:3))!=1 && dim(sel)[2]!=1){
                   print(AverageFunction(sel))
+                  print(dim(sel))
                   stop(
                     "You need to set an averaging function before performing Marker and Measuremnt operations. E.g. run 'SetStandardFunctions(X)'"
                   )
@@ -395,6 +409,9 @@ setMethod("Measurements",
                 setTxtProgressBar(pb,i)
               }
               close(pb)
+              measurements<-merge(measurements,Metadata(X)[,c(extracols),drop=F],by.x = "Recording", by.y = 0)
+
+
             } else {
               measurements <-
                 data.frame(
@@ -697,6 +714,6 @@ ConvertMeasurementsToAbsolute <- function(data) {
       }
     }
   }
-  colnames(data)[colnames(data)=="Relative"]<-".Relative"
+  #colnames(data)[colnames(data)=="Relative"]<-".Relative"
   return(data)
 }

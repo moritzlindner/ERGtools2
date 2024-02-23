@@ -20,7 +20,7 @@
 #' @importFrom ggplot2 ggplot aes geom_line facet_grid vars ggtitle facet_wrap element_line
 #' @importFrom ggpubr theme_pubr
 #' @importFrom gridExtra grid.arrange
-#' @importFrom EPhysData as.data.frame
+#' @importFrom EPhysData as.data.frame lapply
 #' @importFrom stringr str_detect
 #' @importFrom units set_units
 #' @seealso \linkS4class{ERGExam} \link[ggplot2:ggplot]{ggplot2:ggplot}
@@ -51,7 +51,7 @@ setMethod(
 
     dat <- as.data.frame(X)
 
-    warning("This is specific for Epsion")
+    # This is specific for Epsion
     stimtab <- StimulusTable(X)
     dat <- merge(dat, stimtab, by = "Step")
     dat$Description <-

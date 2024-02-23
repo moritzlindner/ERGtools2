@@ -96,6 +96,7 @@ An updated version of the object, except for Measurements, which returns a data.
 }
 \description{
 These methods enable modification of the Measurements slot of an \linkS4class{ERGExam} object or the underlying \linkS4class{ERGMeasurements} object directly.
+\strong{Note:} the \code{Measurements(X, ...) <- value} methods require that all arguments are provided. Set to NULL if not needed.
 }
 \section{Functions}{
 \itemize{
@@ -128,6 +129,7 @@ These methods enable modification of the Measurements slot of an \linkS4class{ER
 # Load example data
 data(ERG)
 data(Measurements)
+stop("Further examples required")
 
 # Add a new Marker to an ERGMeasurements object
 new_erg_measurements <- AddMarker(Measurements, Marker = "Marker1", Relative = NA, ChannelBinding = "ChannelA")
@@ -142,9 +144,11 @@ new_erg
 new_erg<-SetStandardFunctions(new_erg) # to set an averaging function
 Markers(new_erg)
 # Drop a Marker from an ERGMeasurements object
-Markers(Measurements)
+data(Measurements.data)
+Measurements.data
+Markers(Measurements.data)
 
-new_erg_measurements <- DropMarker(Measurements, Marker = "N1", ChannelBinding = "VEP", drop.dependent = TRUE)
+new_erg_measurements <- DropMarker(Measurements.data, Marker = "N1", ChannelBinding = "VEP", drop.dependent = TRUE)
 new_erg_measurements
 Markers(new_erg_measurements)
 

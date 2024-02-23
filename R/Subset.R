@@ -38,10 +38,10 @@ setMethod("Subset",
                    Recording = NULL,
                    ...) {
 
-            if (any(Step != Steps(X),
-                    Eye != Eyes(X),
-                    Channel != Channels(X),
-                    Result != Results(X))) {
+            if (any(!(length(Step)==length(Steps(X)) && all(Step==Steps(X))),
+                    !(length(Eye)==length(Eyes(X)) && all(Eye==Eyes(X))),
+                    !(length(Channel)==length(Channels(X)) && all(Channel==Channels(X))),
+                    !(length(Result)==length(Results(X)) && all(Result==Results(X))))) {
               if (!is.null(Recording)) {
                 stop(
                   "If 'Recording' is provided, none of 'Step', 'Channel', 'Result' or 'Eye' may be provided as well."
