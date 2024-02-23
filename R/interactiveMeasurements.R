@@ -9,7 +9,7 @@
 #' @importFrom shiny fluidPage titlePanel fluidRow column verticalLayout
 #' @importFrom shiny tags validate HTML h4
 #' @importFrom shiny actionButton selectInput textInput
-#' @importFrom DT dataTableOutput renderDataTable
+#' @importFrom DT dataTableOutput renderDataTable datatable
 #' @importFrom shiny modalDialog modalButton showModal removeModal
 #' @importFrom shiny observeEvent reactive
 #' @importFrom shiny stopApp runApp onSessionEnded shinyApp
@@ -394,7 +394,7 @@ setMethod("interactiveMeasurements",
                       by = 0,
                       by.y = "Recording"
                     )
-                    tmp[with(tmp, order(Step, Eye, Result)), ]
+                    datatable(tmp[with(tmp, order(Step, Eye, Result)), ])
 
                   }, width = "100%", selection = "single",
                   options = list(dom = 't'))

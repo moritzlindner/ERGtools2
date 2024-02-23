@@ -495,7 +495,9 @@ setMethod("Measurements<-",
                 }
               }
 
-              if (nrow(Measurements(X, Recording = Recording, Marker = Marker)) ==
+              nrow.same<-nrow(Measurements(X, Recording = Recording, Marker = Marker,quiet = T))
+
+              if (nrow.same ==
                   1) {    # Update Measurement
                 marker.idx <- which(Markers(X)$Name == Marker)
                 if (length(X@Measurements$Time[X@Measurements$Recording == Recording &
@@ -505,7 +507,7 @@ setMethod("Measurements<-",
                 X@Measurements$Time[X@Measurements$Recording == Recording &
                                       X@Measurements$Marker %in% marker.idx] <- value
               }
-              if (nrow(Measurements(X, Recording = Recording, Marker = Marker,quiet = T)) ==
+              if (nrow.same ==
                   0) {   # add Measurement
                 if (!(Marker %in% MarkerNames(X))) {
                   if (create.marker.if.missing) {
