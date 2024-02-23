@@ -464,7 +464,9 @@ ImportEpsion <- function(filename,
       }
 
       M <- newERGMeasurements(measurements)
-    }
+    } else {
+      M <- newERGMeasurements(data.frame(Channel=character(),Name=character(),Recording=numeric(),Time=numeric(),Relative=character()))
+      }
 
     DOB <-
       as.Date(as.character(recording_info["DOB", 1]), format =    "%d/%m/%Y")
