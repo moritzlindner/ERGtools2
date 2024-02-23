@@ -310,7 +310,7 @@ setMethod("Measurements", "ERGMeasurements",
 
             if (!emptyobject) {
               if(length(Recording)!=0){
-                if (!(Recording %in% merged_df$Recording) && !quiet) {
+                if (!all(Recording %in% merged_df$Recording) && !quiet) {
                   warning("'Recording' is not a valid Index of a Measurement already contained in the object.")
                 }
               }
