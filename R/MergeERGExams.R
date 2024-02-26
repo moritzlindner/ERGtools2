@@ -197,7 +197,7 @@ merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
     md2<-Metadata(exam2)
     sel<-md2$Step %in% pointer.updates.for.obj2$obj2.step.idx
     data2<-exam2@Data[sel]
-    measurements2<-Measurements(exam2@Measurements,Recording=which(sel))
+    measurements2<-Measurements(exam2@Measurements,where=which(sel))
     colnames(measurements2)[colnames(measurements2)=="ChannelBinding"]<-"Channel"
     measurements2<-newERGMeasurements(measurements2)
     md2<-md2[sel,]

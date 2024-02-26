@@ -7,8 +7,7 @@
 #' @param Marker Name of the marker.
 #' @param ChannelBinding For AddMarker and DropMarker only. Channel to which the marker belongs. Usually defined by the Parent \linkS4class{ERGExam} object. Set to NA if not required.
 #' @param Relative For AddMarker and Measurements<- only. Index of the marker the new marker is relative to.
-#' @param Recording Numeric value specifying the recording index.
-#' @param Step,Eye,Channel,Result For Measurements and Measurements<- only. Vector of values for Steps, Eyes, Channels, and Result to select.
+#' @inheritParams Where
 #' @param value For Measurements<- only. Plain numeric value or value of class units (\link[units:units]{units::units} with a time unit set. If \code{NULL} it will remove the indicated row.
 #' @param data For newERGMeasurements only. A data frame containing measurements data with columns:
 #'   \code{Channel}, \code{Name}, \code{Recording}, \code{Time}, and \code{Relative}.
@@ -17,17 +16,6 @@
 #' @param quiet For Measurements only. Logical. If TRUE, suppresses warnings.
 #' @return An updated version of the object, except for Measurements, which returns a data.frame representing the Measurements stored in the Measurements slot of the \linkS4class{ERGExam} object or the \linkS4class{ERGMeasurements} object-
 #' @seealso \link[EPhysData:EphysSet-class]{EPhysData::ERGMeasurements-class} \link{Measurements-Methods} \link{Get}
-#' @examples
-#' # Load example data
-#' data(ERG)
-#' data(Measurements)
-#' stop("Further examples required")
-#'
-#' @name Measurements-Methods
-NULL
-
-#' Add a new Marker
-#' @describeIn Measurements-Methods Add a new Marker
 #' @examples
 #' # Add a new Marker to an ERGMeasurements object
 #' new_erg_measurements <- AddMarker(Measurements, Marker = "Marker1", Relative = NA, ChannelBinding = "ChannelA")
@@ -41,6 +29,14 @@ NULL
 #' new_erg
 #' new_erg<-SetStandardFunctions(new_erg) # to set an averaging function
 #' Markers(new_erg)
+#' stop("Further examples required")
+#'
+#' @name Measurements-Methods
+NULL
+
+#' Add a new Marker
+#' @describeIn Measurements-Methods Add a new Marker
+
 #' @exportMethod AddMarker
 setGeneric(
   name = "AddMarker",
@@ -243,8 +239,8 @@ setMethod("Markers",
 #' @examples
 #' # Get Measurements table for specific recording and marker in ERGMeasurements object
 #' Markers(Measurements)
-#' Measurements(X = Measurements, Recording = 1, Marker = "a", quiet = TRUE)
-#' Measurements(X = Measurements, Recording = 1, Marker = "X", quiet = F)
+#' Measurements(X = Measurements, where = 1, Marker = "a", quiet = TRUE)
+#' Measurements(X = Measurements, where = 1, Marker = "X", quiet = F)
 #'
 #'
 #' # Get Measurements table for specific recording and marker in ERGExam object
@@ -254,7 +250,9 @@ setMethod("Markers",
 setGeneric(
   name = "Measurements",
   def = function(X,
-                 ...)
+                 where = NULL,
+                 Marker =  NULL,
+                 quiet = F)
   {
     standardGeneric("Measurements")
   }
@@ -264,12 +262,12 @@ setGeneric(
 #' @noMd
 setMethod("Measurements", "ERGMeasurements",
           function(X,
-                   Recording = NULL,
+                   where = NULL,
                    Marker =  NULL,
                    quiet = F) {
             # integrity checks
-            if (is.null(Recording)) {
-              Recording <- unique(X@Measurements$Recording)
+            if (is.null(where)) {
+              where <- unique(X@Measurements$where)
             }
             if (is.null(Marker)) {
               Marker <-  MarkerNames(X)
@@ -309,14 +307,14 @@ setMethod("Measurements", "ERGMeasurements",
             rownames(merged_df) <- NULL
 
             if (!emptyobject) {
-              if(length(Recording)!=0){
-                if (!all(Recording %in% merged_df$Recording) && !quiet) {
-                  warning("'Recording' is not a valid Index of a Measurement already contained in the object.")
+              if(length(where)!=0){
+                if (!all(where %in% merged_df$Recording) && !quiet) {
+                  warning("'where' is not a valid Index of a Measurement already contained in the object.")
                 }
               }
             }
 
-            return(merged_df[merged_df$Recording %in% Recording &
+            return(merged_df[merged_df$Recording %in% where &
                                merged_df$Name %in% Marker,])
           })
 
@@ -328,30 +326,13 @@ setMethod("Measurements", "ERGMeasurements",
 setMethod("Measurements",
           "ERGExam",
           function(X,
-                   Recording = NULL,
-                   Step = Steps(X),
-                   Eye = Eyes(X),
-                   Channel = Channels(X),
-                   Result = Results(X),
+                   where = NULL,
                    Marker =  NULL,
                    quiet = F) {
 
-            if (any(Step != Steps(X),
-                    Eye != Eyes(X),
-                    Channel != Channels(X),
-                    Result != Results(X))) {
-              if (!is.null(Recording)) {
-                stop(
-                  "If 'Recording' is provided, none of 'Step', 'Channel', 'Result' or 'Eye' may be provided as well."
-                )
-              }
-            } else{
-              if (is.null(Recording)) {
-                Recording <- IndexOf(X, Step, Eye, Channel, Result)
-              }
-            }
+            where = Where(X, where)
 
-            measurements <- Measurements(X@Measurements, Recording, Marker, quiet)
+            measurements <- Measurements(X@Measurements, where, Marker, quiet)
             if (nrow(measurements) != 0) {
               extracols<-ExtraMetaColumns(X)
               measurements <-
@@ -386,8 +367,6 @@ setMethod("Measurements",
               for (i in 1:nrow(measurements)) {
                 sel <- X[[measurements$Recording[i]]]
                 if (length(AverageFunction(sel)(1:3))!=1 && dim(sel)[2]!=1){
-                  print(AverageFunction(sel))
-                  print(dim(sel))
                   stop(
                     "You need to set an averaging function before performing Marker and Measuremnt operations. E.g. run 'SetStandardFunctions(X)'"
                   )
@@ -436,8 +415,8 @@ setMethod("Measurements",
 #' @examples
 #' # Set Measurements for specific recording and marker in ERGMeasurements object
 #' Markers(Measurements)
-#' Measurements(X = Measurements, Marker = "B" ,Recording = 1)<-99
-#' Measurements(X = Measurements, Marker = "c" ,Recording = 1,Relative = "a")<-150
+#' Measurements(X = Measurements, Marker = "B" ,where = 1)<-99
+#' Measurements(X = Measurements, Marker = "c" ,where = 1,Relative = "a")<-150
 #'
 #'
 #' # Set Measurements table for specific recording and marker in ERGExam object
@@ -449,7 +428,11 @@ setMethod("Measurements",
 setGeneric(
   name = "Measurements<-",
   def = function(X,
-                 ...,
+                 Marker,
+                 where,
+                 create.marker.if.missing = T,
+                 Relative = NULL,
+                 ChannelBinding = NULL,
                  value)
   {
     standardGeneric("Measurements<-")
@@ -463,7 +446,7 @@ setMethod("Measurements<-",
           signature = "ERGMeasurements",
           function(X,
                    Marker,
-                   Recording,
+                   where,
                    create.marker.if.missing = T,
                    Relative = NULL,
                    ChannelBinding = NULL,
@@ -483,15 +466,16 @@ setMethod("Measurements<-",
             }
 
             #validity checks
-            if (any(length(Marker) != 1, length(Recording) != 1, length(value) != 1)) {
-              stop ("'Marker', 'Recording', and 'value' must contain a single value.")
+            if (any(length(Marker) != 1, length(where) != 1, length(value) != 1)) {
+              stop ("'Marker', 'where', and 'value' must contain a single value.")
             }
             if (!is.character(Marker)) {
               stop("'Marker' must be a character string.")
             }
-            if (!is.numeric(Recording)) {
-              stop("'Recording' must be numeric.")
+            if (!is.numeric(where)) {
+              stop("'where' must be numeric.")
             }
+
             if(!is.null(value)){
               # if the aim is not to delete a measurement (value!=NULL)
               if (!is.numeric(value)) {
@@ -510,17 +494,17 @@ setMethod("Measurements<-",
                 }
               }
 
-              nrow.same<-nrow(Measurements(X, Recording = Recording, Marker = Marker,quiet = T))
+              nrow.same<-nrow(Measurements(X, where = where, Marker = Marker,quiet = T))
 
               if (nrow.same ==
                   1) {    # Update Measurement
                 marker.idx<-get.marker.idx(ChannelBinding,X)
 
-                if (length(X@Measurements$Time[X@Measurements$Recording == Recording &
+                if (length(X@Measurements$Time[X@Measurements$Recording == where &
                                                X@Measurements$Marker %in% marker.idx]) != 1) {
                   stop("Unexpected error during marker selection.")
                 }
-                X@Measurements$Time[X@Measurements$Recording == Recording &
+                X@Measurements$Time[X@Measurements$Recording == where &
                                       X@Measurements$Marker %in% marker.idx] <- value
               }
               if (nrow.same ==
@@ -540,24 +524,24 @@ setMethod("Measurements<-",
                 }
 
                 marker.idx<-get.marker.idx(ChannelBinding,X)
-                new.measurement <- data.frame(Recording = Recording,
+                new.measurement <- data.frame(Recording = where,
                                               Marker = marker.idx,
                                               Time = value)
                 X@Measurements <-
                   rbind(X@Measurements, new.measurement)
 
               }
-              if (nrow(Measurements(X, Recording = Recording, Marker = Marker)) ==
+              if (nrow(Measurements(X, where = where, Marker = Marker)) ==
                   2) {
                 stop(
-                  "Malformed ERGMeasurements object. Multiple entries found for the given combination of 'Recording' and 'Marker'"
+                  "Malformed ERGMeasurements object. Multiple entries found for the given combination of 'where' and 'Marker'"
                 )
               }
             }else{
               # if value is NULL --> delete the selected measurement
               marker.idx<-get.marker.idx(ChannelBinding,X)
               X@Measurements <-
-                X@Measurements[X@Measurements$Recording == Recording &
+                X@Measurements[X@Measurements$Recording == where &
                                  X@Measurements$Marker %in% marker.idx,]
               rownames(X@Measurements)<-NULL
 
@@ -577,30 +561,15 @@ setMethod("Measurements<-",
           signature = "ERGExam",
           function(X,
                    Marker,
-                   Recording = NULL,
-                   Step = NULL,
-                   Eye = NULL,
-                   Channel = NULL,
-                   Result = NULL,
+                   where = NULL,
                    create.marker.if.missing = T,
                    Relative = NULL,
                    ChannelBinding = NULL,
                    value){
 
-
-            if (any(!is.null(Step),
-                    !is.null(Eye),
-                    !is.null(Channel),
-                    !is.null(Result))) {
-              if (!is.null(Recording)) {
-                stop("If 'Recording' is provided, none of 'Step', 'Channel', 'Result' or 'Eye' may be provided as well.")
-              }
-              Recording<-IndexOf(X,Step,Eye,Channel,Result)
-            }
-
             Measurements(X@Measurements,
                          Marker = Marker,
-                         Recording = Recording,
+                         where = where,
                          create.marker.if.missing = create.marker.if.missing,
                          Relative = Relative,
                          ChannelBinding = ChannelBinding
@@ -655,7 +624,7 @@ newERGMeasurements <- function(data) {
           Measurements(
             X = M,
             Marker = m,
-            Recording = r,
+            where = r,
             Relative = rel,
             create.marker.if.missing = F,
             ChannelBinding = c
@@ -682,7 +651,7 @@ newERGMeasurements <- function(data) {
         Measurements(
           M,
           Marker = m,
-          Recording = r,
+          where = r,
           create.marker.if.missing = F,
           ChannelBinding = c
         ) <-

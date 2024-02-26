@@ -22,27 +22,25 @@ DropMarker(X, Marker, ChannelBinding, drop.dependent = FALSE)
 
 Markers(X)
 
-Measurements(X, ...)
+Measurements(X, where = NULL, Marker = NULL, quiet = F)
 
-\S4method{Measurements}{ERGMeasurements}(X, Recording = NULL, Marker = NULL, quiet = F)
+\S4method{Measurements}{ERGMeasurements}(X, where = NULL, Marker = NULL, quiet = F)
 
-\S4method{Measurements}{ERGExam}(
+\S4method{Measurements}{ERGExam}(X, where = NULL, Marker = NULL, quiet = F)
+
+Measurements(
   X,
-  Recording = NULL,
-  Step = Steps(X),
-  Eye = Eyes(X),
-  Channel = Channels(X),
-  Result = Results(X),
-  Marker = NULL,
-  quiet = F
-)
-
-Measurements(X, ...) <- value
+  Marker,
+  where,
+  create.marker.if.missing = T,
+  Relative = NULL,
+  ChannelBinding = NULL
+) <- value
 
 \S4method{Measurements}{ERGMeasurements}(
   X,
   Marker,
-  Recording,
+  where,
   create.marker.if.missing = T,
   Relative = NULL,
   ChannelBinding = NULL
@@ -51,11 +49,7 @@ Measurements(X, ...) <- value
 \S4method{Measurements}{ERGExam}(
   X,
   Marker,
-  Recording = NULL,
-  Step = NULL,
-  Eye = NULL,
-  Channel = NULL,
-  Result = NULL,
+  where = NULL,
   create.marker.if.missing = T,
   Relative = NULL,
   ChannelBinding = NULL
@@ -78,15 +72,13 @@ ConvertMeasurementsToAbsolute(data)
 
 \item{drop.dependent}{For DropMarker and DropMeasurement only. Logical. If TRUE, dependent markers will also be dropped. If FALSE, fails if there are markes dependent on that removed.}
 
-\item{Recording}{Numeric value specifying the recording index.}
+\item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
 
 \item{quiet}{For Measurements only. Logical. If TRUE, suppresses warnings.}
 
-\item{Step, Eye, Channel, Result}{For Measurements and Measurements<- only. Vector of values for Steps, Eyes, Channels, and Result to select.}
+\item{create.marker.if.missing}{Logical. If TRUE and the marker does not exist, it will be created.}
 
 \item{value}{For Measurements<- only. Plain numeric value or value of class units (\link[units:units]{units::units} with a time unit set. If \code{NULL} it will remove the indicated row.}
-
-\item{create.marker.if.missing}{Logical. If TRUE and the marker does not exist, it will be created.}
 
 \item{data}{For newERGMeasurements only. A data frame containing measurements data with columns:
 \code{Channel}, \code{Name}, \code{Recording}, \code{Time}, and \code{Relative}.}
@@ -112,7 +104,14 @@ These methods enable modification of the Measurements slot of an \linkS4class{ER
 
 \item \code{Measurements(ERGExam)}: Get Measurements table from an \linkS4class{ERGExam} object
 
-\item \code{Measurements(X, ...) <- value}: Update, add, or remove a line to the Measurements slot
+\item \code{Measurements(
+  X,
+  Marker,
+  where,
+  create.marker.if.missing = T,
+  Relative = NULL,
+  ChannelBinding = NULL
+) <- value}: Update, add, or remove a line to the Measurements slot
 
 \item \code{Measurements(ERGMeasurements) <- value}: Update, add, or remove a measurement from an \linkS4class{ERGMeasurements} object
 
@@ -126,11 +125,6 @@ These methods enable modification of the Measurements slot of an \linkS4class{ER
 
 }}
 \examples{
-# Load example data
-data(ERG)
-data(Measurements)
-stop("Further examples required")
-
 # Add a new Marker to an ERGMeasurements object
 new_erg_measurements <- AddMarker(Measurements, Marker = "Marker1", Relative = NA, ChannelBinding = "ChannelA")
 new_erg_measurements
@@ -143,6 +137,8 @@ new_erg <- AddMarker(ERG, Marker = "Marker1", Relative = NA, ChannelBinding = "E
 new_erg
 new_erg<-SetStandardFunctions(new_erg) # to set an averaging function
 Markers(new_erg)
+stop("Further examples required")
+
 # Drop a Marker from an ERGMeasurements object
 data(Measurements.data)
 Measurements.data
@@ -154,8 +150,8 @@ Markers(new_erg_measurements)
 
 # Get Measurements table for specific recording and marker in ERGMeasurements object
 Markers(Measurements)
-Measurements(X = Measurements, Recording = 1, Marker = "a", quiet = TRUE)
-Measurements(X = Measurements, Recording = 1, Marker = "X", quiet = F)
+Measurements(X = Measurements, where = 1, Marker = "a", quiet = TRUE)
+Measurements(X = Measurements, where = 1, Marker = "X", quiet = F)
 
 
 # Get Measurements table for specific recording and marker in ERGExam object
@@ -163,8 +159,8 @@ ERG<-SetStandardFunctions(ERG)
 Measurements(ERG)
 # Set Measurements for specific recording and marker in ERGMeasurements object
 Markers(Measurements)
-Measurements(X = Measurements, Marker = "B" ,Recording = 1)<-99
-Measurements(X = Measurements, Marker = "c" ,Recording = 1,Relative = "a")<-150
+Measurements(X = Measurements, Marker = "B" ,where = 1)<-99
+Measurements(X = Measurements, Marker = "c" ,where = 1,Relative = "a")<-150
 
 
 # Set Measurements table for specific recording and marker in ERGExam object

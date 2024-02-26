@@ -80,11 +80,11 @@ setMethod(
 
         if(update){
           Markers$Name <- rownames(Markers)
-          for (m in nrow(Markers[is.na(Markers$Relative)])) {
+          for (m in 1:nrow(Markers[is.na(Markers$Relative)])) {
             Measurements(
               X,
               Marker = Markers$Name[m],
-              Recording = i,
+              where = i,
               create.marker.if.missing = T,
               Relative = Markers$Relative[m],
               ChannelBinding = Md$Channel[i]

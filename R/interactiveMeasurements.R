@@ -16,7 +16,7 @@
 #' @importFrom stringr str_split
 #' @importFrom ggplot2 aes geom_line geom_text facet_grid labs theme_minimal element_text
 #' @importFrom units set_units deparse_unit
-#' @importFrom magrittr %>%
+#' @importFrom tidyr %>%
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @examples
 #' data(ERG)
@@ -256,11 +256,7 @@ setMethod("interactiveMeasurements",
                                    Measurements(
                                      X = CURR$data,
                                      Marker = curr_marker,
-                                     Recording = click.idx,
-                                     Step = NULL,
-                                     Eye = NULL,
-                                     Channel = NULL,
-                                     Result = NULL,
+                                     where = click.idx,
                                      create.marker.if.missing = F,
                                      Relative = NULL,
                                      ChannelBinding = NULL
@@ -433,11 +429,12 @@ setMethod("interactiveMeasurements",
                 Measurements(
                   X,
                   Marker = curr.m$Name,
-                  Recording = NULL,
-                  Step = curr.m$Step,
-                  Eye = curr.m$Eye,
-                  Channel = curr.m$ChannelBinding,
-                  Result = curr.m$Result,
+                  where = Where(X,where=list(
+                    Step = curr.m$Step,
+                    Eye = curr.m$Eye,
+                    Channel = curr.m$ChannelBinding,
+                    Result = curr.m$Result
+                  )),
                   create.marker.if.missing = T,
                   Relative = curr.m$Relative,
                   ChannelBinding = curr.m$ChannelBinding
@@ -457,11 +454,12 @@ setMethod("interactiveMeasurements",
                   Measurements(
                     X,
                     Marker = curr.m$Name,
-                    Recording = NULL,
-                    Step = curr.m$Step,
-                    Eye = curr.m$Eye,
-                    Channel = curr.m$ChannelBinding,
-                    Result = curr.m$Result,
+                    where = Where(X,where=list(
+                      Step = curr.m$Step,
+                      Eye = curr.m$Eye,
+                      Channel = curr.m$ChannelBinding,
+                      Result = curr.m$Result
+                    )),
                     create.marker.if.missing = T,
                     Relative = curr.m$Relative,
                     ChannelBinding = curr.m$ChannelBinding

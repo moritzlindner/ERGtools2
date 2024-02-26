@@ -25,6 +25,8 @@ Imports:
     stringr,
     tidyr,
     units,
+    shiny,
+    DT,
     EPhysMethods (>= 0.2.0)
 Remotes:
     github::moritzlindner/EPhysData,

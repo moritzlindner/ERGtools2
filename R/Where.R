@@ -49,7 +49,15 @@ setMethod("Where",
                 }
                 return(idx)
               } else {
-                stop("'where' argument must be a list (or NULL for retirning all indices).")
+                if(is.numeric(where) || is.integer(where)){ # allow pass thorugh of Recording indices
+                  if(where %in% 1:length(X)){
+                    return(where)
+                  } else {
+                    stop("Where is numeric, but not a valid recording index.")
+                  }
+                } else {
+                  stop("'where' argument must be a list, or NULL for retirning all indices).")
+                }
               }
             }
             md.sel <- which(names(where) %in% colnames(Metadata(X)))

@@ -15,7 +15,7 @@
 #' @importFrom units as_units deparse_unit
 #' @importFrom ggplot2 ggplot aes geom_line geom_point geom_errorbar scale_x_log10 facet_wrap labs
 #' @importFrom ggpubr theme_pubr
-#' @import dplyr
+#' @importFrom tidyr %>%
 #' @seealso  \link[ggplot2:ggplot]{ggplot2:ggplot}
 #'
 #' @examples

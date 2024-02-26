@@ -57,12 +57,12 @@ setMethod("ggERGTrace",
             Rejected(sel) <-
               as.vector(Rejected(sel)) #workaround in case of non-vector results of the Rejected function
             un <- Measurements(X,
-                               Recording = which)$Voltage[1]
+                               where = which)$Voltage[1]
             sel@Data <-
               set_units(sel@Data, deparse_unit(un), mode = "standard")
             out <- ggEPhysData(sel)
             mes<-Measurements(X,
-                              Recording = which)
+                              where = which)
             if (any(mes$Recording == which)) {
               mes <-
                 mes[mes$Recording == which, ]

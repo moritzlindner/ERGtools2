@@ -27,12 +27,6 @@
 #' # Accessing subject from ERGExam object
 #' Subject(ERG)
 #'
-#' # Accessing stimulus table from ERGExam object
-#' StimulusTable(ERG)
-#'
-#' # Accessing stimulus names from ERGExam object
-#' StimulusNames(ERG)
-#'
 #' # Accessing marker names from ERGMeasurements object
 #' MarkerNames(Measurements)
 #'
