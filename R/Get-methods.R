@@ -4,7 +4,7 @@
 #' @param X A \linkS4class{ERGExam}
 #' @details These methods can be used to access metadata information stored in \linkS4class{ERGExam} objects. \cr \cr
 #' @return A vector. For 'StimulusTable()' a data.frame and a function for 'GetFilterFunction()' and 'GetAverageFunction()'.
-#' FIXME: Return in not up to date
+#' FIXME: Return is not up to date
 #' FIXME not only for Class ERGExma
 
 #' @examples
@@ -75,8 +75,6 @@ setMethod("Eyes",
 
 #' @describeIn Get Returns the Channel names.
 #' @exportMethod Channels
-#' @family ERGMeasurements functions
-#' @family ERGExam functions
 #' @noMd
 setGeneric(
   name = "Channels",
@@ -151,49 +149,6 @@ setMethod("Subject",
           "ERGExam",
           function(X) {
             X@SubjectInfo$Subject
-          })
-
-#' @describeIn Get Returns the stimulus table
-#' @param full For \code{StimulusTable} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \link{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.
-#' @exportMethod StimulusTable
-#' @noMd
-setGeneric(
-  name = "StimulusTable",
-  def = function(X,
-                 full = F)
-  {
-    standardGeneric("StimulusTable")
-  }
-)
-
-#' @noMd
-setMethod("StimulusTable",
-          "ERGExam",
-          function(X,
-                   full = F) {
-            if(!full){
-              return(X@Stimulus[, c("Step", "Description", "Intensity", "Background", "Type")])
-            }else{
-              return(X@Stimulus)
-
-            }
-          })
-
-#' @describeIn Get Returns the stimulus names.
-#' @exportMethod StimulusNames
-#' @noMd
-setGeneric(
-  name = "StimulusNames",
-  def = function(X)
-  {
-    standardGeneric("StimulusNames")
-  }
-)
-#' @noMd
-setMethod("StimulusNames",
-          "ERGExam",
-          function(X) {
-            X@Stimulus$Description
           })
 
 #' @describeIn Get Returns the measurement parameter names (e.g: 'a','B','N1','P1').

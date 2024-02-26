@@ -7,8 +7,6 @@
 \alias{Steps}
 \alias{Results}
 \alias{Subject}
-\alias{StimulusTable}
-\alias{StimulusNames}
 \alias{MarkerNames}
 \alias{ProtocolName}
 \alias{GroupName}
@@ -26,10 +24,6 @@ Results(X)
 
 Subject(X)
 
-StimulusTable(X, full = F)
-
-StimulusNames(X)
-
 MarkerNames(X)
 
 ProtocolName(X)
@@ -42,12 +36,10 @@ DOB(X)
 }
 \arguments{
 \item{X}{A \linkS4class{ERGExam}}
-
-\item{full}{For \code{StimulusTable} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \link{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.}
 }
 \value{
 A vector. For 'StimulusTable()' a data.frame and a function for 'GetFilterFunction()' and 'GetAverageFunction()'.
-FIXME: Return in not up to date
+FIXME: Return is not up to date
 FIXME not only for Class ERGExma
 }
 \description{
@@ -67,10 +59,6 @@ These methods can be used to access metadata information stored in \linkS4class{
 \item \code{Results()}: Returns the indices of individual results contained in an ERG exam.
 
 \item \code{Subject()}: Returns the subject's name
-
-\item \code{StimulusTable()}: Returns the stimulus table
-
-\item \code{StimulusNames()}: Returns the stimulus names.
 
 \item \code{MarkerNames()}: Returns the measurement parameter names (e.g: 'a','B','N1','P1').
 

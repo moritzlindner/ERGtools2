@@ -42,12 +42,14 @@ After setting the functions, the accession methods inherited from \link[EPhysDat
 \item \link[=Eyes]{Eyes}
 \item \link[=Steps]{Steps}
 \item \link[=Channels]{Channels}
-\item \link[=Channels]{Channels}
-\item \link[=StimulusNames]{StimulusNames}\cr\cr
+\item \link[=Results]{Results}
+\item \link[=StimulusTableMethods]{StimulusTableMethods} Stimulus(): Returns selected rows of a stimulus table.
+\item \link[=StimulusTableMethods]{StimulusTableMethods} StimulusDescription(), StimulusIntensity(), StimulusBackground(), StimulusType()
+\cr\cr
 \item \link[=MarkerNames]{MarkerNames}
 \item \link[=Markers]{Markers}
 \item \link[=Measurements]{Measurements} Returns the Measurements table.
-\item \link[=IndexOf]{IndexOf} \cr\cr
+\item \link[=Where]{Where} \cr\cr
 }
 }
 
@@ -63,6 +65,7 @@ After setting the functions, the accession methods inherited from \link[EPhysDat
 \item \link[=AutoPlaceFlicker]{AutoPlaceFlicker} Place the N1 and P1 markers and determines 1/frequency (period) for Flicker ERG data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object.
 \item \link[=AutoPlaceVEP]{AutoPlaceVEP} Place the P1, N1 and P2 markers for Flash VEP data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object.
 \item \link[=CheckAvgFxSet]{CheckAvgFxSet}
+\item \link[=interactiveMeasurements]{interactiveMeasurements}
 }
 }
 
@@ -73,6 +76,7 @@ After setting the functions, the accession methods inherited from \link[EPhysDat
 \item \link[=Measurements<-]{Measurements<-} Add, update or remove Measurements from an \link[=ERGExam]{ERGExam} or \link[=ERGMeasurements]{ERGMeasurements-class} object.
 \item \link[=DropMarker]{DropMarker}
 \item \link[=AddMarker]{DropMarker} \cr\cr
+\item \link[=StimulusTableMethods]{StimulusTableMethods} StimulusDescription()<-, StimulusIntensity()<-, StimulusBackground()<-, StimulusType()<-\cr\cr
 \item \link[=UpdateChannelNames]{UpdateChannelNames} Update or replace channel names.
 \item \link[=ClearMeasurements]{ClearMeasurements}  Clear the Measurements slots in an \link[=ERGExam]{ERGExam} object.
 }

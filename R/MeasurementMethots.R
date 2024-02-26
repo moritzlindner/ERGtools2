@@ -468,6 +468,21 @@ setMethod("Measurements<-",
                    Relative = NULL,
                    ChannelBinding = NULL,
                    value) {            #validity checks and marker Marker conversion
+
+            # internal functions
+            get.marker.idx<-function(cb,X){
+              if(!is.null(ChannelBinding)){
+                marker.idx <- which(Markers(X)$Name == Marker & Markers(X)$ChannelBinding == ChannelBinding)
+              } else {
+                marker.idx <- which(Markers(X)$Name == Marker)
+              }
+              if(length(marker.idx)!=1){
+                stop("Marker is not unabiguously defined by the given paramaters ('Marker' and possibly 'ChannelBinding').")
+              }
+              return(marker.idx)
+            }
+
+            #validity checks
             if (any(length(Marker) != 1, length(Recording) != 1, length(value) != 1)) {
               stop ("'Marker', 'Recording', and 'value' must contain a single value.")
             }
@@ -499,7 +514,8 @@ setMethod("Measurements<-",
 
               if (nrow.same ==
                   1) {    # Update Measurement
-                marker.idx <- which(Markers(X)$Name == Marker)
+                marker.idx<-get.marker.idx(ChannelBinding,X)
+
                 if (length(X@Measurements$Time[X@Measurements$Recording == Recording &
                                                X@Measurements$Marker %in% marker.idx]) != 1) {
                   stop("Unexpected error during marker selection.")
@@ -523,7 +539,7 @@ setMethod("Measurements<-",
                   }
                 }
 
-                marker.idx <- which(Markers(X)$Name == Marker)
+                marker.idx<-get.marker.idx(ChannelBinding,X)
                 new.measurement <- data.frame(Recording = Recording,
                                               Marker = marker.idx,
                                               Time = value)
@@ -539,7 +555,7 @@ setMethod("Measurements<-",
               }
             }else{
               # if value is NULL --> delete the selected measurement
-              marker.idx <- which(Markers(X)$Name == Marker)
+              marker.idx<-get.marker.idx(ChannelBinding,X)
               X@Measurements <-
                 X@Measurements[X@Measurements$Recording == Recording &
                                  X@Measurements$Marker %in% marker.idx,]
@@ -630,8 +646,8 @@ newERGMeasurements <- function(data) {
     for (m in unique(data$Name[data$Channel == c &
                                        is.na(data$Relative)])) {
       rel <- NA
-      data[data$Channel == c &
-             data$Name == m, ]
+      # data[data$Channel == c &
+      #        data$Name == m, ]
       M <- AddMarker(M, m, rel, c)
       for (r in data$Recording[data$Channel == c &
                                data$Name == m]) {
@@ -642,7 +658,7 @@ newERGMeasurements <- function(data) {
             Recording = r,
             Relative = rel,
             create.marker.if.missing = F,
-            ChannelBinding = NULL
+            ChannelBinding = c
           ) <-
             data$Time[data$Channel == c &
                         data$Name == m &
@@ -667,7 +683,8 @@ newERGMeasurements <- function(data) {
           M,
           Marker = m,
           Recording = r,
-          create.marker.if.missing = F
+          create.marker.if.missing = F,
+          ChannelBinding = c
         ) <-
           data$Time[data$Channel == c &
                               data$Name == m &
