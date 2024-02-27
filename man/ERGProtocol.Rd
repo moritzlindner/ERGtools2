@@ -5,7 +5,7 @@
 \alias{ERGProtocol}
 \title{ERGProtocol class definition}
 \description{
-This class represents an ERG protocol, as it can be impored from Epsion with Export_Date, Name, nSteps, nChannels, and Step slots.
+This class represents an ERG protocol, as it can be impored from Diagnosys Espion™ software with Export_Date, Name, nSteps, nChannels, and Step slots.
 }
 \section{Slots}{
 

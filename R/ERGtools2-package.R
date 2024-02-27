@@ -2,25 +2,25 @@
 #'
 #' This package contains an environment for working with electroretinogram data. It contains an import method for Diagnosys Espion data, but allows reading in of data also from other manufacturers with limited coding effort. Standard procedures like averaging, subsetting an visualization of individual exams are supported.
 #' This package provides the  \linkS4class{ERGExam} class that stores data from a single ERG examination. These may include different recording channels (ERG, OP, VEP, ...), or sequential recordings in repsonse to different stimulus paradigms.
-#' It is usually generated from imported raw data using \link[=newERGExam]{newERGExam}. Data acuired from Diagnosys Espion can be imported directly using \link[=ImportEpsion]{ImportEpsion}.\cr\cr
+#' It is usually generated from imported raw data using \link[=newERGExam]{newERGExam}. Data acuired from Diagnosys Espion can be imported directly using \link[=ImportEspion]{ImportEspion}.\cr\cr
 #'
 #' The class \linkS4class{ERGExam} expands \link[EPhysData:EPhysSet]{EPhysData::EPhysSet}, so \strong{Methods that work on \link[EPhysData:EPhysSet]{EPhysData::EPhysSet} can be applied to \linkS4class{ERGExam} as well. See: \link[EPhysData:EPhysData-package]{EPhysData::EPhysData-package}}.
 #'
 ## usethis namespace: start
 #' @section Standard workflow:
 #'
-#' After setting the functions, the accession methods inherited from \link[EPhysData:EPhysSet-class]{EPhysData::EPhysSet-class} like \link[EPhysData:as.data.frame]{EPhysData::as.data.frame-method} and \link[EPhysData:GetData]{EPhysData::GetData} with the argument \code{Raw=F} can be used to return the processed data.\cr\cr
+#' After setting the functions, the accession methods inherited from \link[EPhysData:EPhysSet-class]{EPhysData::EPhysSet-class} like \link[EPhysData:as.data.frame-method]{EPhysData::as.data.frame-method} and \link[EPhysData:GetData]{EPhysData::GetData} with the argument \code{Raw=F} can be used to return the processed data.\cr\cr
 #'
 #' @section Object creation:
-#' * \link[=newERGExam]{newERGExam} and \link[=ImportEpsion]{ImportEpsion} for \link[=ERGExam]{ERGExam} objects \cr
-#' * \link[methods:new]{methods:new} and \link[=ImportEpsionProtocol]{ImportEpsionProtocol} for \link[=ERGProtocol]{ERGProtocol} objects \cr
+#' * \link[=newERGExam]{newERGExam} and \link[=ImportEspion]{ImportEspion} for \link[=ERGExam]{ERGExam} objects \cr
+#' * \link[methods:new]{methods:new} and \link[=ImportEspionProtocol]{ImportEspionProtocol} for \link[=ERGProtocol]{ERGProtocol} objects \cr
 #' * \link[methods:new]{methods:new} for \link[=ERGMeasurements]{ERGMeasurements-class} objects
 #' * data(ERG) (\link[=ERGExam-data]{.SampleERGExam}) Load example ERG recording \cr\cr
 #' * data(Measurements.data) (\link[=ERGMeasurements-data]{.SampleERGMeasurements}) Load example Measurements data \cr\cr
 #'
 #' @section Accession methods:
 #' * \link[=Subset]{Subset} This method subsets an (for \link[=ERGExam]{ERGExam} object into a new object of the same class.
-#' * \link[=as.data.frame]{as.data.frame} Returns data frame representing the \link[=ERGExam]{ERGExam} or \link{ERGProtocol} object in long format. When used with the argument \code{Raw = F} on an\link[=ERGExam]{ERGExam} process (i.e. filtered, averaged) data is returned. See also: \link[EPhysData:as.data.frame]{EPhysData::as.data.frame-method}. \cr\cr
+#' * \link[=as.data.frame]{as.data.frame} Returns data frame representing the \link[=ERGExam]{ERGExam} or \link{ERGProtocol} object in long format. When used with the argument \code{Raw = F} on an\link[=ERGExam]{ERGExam} process (i.e. filtered, averaged) data is returned. See also: \link[EPhysData:as.data.frame-method]{EPhysData::as.data.frame-method}. \cr\cr
 #'
 #' * \link[=DOB]{DOB}
 #' * \link[=ExamDate]{ExamDate}

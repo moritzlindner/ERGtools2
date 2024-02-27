@@ -2,7 +2,7 @@
 #'
 #' Methods acting on \linkS4class{ERGExam} to extract or replace parts.
 #' @inheritParams Where
-#' @param full For \code{StimulusTable} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \link{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.
+#' @param full For \code{Stimulus} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \link{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.
 #' @param value For '<-' methods only. Vector of the same length as Stimuli selected by where containing the values to be assigned.
 #' @returns For '<-' methods: an updated \linkS4class{ERGExam} object. For others: a vector containing the extracted values.
 #' @examples
@@ -199,7 +199,7 @@ setMethod("StimulusX<-",
           })
 
 #' @describeIn StimulusTableMethods Returns the description of one or more selected stimuli.
-#' @exportMethod Stimulus
+#' @exportMethod StimulusDescription
 setGeneric(
   name = "StimulusDescription",
   def = function(X,
@@ -218,7 +218,7 @@ setMethod("StimulusDescription",
           })
 
 #' @describeIn StimulusTableMethods Sets the description of one or more selected stimuli.
-#' @exportMethod Stimulus
+#' @exportMethod StimulusDescription<-
 setGeneric(
   name = "StimulusDescription<-",
   def = function(X,
@@ -242,7 +242,7 @@ setMethod("StimulusDescription<-",
 
 
 #' @describeIn StimulusTableMethods Returns the intensity value of one or more selected stimuli.
-#' @exportMethod Stimulus
+#' @exportMethod StimulusIntensity
 setGeneric(
   name = "StimulusIntensity",
   def = function(X,
@@ -261,7 +261,7 @@ setMethod("StimulusIntensity",
           })
 
 #' @describeIn StimulusTableMethods Sets the intensity value for one or more selected stimuli.
-#' @exportMethod Stimulus
+#' @exportMethod StimulusIntensity<-
 setGeneric(
   name = "StimulusIntensity<-",
   def = function(X,
@@ -285,7 +285,7 @@ setMethod("StimulusIntensity<-",
 
 
 #' @describeIn StimulusTableMethods Returns the background value of one or more selected stimuli.
-#' @exportMethod Stimulus
+#' @exportMethod StimulusBackground
 setGeneric(
   name = "StimulusBackground",
   def = function(X,
@@ -304,7 +304,7 @@ setMethod("StimulusBackground",
           })
 
 #' @describeIn StimulusTableMethods Sets the background value of one or more selected stimuli.
-#' @exportMethod Stimulus
+#' @exportMethod StimulusBackground<-
 setGeneric(
   name = "StimulusBackground<-",
   def = function(X,
@@ -328,7 +328,7 @@ setMethod("StimulusBackground<-",
 
 
 #' @describeIn StimulusTableMethods Returns the type of one or more selected stimuli.
-#' @exportMethod Stimulus
+#' @exportMethod StimulusType
 setGeneric(
   name = "StimulusType",
   def = function(X,
@@ -347,7 +347,7 @@ setMethod("StimulusType",
           })
 
 #' @describeIn StimulusTableMethods Sets the type value of one or more selected stimuli.
-#' @exportMethod Stimulus
+#' @exportMethod StimulusType<-
 setGeneric(
   name = "StimulusType<-",
   def = function(X,

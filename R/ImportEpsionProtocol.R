@@ -1,7 +1,7 @@
 
-#' Import an Epsion stimulus protocol from a CSV file.
+#' Import an Espion stimulus protocol from a CSV file.
 #'
-#' This function imports an Epsion stimulus protocol from a CSV file and returns it as a Protocol S4 object.
+#' This function imports an Espion stimulus protocol from a CSV file and returns it as a Protocol S4 object.
 #'
 #' @param filename The path to the CSV file containing the protocol data.
 #' @return An instance of the Protocol S4 class.
@@ -10,7 +10,7 @@
 #' @importFrom stringr str_detect
 #' @importFrom methods new
 #' @export
-ImportEpsionProtocol<-function(filename){
+ImportEspionProtocol<-function(filename){
   Header<-fread(filename,sep = ",",header = F,fill=T,strip.white = T, nrows=85, data.table=F)
   Name=getSingleColumnChar(Header,"Protocol Name")
   Exported<-as.POSIXct(getSingleColumnChar(Header,"Export date"))

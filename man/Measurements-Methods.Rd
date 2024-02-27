@@ -2,9 +2,6 @@
 % Please edit documentation in R/MeasurementMethots.R
 \name{Measurements-Methods}
 \alias{Measurements-Methods}
-\alias{AddMarker}
-\alias{DropMarker}
-\alias{Markers}
 \alias{Measurements}
 \alias{Measurements,ERGMeasurements-method}
 \alias{Measurements,ERGExam-method}
@@ -13,15 +10,8 @@
 \alias{Measurements<-,ERGExam-method}
 \alias{newERGMeasurements}
 \alias{ClearMeasurements}
-\alias{ConvertMeasurementsToAbsolute}
-\title{Modify the Measurements slot of an ERGExam or ERGMeasurements object}
+\title{Access and Modify the Marker Measurements Stored in an ERGExam or ERGMeasurements Object}
 \usage{
-AddMarker(X, Marker, Relative, ChannelBinding)
-
-DropMarker(X, Marker, ChannelBinding, drop.dependent = FALSE)
-
-Markers(X)
-
 Measurements(X, where = NULL, Marker = NULL, quiet = F)
 
 \S4method{Measurements}{ERGMeasurements}(X, where = NULL, Marker = NULL, quiet = F)
@@ -58,25 +48,21 @@ Measurements(
 newERGMeasurements(data)
 
 ClearMeasurements(X)
-
-ConvertMeasurementsToAbsolute(data)
 }
 \arguments{
-\item{X}{An \linkS4class{ERGExam} or  \linkS4class{ERGMeasurements} object.}
-
-\item{Marker}{Name of the marker.}
-
-\item{Relative}{For AddMarker and Measurements<- only. Index of the marker the new marker is relative to.}
-
-\item{ChannelBinding}{For AddMarker and DropMarker only. Channel to which the marker belongs. Usually defined by the Parent \linkS4class{ERGExam} object. Set to NA if not required.}
-
-\item{drop.dependent}{For DropMarker and DropMeasurement only. Logical. If TRUE, dependent markers will also be dropped. If FALSE, fails if there are markes dependent on that removed.}
+\item{X}{An \linkS4class{ERGExam} or \linkS4class{ERGMeasurements} object.}
 
 \item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
+
+\item{Marker}{Name of the marker.}
 
 \item{quiet}{For Measurements only. Logical. If TRUE, suppresses warnings.}
 
 \item{create.marker.if.missing}{Logical. If TRUE and the marker does not exist, it will be created.}
+
+\item{Relative}{For AddMarker and Measurements<- only. Index of the marker the new marker is relative to.}
+
+\item{ChannelBinding}{For AddMarker and DropMarker only. Channel to which the marker belongs. Usually defined by the Parent \linkS4class{ERGExam} object. Set to NA if not required.}
 
 \item{value}{For Measurements<- only. Plain numeric value or value of class units (\link[units:units]{units::units} with a time unit set. If \code{NULL} it will remove the indicated row.}
 
@@ -87,17 +73,11 @@ ConvertMeasurementsToAbsolute(data)
 An updated version of the object, except for Measurements, which returns a data.frame representing the Measurements stored in the Measurements slot of the \linkS4class{ERGExam} object or the \linkS4class{ERGMeasurements} object-
 }
 \description{
-These methods enable modification of the Measurements slot of an \linkS4class{ERGExam} object or the underlying \linkS4class{ERGMeasurements} object directly.
+These methods enable modification of the marker measurements (hereafter short: measurements) stored in an \linkS4class{ERGExam} object or the underlying \linkS4class{ERGMeasurements} object directly.
 \strong{Note:} the \code{Measurements(X, ...) <- value} methods require that all arguments are provided. Set to NULL if not needed.
 }
 \section{Functions}{
 \itemize{
-\item \code{AddMarker()}: Add a new Marker
-
-\item \code{DropMarker()}: Drop marker by name and channel
-
-\item \code{Markers()}: Get Markers.
-
 \item \code{Measurements()}: Get Measurements table
 
 \item \code{Measurements(ERGMeasurements)}: Get Measurements table from an  \linkS4class{ERGMeasurements} object
@@ -121,53 +101,30 @@ These methods enable modification of the Measurements slot of an \linkS4class{ER
 
 \item \code{ClearMeasurements()}: Clears the Measurements slots in an  link[=ERGExam]{ERGExam} object (both, markers and measurements.
 
-\item \code{ConvertMeasurementsToAbsolute()}: Converts the output of the Measurements method from relative to absolute amplitudes
-
 }}
 \examples{
-# Add a new Marker to an ERGMeasurements object
-new_erg_measurements <- AddMarker(Measurements, Marker = "Marker1", Relative = NA, ChannelBinding = "ChannelA")
-new_erg_measurements
-Markers(new_erg_measurements)
-
-# Add a new Marker to an ERGMeasurements object
-new_erg <- AddMarker(ERG, Marker = "Marker1", Relative = NA, ChannelBinding = "ERG_auto")
-# but this would fail:
-# new_erg <- AddMarker(ERG, Marker = "Marker1", Relative = NA, ChannelBinding = "ChannelA")
-new_erg
-new_erg<-SetStandardFunctions(new_erg) # to set an averaging function
-Markers(new_erg)
-stop("Further examples required")
-
-# Drop a Marker from an ERGMeasurements object
 data(Measurements.data)
-Measurements.data
-Markers(Measurements.data)
-
-new_erg_measurements <- DropMarker(Measurements.data, Marker = "N1", ChannelBinding = "VEP", drop.dependent = TRUE)
-new_erg_measurements
-Markers(new_erg_measurements)
-
 # Get Measurements table for specific recording and marker in ERGMeasurements object
-Markers(Measurements)
-Measurements(X = Measurements, where = 1, Marker = "a", quiet = TRUE)
-Measurements(X = Measurements, where = 1, Marker = "X", quiet = F)
-
+Markers(Measurements.data)
+Measurements(X = Measurements.data, where = 1, Marker = "a", quiet = TRUE)
+#' but this would fail with an informative error message
+#' Measurements(X = Measurements.data, where = 1, Marker = "X", quiet = F)
 
 # Get Measurements table for specific recording and marker in ERGExam object
+data(ERG)
 ERG<-SetStandardFunctions(ERG)
 Measurements(ERG)
+
 # Set Measurements for specific recording and marker in ERGMeasurements object
-Markers(Measurements)
-Measurements(X = Measurements, Marker = "B" ,where = 1)<-99
-Measurements(X = Measurements, Marker = "c" ,where = 1,Relative = "a")<-150
-
-
+Markers(Measurements.data)
+Measurements(X = Measurements.data, Marker = "B" ,where = 1)<-99
+# this would fail, as marker does not exist
+# Measurements.data<-Measurements(X = Measurements.data, Marker = "c" , where = 1, Relative = "a")<-150
+# But this would work
+Measurements(X = Measurements.data, Marker = "c" ,where = 1,Relative = "a", ChannelBinding="ERG")<-150
 # Set Measurements table for specific recording and marker in ERGExam object
 ERG<-SetStandardFunctions(ERG)
 Measurements(ERG)
-
-
 # Example data frame
 data <- data.frame(
   Channel = c("ERG", "ERG", "ERG", "ERG"),
@@ -181,6 +138,5 @@ newERGMeasurements(data)
 
 }
 \seealso{
-\link[EPhysData:EphysSet-class]{EPhysData::ERGMeasurements-class} \link{Measurements-Methods} \link{Get}
+\link[EPhysData:EPhysSet-class]{EPhysData::EPhysSet-class} \link{Measurements-Methods} \link{Get}
 }
-\keyword{Internal}

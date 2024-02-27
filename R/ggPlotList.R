@@ -353,7 +353,7 @@ get_measurements_for_Plot <- function(List,
       }, ReturnEPhysSet = F)
     filter.fx.buffer <- filter.fx.buffer[sel]
 
-    x <- Subset(x, Recording = which(sel))
+    x <- Subset(x, which = which(sel))
 
     for (y in 1:length(x)) {
       AverageFunction(x[[y]])<-avg.fx.buffer[[y]]

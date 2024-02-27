@@ -10,30 +10,26 @@
   TimeExclusive = FALSE,
   Repeats = NULL,
   Raw = TRUE,
-  Step = Steps(X),
-  Eye = Eyes(X),
-  Channel = Channels(X),
-  Result = Results(X),
-  Recording = NULL,
+  where = NULL,
   ...
 )
 }
 \arguments{
-\item{X}{A \linkS4class{ERGExam}}
+\item{X}{An \linkS4class{ERGExam}}
 
 \item{Time}{Numeric vector of length 2 representing the time range for data extraction.
 Default is the entire time range (i.e., keep all data).}
 
 \item{TimeExclusive}{Keep only the two time points stated under 'Time', not the range.}
 
-\item{Repeats}{If X is an EPhysSet, this parameter can only be used if all EPhysData contained in the set has the same number of repeats.
-Numeric index/indices or a logical vector of the same length as repeats stored.}
+\item{Repeats}{Specifies which of the repeated measurements (if any) to use for extraction.
+It can be either a numeric vector specifying the indices of the repeated measurements
+or a logical vector of the same length as repeats stored,
+where \code{TRUE} indicates using that column for extraction. Default is the inverse of the \code{\link{Rejected-method}}(X) vector.}
 
 \item{Raw}{Logical indicating whether to get raw data or processed (filtered, averaged) data.}
 
-\item{Step, Eye, Channel}{Vector of values for Steps, Eyes, and Channels to subset}
-
-\item{Recording}{Subset by exam item index instead of \code{Step}, \code{Eye} and \code{Channel}. Default is \code{NULL}. If set to a numeric vector or a logical vector of same length as rows in Metadata,  \code{Step}, \code{Eye} and \code{Channel} will be ignored and only the recording with the given indices will be kept.}
+\item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
 }
 \description{
 This method subsets an \code{ERGExam} object into a new object of the same class.
@@ -43,8 +39,8 @@ The \code{Subset} function creates a new \code{ERGExam}  object containing a sub
 }
 \examples{
 data(ERG)
-Subset(ERG,Channel="ERG_auto")
+Subset(ERG,where=list(Channel="ERG_auto"))
 }
 \seealso{
-\link[EPhysData:Subset-method]{EPhysData::Subset-method}
+\link[EPhysData:Subset]{EPhysData::Subset}
 }

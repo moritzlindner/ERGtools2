@@ -51,7 +51,7 @@ setMethod(
 
     dat <- as.data.frame(X)
 
-    # This is specific for Epsion
+    # This is specific for Espion
     stimtab <- StimulusTable(X)
     dat <- merge(dat, stimtab, by = "Step")
     dat$Description <-

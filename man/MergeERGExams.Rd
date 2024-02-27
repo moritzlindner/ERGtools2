@@ -7,14 +7,14 @@
 MergeERGExams(X, Y, mergemethod = "Append")
 }
 \arguments{
-\item{X}{A \linkS4class{ERGExam}}
+\item{X}{An \linkS4class{ERGExam}}
 
 \item{Y}{An ERGExam object or a list of ERGExam objects to be merged with \code{X}.}
 
 \item{mergemethod}{will allow to specify how exactly the objects should be merged in future versions. currently only "Append" (the default) is supported.}
 }
 \value{
-An ERGExam object representing the merged data. the file names, protocol names and dates from the individual files merged are stored as additional columns in the Stimulus table. Use \link{StimulusTable}(X, full=T) to see those.
+An ERGExam object representing the merged data. the file names, protocol names and dates from the individual files merged are stored as additional columns in the Stimulus table. Use \code{Metadata()} to see those.
 }
 \description{
 Merges two or more ERGExam objects into a single ERGExam object.
@@ -23,12 +23,9 @@ Merges two or more ERGExam objects into a single ERGExam object.
 # Merge two ERGExams
 data(ERG)
 # make some ERGExams objects that differ
-exam1<-Subset(ERG,Step=c(1,2,3))
-exam2<-Subset(ERG,Eye="RE")
+exam1<-Subset(ERG,where=list(Step=as.integer(c(1,2,3))))
+exam2<-Subset(ERG,where=list(Eye="RE"))
 # merge
 merged_exam <- MergeERGExams(exam1, exam2)
 
-# Merge a list of ERGExams
-exam_list <- list(exam2, exam3, exam4)
-merged_exam_list <- mergeERGExams(exam1, exam_list)
 }

@@ -113,8 +113,10 @@ setMethod("interactiveMeasurements",
               #Get Relevant subset of the ERGExam and keep avg and filter fx.
 
               curr <- Subset(X,
-                             Channel = Channel,
-                             Eye =  Eye,
+                             which = list(
+                               Channel = Channel,
+                               Eye =  Eye
+                             ),
                              Raw = F)
 
 

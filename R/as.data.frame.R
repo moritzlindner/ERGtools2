@@ -11,8 +11,8 @@
 #' @examples
 #' data(ERG)
 #' ERG <- SetStandardFunctions(ERG)
-#' ERG <- Subset(ERG,Step=1,Eye="RE") # converting the whole object would return a hughe data.frame
-#' heas(as.data.frame(ERG))
+#' ERG <- Subset(ERG,where=list(Step=as.integer(1),Eye="RE")) # converting the whole object would return a huhge data.frame
+#' head(as.data.frame(ERG))
 #'
 #' @importFrom tidyr pivot_longer starts_with
 #' @importFrom units drop_units as_units

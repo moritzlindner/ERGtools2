@@ -22,7 +22,7 @@ SetStandardFunctions(
 \arguments{
 \item{X}{An \linkS4class{ERGExam} object}
 
-\item{where}{A \link[base:pairlist]{base::pairlist} allowing select criteria for which recordings the functions should be set. Tags/Keys in the pairlist must represent valid column names of \link{Metadata} or\link{StimulusTable}}
+\item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
 
 \item{value}{A value (usually a function) to set.}
 

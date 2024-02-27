@@ -45,8 +45,8 @@ Note that the \code{as.data.frame} method for \link{ERGExam} objects is inherite
 \examples{
 data(ERG)
 ERG <- SetStandardFunctions(ERG)
-ERG <- Subset(ERG,Step=1,Eye="RE") # converting the whole object would return a hughe data.frame
-heas(as.data.frame(ERG))
+ERG <- Subset(ERG,where=list(Step=as.integer(1),Eye="RE")) # converting the whole object would return a huhge data.frame
+head(as.data.frame(ERG))
 
 }
 \keyword{datasets}

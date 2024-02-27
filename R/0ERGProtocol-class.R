@@ -97,7 +97,7 @@ ERGStep<-setClass(
 
 #' ERGProtocol class definition
 #'
-#' This class represents an ERG protocol, as it can be impored from Epsion with Export_Date, Name, nSteps, nChannels, and Step slots.
+#' This class represents an ERG protocol, as it can be impored from Diagnosys Espion™ software with Export_Date, Name, nSteps, nChannels, and Step slots.
 #'
 #' @slot Export_Date POSIXct slot for the export date and time.
 #' @slot Name Character slot for the protocol name.

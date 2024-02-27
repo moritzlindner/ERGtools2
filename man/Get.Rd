@@ -35,7 +35,7 @@ ExamDate(X)
 DOB(X)
 }
 \arguments{
-\item{X}{A \linkS4class{ERGExam}}
+\item{X}{An \linkS4class{ERGExam}}
 }
 \value{
 A vector. For 'StimulusTable()' a data.frame and a function for 'GetFilterFunction()' and 'GetAverageFunction()'.
@@ -74,7 +74,6 @@ These methods can be used to access metadata information stored in \linkS4class{
 \examples{
 # Get Data to work with
 data(ERG)
-data(Measurements)
 
 # Accessing eyes from ERGExam object
 Eyes(ERG)
@@ -91,15 +90,6 @@ Results(ERG)
 # Accessing subject from ERGExam object
 Subject(ERG)
 
-# Accessing stimulus table from ERGExam object
-StimulusTable(ERG)
-
-# Accessing stimulus names from ERGExam object
-StimulusNames(ERG)
-
-# Accessing marker names from ERGMeasurements object
-MarkerNames(Measurements)
-
 # Accessing protocol name from ERGExam object
 ProtocolName(ERG)
 
@@ -112,11 +102,6 @@ ExamDate(ERG)
 # Accessing date of birth from ERGExam object
 DOB(ERG)
 
-# Accessing marker table from ERGMeasurements object
-Markers(Measurements)
-
-# Converting measurements to absolute amplitudes
-ConvertMeasurementsToAbsolute(Measurements)
 }
 \concept{ERGExam functions}
 \concept{ERGMeasurements functions}

@@ -7,9 +7,7 @@
 ggERGTrace(X, Step, Eye, Channel, Result = 1, Interactive = F)
 }
 \arguments{
-\item{X}{A \linkS4class{ERGExam}}
-
-\item{Step, Eye, Channel}{Vector of values for Steps, Eyes, and Channels to subset}
+\item{X}{An \linkS4class{ERGExam}}
 
 \item{Interactive}{Whether to return an interactive \link[plotly:ggplotly]{plotly::ggplotly}  graph}
 }

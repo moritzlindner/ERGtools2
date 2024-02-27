@@ -4,7 +4,7 @@
 #' They allow setting the functions to a subset of recordings based on the specified conditions.
 #' @inheritParams EPhysData::Get_Set_EPhysData
 #' @param X An \linkS4class{ERGExam} object
-#' @param where A \link[base:pairlist]{base::pairlist} allowing select criteria for which recordings the functions should be set. Tags/Keys in the pairlist must represent valid column names of \link{Metadata} or\link{StimulusTable}
+#' @inheritParams Where
 #' @param Stimulus.type.names A \link[base:pairlist]{base::pairlist} specifying the names identifying the different stimulus types, e.g., \code{Flash="Flash"} or \code{Flash="Blitz"}.
 #' @return An updated ERGExan object.
 #'

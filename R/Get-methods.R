@@ -1,7 +1,7 @@
 #' Accession methods for metadata from ERGExam objects
 #'
 #' These methods are used to access metadata information from \linkS4class{ERGExam} objects.
-#' @param X A \linkS4class{ERGExam}
+#' @param X An \linkS4class{ERGExam}
 #' @details These methods can be used to access metadata information stored in \linkS4class{ERGExam} objects. \cr \cr
 #' @return A vector. For 'StimulusTable()' a data.frame and a function for 'GetFilterFunction()' and 'GetAverageFunction()'.
 #' FIXME: Return is not up to date
@@ -10,7 +10,6 @@
 #' @examples
 #' # Get Data to work with
 #' data(ERG)
-#' data(Measurements)
 #'
 #' # Accessing eyes from ERGExam object
 #' Eyes(ERG)
@@ -27,9 +26,6 @@
 #' # Accessing subject from ERGExam object
 #' Subject(ERG)
 #'
-#' # Accessing marker names from ERGMeasurements object
-#' MarkerNames(Measurements)
-#'
 #' # Accessing protocol name from ERGExam object
 #' ProtocolName(ERG)
 #'
@@ -42,12 +38,6 @@
 #' # Accessing date of birth from ERGExam object
 #' DOB(ERG)
 #'
-#' # Accessing marker table from ERGMeasurements object
-#' Markers(Measurements)
-#'
-#' # Converting measurements to absolute amplitudes
-#' ConvertMeasurementsToAbsolute(Measurements)
-
 #' @name Get
 NULL
 

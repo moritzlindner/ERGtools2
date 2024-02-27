@@ -1,9 +1,9 @@
 #' Import ERG data and measurements from an Eosion CSV file
 #'
 #'
-#' This function imports ERG recordings from *.csv files exported from Diagnosys' Epsion and creates an \link[=ERGExam]{ERGExam} object.
+#' This function imports ERG recordings from *.csv files exported from the Diagnosys Espion™ software and creates an \link[=ERGExam]{ERGExam} object.
 #'
-#' @param filename Path to the file. Currently supported \code{'.csv'} or \code{'.txt'} files exported from Diagnosys' Epsion that contain at least:
+#' @param filename Path to the file. Currently supported \code{'.csv'} or \code{'.txt'} files exported from the Diagnosys Espion™ software that contain at least:
 #'   An area with 1) a contents table, 2) a header table, 3) a stimulus table, and 4) a marker table.
 #'   This function is only tested on files with the default horizontal table arrangement but should function for files with a vertical arrangement as well.
 #'   Behaves similarly to the argument \code{file} from \link[utils:read.table]{utils::read.table()}.
@@ -16,8 +16,8 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Import a *.csv file exported from Diagnosys' Epsion
-#' ERG_Experiment <- ImportEpsion("test.csv")
+#' # Import a *.csv file exported from the Diagnosys Espion™ software.
+#' ERG_Experiment <- ImportEspion("test.csv")
 #' }
 #'
 #' @return A \linkS4class{ERGExam} object.
@@ -28,10 +28,10 @@
 #' @importFrom stats na.exclude
 #' @importFrom stringr str_detect str_remove str_trim
 #' @importFrom EPhysData newEPhysData
-#' @name ImportEpsion
+#' @name ImportEspion
 #' @export
 #'
-ImportEpsion <- function(filename,
+ImportEspion <- function(filename,
                          sep = "\t",
                          Import = list ("Averaged", "Measurements"),
                          Protocol = NULL) {
@@ -377,7 +377,7 @@ ImportEpsion <- function(filename,
           ))[, 1]
           if (all(resulttrace == 0)) {
             stop(
-              "Raw trace is empty. Re-export table or run ImportEpsionMeasures instead, to only import measures."
+              "Raw trace is empty. Re-export table or run ImportEspionMeasures instead, to only import measures."
             )
           }
 

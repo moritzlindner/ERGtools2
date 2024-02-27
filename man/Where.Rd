@@ -7,7 +7,7 @@
 Where(X, where, expected.length = NULL)
 }
 \arguments{
-\item{X}{A \linkS4class{ERGExam}}
+\item{X}{An \linkS4class{ERGExam}}
 
 \item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
 

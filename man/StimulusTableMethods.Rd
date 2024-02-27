@@ -32,11 +32,11 @@ StimulusType(X, where = NULL)
 StimulusType(X, where = NULL) <- value
 }
 \arguments{
-\item{X}{A \linkS4class{ERGExam}}
+\item{X}{An \linkS4class{ERGExam}}
 
 \item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
 
-\item{full}{For \code{StimulusTable} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \link{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.}
+\item{full}{For \code{Stimulus} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \link{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.}
 
 \item{value}{For '<-' methods only. Vector of the same length as Stimuli selected by where containing the values to be assigned.}
 }

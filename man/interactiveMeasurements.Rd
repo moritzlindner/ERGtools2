@@ -7,7 +7,7 @@
 interactiveMeasurements(X, Channel = "ERG_auto", Eye = Eyes(X))
 }
 \arguments{
-\item{X}{A \linkS4class{ERGExam}}
+\item{X}{An \linkS4class{ERGExam}}
 }
 \value{
 An object of class 'ERGExam' with the new measurements added.

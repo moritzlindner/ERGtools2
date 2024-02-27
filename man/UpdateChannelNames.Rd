@@ -7,7 +7,7 @@
 UpdateChannelNames(X, from, to, Steps = Steps(X), Eyes = Eyes(X))
 }
 \arguments{
-\item{X}{A \linkS4class{ERGExam}}
+\item{X}{An \linkS4class{ERGExam}}
 
 \item{from}{A character vector with the original channel names to be replaced.}
 
