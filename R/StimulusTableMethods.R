@@ -26,7 +26,7 @@
 #' background
 #'
 #' # Extracting the type of selected stimuli
-#' types <- StimulusType(ERG, where = list(Step = c(1, 2, 3)))
+#' types <- StimulusType(ERG, where = list(Step = as.integer(c(1, 2, 3))))
 #' types
 #'
 #' # Assigning new values to the description of selected stimuli

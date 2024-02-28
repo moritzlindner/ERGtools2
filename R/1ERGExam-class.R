@@ -340,10 +340,10 @@ ERGExam <- setClass(
 #' # Create example data and metadata
 #' Data <-
 #'   list(
-#'     makeExampleEPhysData(nrows = 10, replicate_count = 3),
-#'     makeExampleEPhysData(nrows = 10, replicate_count = 3),
-#'     makeExampleEPhysData(nrows = 5, replicate_count = 6),
-#'     makeExampleEPhysData(nrows = 5, replicate_count = 6)
+#'     makeExampleEPhysData(nsets = 10, replicate_count = 3),
+#'     makeExampleEPhysData(nsets = 10, replicate_count = 3),
+#'     makeExampleEPhysData(nsets = 5, replicate_count = 6),
+#'     makeExampleEPhysData(nsets = 5, replicate_count = 6)
 #'   )  # List of EPhysData objects
 #' Metadata <-
 #'   data.frame(
@@ -452,7 +452,11 @@ setMethod("show",
                 cat(green("\n*Measurements imported from external source.*"))
               }
             }
-            if(!CheckAvgFxSet(object)){
+            suppressWarnings({
+              fxSet<-CheckAvgFxSet(object)
+            })
+
+            if(!fxSet){
               cat(yellow("\nAn averge function has not been set for this object."))
             }else{
               cat("\nAn averge function has been set for this object.")

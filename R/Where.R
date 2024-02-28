@@ -11,6 +11,7 @@
 #' Where(ERG,list(Channel="ERG_auto", Intensity=1))
 #'
 #' @name Where
+#' @exportMethod Where
 setGeneric(
   name = "Where",
   def = function(X,
@@ -50,7 +51,7 @@ setMethod("Where",
                 return(idx)
               } else {
                 if(is.numeric(where) || is.integer(where)){ # allow pass thorugh of Recording indices
-                  if(where %in% 1:length(X)){
+                  if(all(where %in% 1:length(X))){
                     return(where)
                   } else {
                     stop("Where is numeric, but not a valid recording index.")

@@ -15,7 +15,7 @@ This data set contains a Measurements object with Markers and corresponding meas
 }
 \examples{
 data(Measurements.data)
-Measurements
-Marker(Measurements.data)
+Measurements.data
+Markers(Measurements.data)
 }
 \keyword{datasets}

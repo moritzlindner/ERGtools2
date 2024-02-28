@@ -33,10 +33,9 @@ This function generates a \link[ggplot2:ggplot]{ggplot2:ggplot} plot of ERG trac
 \examples{
 # Example usage:
 data(ERG)
-data <- list(ERG, ERG)
 ERG<-SetStandardFunctions(ERG)
 ERG <- AutoPlaceMarkers(ERG)
 data <- list(ERG, ERG)
-ggPlotRecordings(data, Background = "DA", Type = "Flash", Channel = "ERG")
+ggPlotRecordings(data, Background = "DA", Type = "Flash", Channel = "ERG_auto")
 
 }

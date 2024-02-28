@@ -22,9 +22,9 @@ After setting the functions, the accession methods inherited from \link[EPhysDat
 \section{Object creation}{
 
 \itemize{
-\item \link[=newERGExam]{newERGExam} and \link[=ImportEspion]{ImportEspion} for \link[=ERGExam]{ERGExam} objects \cr
-\item \link[methods:new]{methods:new} and \link[=ImportEspionProtocol]{ImportEspionProtocol} for \link[=ERGProtocol]{ERGProtocol} objects \cr
-\item \link[methods:new]{methods:new} for \link[=ERGMeasurements]{ERGMeasurements-class} objects
+\item \link[=newERGExam]{newERGExam} and \link[=ImportEspion]{ImportEspion} for \link[=ERGExam]{ERGExam} objects. \cr
+\item \link[methods:new]{methods:new} and \link[=ImportEspionProtocol]{ImportEspionProtocol} for \link[=ERGProtocol]{ERGProtocol} objects. Experimental. \cr
+\item \link[methods:new]{methods:new} for \link[=ERGMeasurements]{ERGMeasurements-class} objects. \cr
 \item data(ERG) (\link[=ERGExam-data]{.SampleERGExam}) Load example ERG recording \cr\cr
 \item data(Measurements.data) (\link[=ERGMeasurements-data]{.SampleERGMeasurements}) Load example Measurements data \cr\cr
 }
@@ -33,23 +33,16 @@ After setting the functions, the accession methods inherited from \link[EPhysDat
 \section{Accession methods}{
 
 \itemize{
+\item \link[=Where]{Where} Returns the recording index for those recordings matching the given criteria. \cr\cr
 \item \link[=Subset]{Subset} This method subsets an (for \link[=ERGExam]{ERGExam} object into a new object of the same class.
 \item \link[=as.data.frame]{as.data.frame} Returns data frame representing the \link[=ERGExam]{ERGExam} or \link{ERGProtocol} object in long format. When used with the argument \code{Raw = F} on an\link[=ERGExam]{ERGExam} process (i.e. filtered, averaged) data is returned. See also: \link[EPhysData:as.data.frame-method]{EPhysData::as.data.frame-method}. \cr\cr
-\item \link[=DOB]{DOB}
-\item \link[=ExamDate]{ExamDate}
-\item \link[=GroupName]{GroupName}
-\item \link[=ProtocolName]{ProtocolName}
-\item \link[=Eyes]{Eyes}
-\item \link[=Steps]{Steps}
-\item \link[=Channels]{Channels}
-\item \link[=Results]{Results}
+\item \link[=DOB]{DOB}, \link[=ExamDate]{ExamDate}, \link[=GroupName]{GroupName}, \link[=ProtocolName]{ProtocolName}: Returning information on the exam and the examined subject.
+\item \link[=Eyes]{Eyes}, \link[=Steps]{Steps}, \link[=Channels]{Channels}, \link[=Results]{Results}: Returning information on the Recordings contained in the dataset.
 \item \link[=StimulusTableMethods]{StimulusTableMethods} Stimulus(): Returns selected rows of a stimulus table.
-\item \link[=StimulusTableMethods]{StimulusTableMethods} StimulusDescription(), StimulusIntensity(), StimulusBackground(), StimulusType()
-\cr\cr
+\item \link[=StimulusTableMethods]{StimulusTableMethods} StimulusDescription(), StimulusIntensity(), StimulusBackground(), StimulusType(). \cr\cr
 \item \link[=MarkerNames]{MarkerNames}
 \item \link[=Markers]{Markers}
 \item \link[=Measurements]{Measurements} Returns the Measurements table.
-\item \link[=Where]{Where} \cr\cr
 }
 }
 
@@ -65,7 +58,7 @@ After setting the functions, the accession methods inherited from \link[EPhysDat
 \item \link[=AutoPlaceFlicker]{AutoPlaceFlicker} Place the N1 and P1 markers and determines 1/frequency (period) for Flicker ERG data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object.
 \item \link[=AutoPlaceVEP]{AutoPlaceVEP} Place the P1, N1 and P2 markers for Flash VEP data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object.
 \item \link[=CheckAvgFxSet]{CheckAvgFxSet}
-\item \link[=interactiveMeasurements]{interactiveMeasurements}
+\item \link[=interactiveMeasurements]{interactiveMeasurements}: Interactive visual placement of markers.
 }
 }
 
@@ -90,10 +83,8 @@ After setting the functions, the accession methods inherited from \link[EPhysDat
 \item \link[=ggIntensitySequence]{ggIntensitySequence}	Uses \link[ggplot2:ggplot]{ggplot2::ggplot} to plot intensity sequence for ERG exams
 \item \link[=ggStepSequence]{ggStepSequence}	Uses \link[ggplot2:ggplot]{ggplot2::ggplot}  to plot step sequence (i.e. sequential recordings within a single protocol) for ERG exams
 \item \link[=ggPlotRecordings]{ggPlotRecordings}	Uses ggplot2 to plot ERG traces from multiple ERGExam objects
+\item \link[=interactiveMeasurements]{interactiveMeasurements}: Interactive visual placement of markers.#'
 }
-
-FIXME Document Protocol Objects
-FIXME Measurements data ERGMeasurements
 }
 
 \examples{
@@ -101,14 +92,12 @@ FIXME Measurements data ERGMeasurements
 data(ERG) # load example data
 StimulusTable(ERG) # have a look whats inside
 Metadata(ERG)
-
-ggERGTrace(ERG, Step = 3, Eye = "RE", Channel ="ERG_auto", Result = 1) # pick one and have a look at the traces as imported
-
-ERG<-SetStandardFunctions(ERG) # set functions for processing raw data
+ERG<-SetStandardFunctions(ERG)
+ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG_auto", Result = as.integer(1))) # pick one and have a look at the traces as imported
 
 ERG <- AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG_auto")) # automatically place markers
 
-ggERGTrace(ERG, Step = 3, Eye = "RE", Channel ="ERG_auto", Result = 1) # pick one and have a look at the traces after processing.
+ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG_auto", Result = as.integer(1))) # pick one and have a look at the traces as imported
 
 }
 \author{

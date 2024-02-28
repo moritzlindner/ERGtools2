@@ -294,6 +294,7 @@ merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
 #' merge2ERGMeasurements(Measurements.data2,Measurements.data3)
 #'
 #'
+#' @export merge2ERGMeasurements
 merge2ERGMeasurements <-
   function(obj1,
            obj2,

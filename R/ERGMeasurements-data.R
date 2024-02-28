@@ -14,6 +14,6 @@
 #'
 #' @examples
 #' data(Measurements.data)
-#' Measurements
-#' Marker(Measurements.data)
+#' Measurements.data
+#' Markers(Measurements.data)
 NULL

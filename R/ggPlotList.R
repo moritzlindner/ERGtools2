@@ -21,10 +21,10 @@
 #' @examples
 #' # Example usage:
 #' data(ERG)
-#' data <- list(ERG, ERG)
 #' ERG<-SetStandardFunctions(ERG)
 #' ERG <- AutoPlaceMarkers(ERG)
-#' ggIntensitySequence(data, Background = "DA", Type = "Flash", Channel = "ERG")
+#' data <- list(ERG, ERG)
+#' ggIntensitySequence(data, Background = "DA", Type = "Flash", Channel = "ERG_auto")
 #'
 #' @export
 ggIntensitySequence <-
@@ -142,10 +142,10 @@ PlotIntensitySequence<-ggIntensitySequence
 #' @examples
 #' # Example usage:
 #' data(ERG)
-#' data <- list(ERG, ERG)
 #' ERG<-SetStandardFunctions(ERG)
 #' ERG <- AutoPlaceMarkers(ERG)
-#' ggStepSequence(data, Background = "DA", Type = "Flash", Channel = "ERG")
+#' data <- list(ERG, ERG)
+#' ggStepSequence(data, Background = "DA", Type = "Flash", Channel = "ERG_auto",Markers = c("a", "B"))
 #'
 #' @export
 ggStepSequence <-
@@ -225,11 +225,10 @@ PlotStepSequence<-ggStepSequence
 #' @examples
 #' # Example usage:
 #' data(ERG)
-#' data <- list(ERG, ERG)
 #' ERG<-SetStandardFunctions(ERG)
 #' ERG <- AutoPlaceMarkers(ERG)
 #' data <- list(ERG, ERG)
-#' ggPlotRecordings(data, Background = "DA", Type = "Flash", Channel = "ERG")
+#' ggPlotRecordings(data, Background = "DA", Type = "Flash", Channel = "ERG_auto")
 #'
 #' @export
 ggPlotRecordings<-function(List,
@@ -307,7 +306,6 @@ PlotRecordings<-ggPlotRecordings
 #' @importFrom EPhysData AverageFunction `AverageFunction<-` Rejected `Rejected<-` FilterFunction `FilterFunction<-`
 #' @examples
 #' data(ERG)
-#' data <- list(ERG, ERG)
 #' ERG<-SetStandardFunctions(ERG)
 #' ERG <- AutoPlaceMarkers(ERG)
 #' get_measurements_for_Plot(list(ERG,ERG), Background = "DA", Type = "Flash", Channel = NULL)
@@ -353,7 +351,7 @@ get_measurements_for_Plot <- function(List,
       }, ReturnEPhysSet = F)
     filter.fx.buffer <- filter.fx.buffer[sel]
 
-    x <- Subset(x, which = which(sel))
+    x <- Subset(x, where = which(sel))
 
     for (y in 1:length(x)) {
       AverageFunction(x[[y]])<-avg.fx.buffer[[y]]

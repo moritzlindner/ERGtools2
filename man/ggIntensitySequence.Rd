@@ -38,10 +38,10 @@ This function generates a \link[ggplot2:ggplot]{ggplot2:ggplot} plot of intensit
 \examples{
 # Example usage:
 data(ERG)
-data <- list(ERG, ERG)
 ERG<-SetStandardFunctions(ERG)
 ERG <- AutoPlaceMarkers(ERG)
-ggIntensitySequence(data, Background = "DA", Type = "Flash", Channel = "ERG")
+data <- list(ERG, ERG)
+ggIntensitySequence(data, Background = "DA", Type = "Flash", Channel = "ERG_auto")
 
 }
 \seealso{

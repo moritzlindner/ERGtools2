@@ -35,10 +35,10 @@ This function generates a \link[ggplot2:ggplot]{ggplot2:ggplot} plot of step seq
 \examples{
 # Example usage:
 data(ERG)
-data <- list(ERG, ERG)
 ERG<-SetStandardFunctions(ERG)
 ERG <- AutoPlaceMarkers(ERG)
-ggStepSequence(data, Background = "DA", Type = "Flash", Channel = "ERG")
+data <- list(ERG, ERG)
+ggStepSequence(data, Background = "DA", Type = "Flash", Channel = "ERG_auto",Markers = c("a", "B"))
 
 }
 \seealso{

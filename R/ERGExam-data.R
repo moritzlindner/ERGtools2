@@ -14,6 +14,7 @@
 #'
 #' @examples
 #' data(ERG)
+#' ERG<-SetStandardFunctions(ERG)
 #' ERG
-#' PlotExam(ERG)
+#' ggERGExam(ERG)
 NULL

@@ -1,24 +1,43 @@
 #' as.data.frame for ERGProtocol, ERGStep, ERGChannel and ERGMarker
 #'
-#' Converts an \link{ERGExam}, \link{ERGProtocol}, ERGStep, ERGChannel or ERGMarker object to a data frame format.
-#' Note that the \code{as.data.frame} method for \link{ERGExam} objects is inherited from the \link[EPhysData]{EPhysData-package} package. See: \link[EPhysData:as.data.frame]{EPhysData::as.data.frame-method}
-#'
+#' Converts an \link{ERGExam}, \link{ERGMeasurements-class}, \link{ERGProtocol}, ERGStep, ERGChannel or ERGMarker object to a data frame format.
+#' Note that the \code{as.data.frame} method for \link{ERGExam} objects is inherited from the \link[EPhysData]{EPhysData-package} package. See: \link[EPhysData:as.data.frame]{EPhysData::as.data.frame-method}.
 #' @param x An \link{ERGProtocol}, ERGStep, ERGChannel or ERGMarker object.
 #' @param ... currently unused.
+#' @details
+#' as.data.frame convert various ERG-related objects (\link{ERGExam}, \link{ERGMeasurements}, \link{ERGProtocol}, ERGMarker, ERGChannel, and ERGStep) to data frame formats, facilitating data manipulation and analysis. Each method extracts relevant information from the respective object and organizes it into a structured data frame.
 #'
-#' @return A data frame representing the \link{ERGProtocol}, ERGStep, ERGChannel or ERGMarker object in long format.
+#' - For \link{ERGExam} it is inherited from the \link[EPhysData]{EPhysData-package}.
+#' - For \link{ERGMeasurements-class} it is an alias for Measurements() (see: \link{Measurements-Methods}).
 #'
+#' The ERGProtocol-related methods are experimental. These include:
+#' - For ERGMarker objects, the resulting data frame contains two columns: Marker.Name and Marker.Relative.to, representing the marker's name and its relative position.
+#' - For ERGChannel objects, the resulting data frame includes channel properties such as name, eye, frequency cutoffs, and inversion status, along with information about associated markers.
+#' - For ERGStep objects, the resulting data frame includes step properties such as description, adaptation, and recording parameters, along with information about associated channels.
+#' - For ERGProtocol objects, the resulting data frame includes protocol properties such as name and export date, along with information about associated steps.
+#'
+#' These data frames provide comprehensive representations of the respective ERG-related objects, allowing for further analysis, visualization, or integration with other data.
+
+#' @return A data frame representing the \link{ERGExam}, \link{ERGMeasurements}, \link{ERGProtocol}, ERGStep, ERGChannel or ERGMarker object in long format.
 #' @examples
 #' data(ERG)
 #' ERG <- SetStandardFunctions(ERG)
 #' ERG <- Subset(ERG,where=list(Step=as.integer(1),Eye="RE")) # converting the whole object would return a huhge data.frame
 #' head(as.data.frame(ERG))
-#'
 #' @importFrom tidyr pivot_longer starts_with
 #' @importFrom units drop_units as_units
+#' @seealso \link{ERGExam}, \link{ERGMeasurements-class}, \link{ERGProtocol}, \link[EPhysData]{EPhysData-package}, \link{Measurements-Methods}
 #' @name as.data.frame
 NULL
 
+#' @describeIn as.data.frame Method for ERGMeasurements
+#' @exportMethod as.data.frame
+setMethod("as.data.frame",
+          "ERGMeasurements",
+          function(x,
+                   ...) {
+            return(Measurements(x))
+          })
 #' @describeIn as.data.frame Method for ERGMarker
 #' @exportMethod as.data.frame
 setMethod("as.data.frame",

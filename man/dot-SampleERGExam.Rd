@@ -15,7 +15,8 @@ This data set contains an ERG Exam with ERG and OP channels from DA and LA flash
 }
 \examples{
 data(ERG)
+ERG<-SetStandardFunctions(ERG)
 ERG
-PlotExam(ERG)
+ggERGExam(ERG)
 }
 \keyword{datasets}

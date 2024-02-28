@@ -5,24 +5,21 @@
 #' @inheritParams Subset-method
 #' @param Interactive Whether to return an interactive \link[plotly:ggplotly]{plotly::ggplotly}  graph
 #' @return A \link[ggplot2:ggplot]{ggplot2::ggplot} plot visualizing the data from a single trace from an \linkS4class{ERGExam} object
-#' @importFrom ggplot2 geom_label
+#' @importFrom ggplot2 geom_label aes
 #' @importFrom plotly ggplotly
 #' @importFrom units deparse_unit set_units
 #' @importFrom EPhysData ggEPhysData Rejected
 #' @examples
 #' data(ERG)
 #' AverageFunction(ERG, where=pairlist(Step = 3,Channel = "ERG_auto",Result = 1)) <- mean
-#' ggERGTrace(ERG, Step = 3, Eye = "RE", Channel ="ERG_auto", Result = 1, Interactive = T) # Generate a ggplot2 plot
+#' ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG_auto", Result = as.integer(1)))
 #' # the information obtained from the interactive plot can be used e.g. to update marker positions.
 #' @name ggERGTrace
 #' @exportMethod ggERGTrace
 setGeneric(
   name = "ggERGTrace",
   def = function(X,
-                 Step,
-                 Eye,
-                 Channel,
-                 Result = 1,
+                 where,
                  Interactive = F) {
     standardGeneric("ggERGTrace")
   }
@@ -32,19 +29,10 @@ setGeneric(
 setMethod("ggERGTrace",
           "ERGExam",
           function(X,
-                   Step,
-                   Eye,
-                   Channel,
-                   Result = 1,
+                   where,
                    Interactive = F) {
             which <-
-              IndexOf(
-                X,
-                Step = Step,
-                Eye = Eye,
-                Channel = Channel,
-                Result = Result
-              )
+              Where(X, where = where, expected.length = 1)
 
             if (length(which) == 0) {
               stop("No item matches selection.")

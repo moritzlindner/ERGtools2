@@ -4,10 +4,12 @@
 \alias{ggERGTrace}
 \title{Generate a ggplot2 plot for a single item/trace from an ERGExam objects}
 \usage{
-ggERGTrace(X, Step, Eye, Channel, Result = 1, Interactive = F)
+ggERGTrace(X, where, Interactive = F)
 }
 \arguments{
 \item{X}{An \linkS4class{ERGExam}}
+
+\item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
 
 \item{Interactive}{Whether to return an interactive \link[plotly:ggplotly]{plotly::ggplotly}  graph}
 }
@@ -20,6 +22,6 @@ This method generates a \link[ggplot2:ggplot]{ggplot2::ggplot} plot for a single
 \examples{
 data(ERG)
 AverageFunction(ERG, where=pairlist(Step = 3,Channel = "ERG_auto",Result = 1)) <- mean
-ggERGTrace(ERG, Step = 3, Eye = "RE", Channel ="ERG_auto", Result = 1, Interactive = T) # Generate a ggplot2 plot
+ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG_auto", Result = as.integer(1)))
 # the information obtained from the interactive plot can be used e.g. to update marker positions.
 }
