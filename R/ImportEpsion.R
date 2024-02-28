@@ -162,8 +162,14 @@ ImportEspion <- function(filename,
           }))
           curr_markers <- do.call(rbind, curr_markers)
           if (!is.null(curr_markers)) {
-            measurements$Relative[r] <-
-              curr_markers[curr_markers[, 1] == measurements$Marker[r], 2]
+            val<-curr_markers[curr_markers[, 1] == measurements$Marker[r], 2]
+            if(length(val)==0){
+              val<-NA
+              warning(paste0("Marker '",measurements$Marker[r],"' not encountered in Protocol."))
+              print(measurements[r,])
+              }
+            measurements$Relative[r] <-val
+              
 
           }
         }
