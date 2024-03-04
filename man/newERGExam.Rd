@@ -67,10 +67,10 @@ with the specified data and attributes.
 # Create example data and metadata
 Data <-
   list(
-    makeExampleEPhysData(nrows = 10, replicate_count = 3),
-    makeExampleEPhysData(nrows = 10, replicate_count = 3),
-    makeExampleEPhysData(nrows = 5, replicate_count = 6),
-    makeExampleEPhysData(nrows = 5, replicate_count = 6)
+    makeExampleEPhysData(nsets = 10, replicate_count = 3),
+    makeExampleEPhysData(nsets = 10, replicate_count = 3),
+    makeExampleEPhysData(nsets = 5, replicate_count = 6),
+    makeExampleEPhysData(nsets = 5, replicate_count = 6)
   )  # List of EPhysData objects
 Metadata <-
   data.frame(

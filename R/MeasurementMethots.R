@@ -9,6 +9,7 @@
 #' @param data For newERGMeasurements only. A data frame containing measurements data with columns:
 #'   \code{Channel}, \code{Name}, \code{Recording}, \code{Time}, and \code{Relative}.
 #' @param create.marker.if.missing Logical. If TRUE and the marker does not exist, it will be created.
+#' @param update.empty.relative Logical. If an empty relative value should be overwritten by an otherways matching marker.
 #' @param quiet For Measurements only. Logical. If TRUE, suppresses warnings.
 #' @return An updated version of the object, except for Measurements, which returns a data.frame representing the Measurements stored in the Measurements slot of the \linkS4class{ERGExam} object or the \linkS4class{ERGMeasurements} object-
 #' @seealso \link[EPhysData:EPhysSet-class]{EPhysData::EPhysSet-class} \link{Measurements-Methods} \link{Get}
@@ -303,7 +304,7 @@ setMethod("Measurements<-",
                         ChannelBinding = ChannelBinding
                       )
                   } else{
-                    stop("Marker does not exist in object.")
+                    stop(paste0("Marker '", Marker,"' does not exist in object."))
                   }
                 }
 
@@ -315,8 +316,7 @@ setMethod("Measurements<-",
                   rbind(X@Measurements, new.measurement)
 
               }
-              if (nrow(Measurements(X, where = where, Marker = Marker)) ==
-                  2) {
+              if (nrow.same > 2) {
                 stop(
                   "Malformed ERGMeasurements object. Multiple entries found for the given combination of 'where' and 'Marker'"
                 )
@@ -383,7 +383,7 @@ setMethod("Measurements<-",
 #' newERGMeasurements(data)
 #'
 #' @export newERGMeasurements
-newERGMeasurements <- function(data) {
+newERGMeasurements <- function(data, update.empty.relative = F) {
 
   if (!is.data.frame(data)) {
     stop("'data' must be a data frame.")
@@ -401,7 +401,7 @@ newERGMeasurements <- function(data) {
       rel <- NA
       # data[data$Channel == c &
       #        data$Name == m, ]
-      M <- AddMarker(M, m, rel, c)
+      M <- AddMarker(M, m, rel, c, update.empty.relative = update.empty.relative)
       for (r in data$Recording[data$Channel == c &
                                data$Name == m]) {
         suppressWarnings({
@@ -424,12 +424,18 @@ newERGMeasurements <- function(data) {
   for (c in unique(data$Channel[!is.na(data$Relative)])) {
     for (m in unique(data$Name[data$Channel == c &
                                        !is.na(data$Relative)])) {
-      print(m)
       rel <-
         unique(data$Relative[data$Channel == c &
                                data$Name == m])
+      if(length(rel)>1){
+        rel<-rel[!is.na(rel)]
+      }
+      if(length(rel)>1){
+        rel<-rel[1]
+        warning("More than one matching relatve reference found. Taking first none-NA")
+      }
       rel.idx<-which(Markers(M)==rel)
-      M <- AddMarker(M, m, rel.idx, c)
+      M <- AddMarker(M, m, rel.idx, c,update.empty.relative = update.empty.relative)
       for (r in data$Recording[data$Channel == c &
                                        data$Name == m]) {
         Measurements(

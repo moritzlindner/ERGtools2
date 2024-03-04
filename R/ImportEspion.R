@@ -30,7 +30,7 @@
 #' @importFrom EPhysData newEPhysData
 #' @name ImportEspion
 #' @export
-#'
+#' #(NA EXCLUDE REMOVED!!!! DOES THAT WORK??)
 ImportEspion <- function(filename,
                          sep = "\t",
                          Import = list ("Averaged", "Measurements"),
@@ -166,27 +166,24 @@ ImportEspion <- function(filename,
             if(length(val)==0){
               val<-NA
               warning(paste0("Marker '",measurements$Marker[r],"' not encountered in Protocol."))
-              print(measurements[r,])
               }
             measurements$Relative[r] <-val
-              
-
           }
         }
+        # importing relative prone to error, clearing
         measurements$Relative[measurements$Relative == ""] <- NA
-
       }
       measurements$Recording <- -1
     } else{
       measurements <-  data.frame()
     }
+
     if ("Data Table" %in% rownames(toc)) {
       tmp <- toc # modify to only get header of data table
       tmp$Right <-
         tmp$Left + 5 # maximum width, if results are included
       Data_Header <-
         na.exclude(get_content(filename, tmp, "Data Table", sep = sep))
-      Data_Header$Eye <- tmp$Eye
     }
 
     Metadata <- Data_Header[, c("Step", "Chan", "Result")]
@@ -198,53 +195,59 @@ ImportEspion <- function(filename,
     if (!is.null(Protocol)) {
       Metadata$Channel_Name <- "Unknown"
       for (i in 1:nrow(Metadata)) {
-        Metadata$Channel_Name[i] <-
-          Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Name
-        Metadata$Eye[i] <-
-          Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Eye
+        tryCatch({
+          if (Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Name !=
+              "false") {
+            Metadata$Channel_Name[i] <-
+              Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Name
+            Metadata$Eye[i] <-
+              Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Eye
 
-        inchanneldesc <-
-          str_detect(Metadata$Channel_Name[i], c("OD", "OS", "RE", "LE"))
-        if (!any(c("OD", "OS", "RE", "LE") %in% Metadata$Eye[i])) {
-          if (sum(inchanneldesc) == 1) {
-            Metadata$Eye[i] <- c("OD", "OS", "RE", "LE")[inchanneldesc]
-          }
-        }
-        if (sum(inchanneldesc) == 1) {
-          Metadata$Channel_Name[i] <-
-            str_remove(Metadata$Channel_Name[i], c("OD", "OS", "RE", "LE")[inchanneldesc])
-          Metadata$Channel_Name[i] <-
-            str_trim(Metadata$Channel_Name[i])
-        }
-        if (Metadata$Channel_Name[i] == "") {
-          curr_markers <-
-            unlist(lapply(Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Markers, function(x) {
-              x@Name
-            }))
-          if (all(c("a", "B") %in% curr_markers)) {
-            Metadata$Channel_Name[i] <- "ERG_auto"
-          }
-          if (all(c("OP1", "OP2", "OP3") %in% curr_markers)) {
-            Metadata$Channel_Name[i] <- "OP_auto"
-          }
-          suppressWarnings({
-            if (all(c("N1", "P1") == curr_markers)) {
-              Metadata$Channel_Name[i] <- "Flicker_auto"
+            inchanneldesc <-
+              str_detect(Metadata$Channel_Name[i], c("OD", "OS", "RE", "LE"))
+            if (!any(c("OD", "OS", "RE", "LE") %in% Metadata$Eye[i])) {
+              if (sum(inchanneldesc) == 1) {
+                Metadata$Eye[i] <- c("OD", "OS", "RE", "LE")[inchanneldesc]
+              }
             }
-            if (all(c("N1", "P1", "N2") == curr_markers)) {
-              Metadata$Channel_Name[i] <- "VEP_auto"
-
+            if (sum(inchanneldesc) == 1) {
+              Metadata$Channel_Name[i] <-
+                str_remove(Metadata$Channel_Name[i], c("OD", "OS", "RE", "LE")[inchanneldesc])
+              Metadata$Channel_Name[i] <-
+                str_trim(Metadata$Channel_Name[i])
             }
-          })
-          if (Metadata$Channel_Name[i] == "") {
-            Metadata$Channel_Name[i] <- "Unknown"
-          }
-        }
+            if (Metadata$Channel_Name[i] == "") {
+              curr_markers <-
+                unlist(lapply(Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Markers, function(x) {
+                  x@Name
+                }))
+              if (all(c("a", "B") %in% curr_markers)) {
+                Metadata$Channel_Name[i] <- "ERG_auto"
+              }
+              if (all(c("OP1", "OP2", "OP3") %in% curr_markers)) {
+                Metadata$Channel_Name[i] <- "OP_auto"
+              }
+              suppressWarnings({
+                if (all(c("N1", "P1") == curr_markers)) {
+                  Metadata$Channel_Name[i] <- "Flicker_auto"
+                }
+                if (all(c("N1", "P1", "N2") == curr_markers)) {
+                  Metadata$Channel_Name[i] <- "VEP_auto"
 
+                }
+              })
+              if (Metadata$Channel_Name[i] == "") {
+                Metadata$Channel_Name[i] <- "Unknown"
+              }
+            }
+          }
+        }, error = function(e){
+          stop("Importing Measurements with info from protocol file '", Protocol@Name, "' failed for ", filename, " with error message ", e, " for Step '", Metadata$Step[i], "' Channel '", Metadata$Channel[i], "' Result '", Metadata$Result[i], "'.")
+        })
       }
       Metadata$Recording <- 1:nrow(Metadata)
       measurements <-
-        merge(measurements, Metadata, by = c("Step", "Channel"))
+        merge(measurements, Metadata, by = c("Step", "Channel", "Result"))
       measurements$Eye <- measurements$Eye.y
       measurements$Eye.x <- NULL
       measurements$Eye.y <- NULL
@@ -260,55 +263,57 @@ ImportEspion <- function(filename,
 
     } else{
       if ("Measurements" %in% Import) {
-        tmp <- unique(measurements[, c("Step", "Eye", "Channel", "Repeat")])
+        tmp <-
+          unique(measurements[, c("Step", "Eye", "Channel", "Result")])
         for (s in unique(measurements$Step)) {
           for (c in unique(measurements$Channel[measurements$Step == s])) {
-            measurements[measurements$Step == s &
-                           measurements$Channel == c, "Recording"] <-
-              which(Metadata$Step == s & Metadata$Channel == c)
-            curr_markers <- measurements[measurements$Step == s &
-                                           measurements$Channel == c, "Marker"]
-            Metadata$Eye[Metadata$Step == s &
-                           Metadata$Channel == c] <-
-              tmp$Eye[tmp$Step == s &
-                        tmp$Channel == c]
-            if (all(c("a", "B") %in% curr_markers)) {
-              Metadata$Channel[Metadata$Step == s &
-                                 Metadata$Channel == c] <-
-                "ERG_auto"
-
-              measurements$Channel[measurements$Step == s &
-                                     measurements$Channel == c] <-
-                "ERG_auto"
+            for (r in unique(measurements$Result[measurements$Step == s &
+                                                 measurements$Channel == c])) {
+              tryCatch({
+                current.measurement.idx <- (measurements$Step == s &
+                                              measurements$Channel == c &
+                                              measurements$Result == r)
+                current.metadata.idx <- (Metadata$Step == s &
+                                           Metadata$Channel == c &
+                                           Metadata$Result == r)
+                measurements[current.measurement.idx, "Recording"] <-
+                  which(Metadata$Step == s &
+                          Metadata$Channel == c & Metadata$Result == r)
+                curr_markers <-
+                  measurements[current.measurement.idx, "Marker"]
+                Metadata$Eye[current.metadata.idx] <-
+                  as.std.eyename(tmp$Eye[tmp$Step == s &
+                                           tmp$Channel == c &
+                                           tmp$Result == r])
+                if (all(c("a", "B") %in% curr_markers)) {
+                  Metadata$Channel[current.metadata.idx] <-
+                    "ERG_auto"
+                  measurements$Channel[current.measurement.idx] <-
+                    "ERG_auto"
+                }
+                if (all(c("OP1", "OP2", "OP3") %in% curr_markers)) {
+                  Metadata$Channel[current.metadata.idx] <- "OP_auto"
+                  measurements$Channel[current.measurement.idx] <-
+                    "OP_auto"
+                }
+                suppressWarnings({
+                  if (all(c("N1", "P1") == curr_markers)) {
+                    Metadata$Channel[current.metadata.idx] <-
+                      "ERG_Flicker"
+                    measurements$Channel[current.measurement.idx] <-
+                      "ERG_Flicker"
+                  }
+                  if (all(c("N1", "P1", "N2") == curr_markers)) {
+                    Metadata$Channel[current.metadata.idx] <-
+                      "VEP_auto"
+                    measurements$Channel[current.measurement.idx] <-
+                      "VEP_auto"
+                  }
+                })
+              }, error = function(e) {
+                stop("Importing Measurements failed for ", filename, " with error message ", e, " for Step '", s, "' Channel '", c, "' Result '", r, "'.")
+              })
             }
-            if (all(c("OP1", "OP2", "OP3") %in% curr_markers)) {
-              Metadata$Channel[Metadata$Step == s &
-                                 Metadata$Channel == c] <- "OP_auto"
-
-              measurements$Channel[measurements$Step == s &
-                                     measurements$Channel == c] <-
-                "OP_auto"
-            }
-            suppressWarnings({
-              if (all(c("N1", "P1") == curr_markers)) {
-                Metadata$Channel[Metadata$Step == s &
-                                   Metadata$Channel == c] <-
-                  "ERG_Flicker"
-
-                measurements$Channel[measurements$Step == s &
-                                       measurements$Channel == c] <-
-                  "ERG_Flicker"
-              }
-              if (all(c("N1", "P1", "N2") == curr_markers)) {
-                Metadata$Channel[Metadata$Step == s &
-                                   Metadata$Channel == c] <-
-                  "VEP_auto"
-
-                measurements$Channel[measurements$Step == s &
-                                       measurements$Channel == c] <-
-                  "VEP_auto"
-              }
-            })
           }
         }
       } else {
@@ -337,117 +342,119 @@ ImportEspion <- function(filename,
                           initial = 0)
       for (i in 1:dim(Data_Header)[1]) {
         setTxtProgressBar(pb, i)
-        if (as.numeric(Data_Header$Chan[i]) == T) {
-          # get time trace
-          TimeTrace <- (na.exclude(
-            fread(
+        tryCatch({
+          if (as.numeric(Data_Header$Chan[i]) == T) {
+            # get time trace
+            TimeTrace <- (
+              fread(
+                filename,
+                select = Data_Header[i, "Column"],
+                nrows = toc["Data Table", "Bottom"] -
+                  toc["Data Table", "Top"],
+                skip = toc["Data Table", "Top"] -
+                  1,
+                data.table = F,
+                header = F
+              )
+            )[, 1]
+            TimeUnit <- fread(
               filename,
               select = Data_Header[i, "Column"],
-              nrows = toc["Data Table", "Bottom"] -
-                toc["Data Table", "Top"],
-              skip = toc["Data Table", "Top"] -
-                1,
+              nrows = 1,
+              skip = toc["Data Table", "Top"] - 2,
               data.table = F,
               header = F
-            )
-          ))[, 1]
-          TimeUnit <- fread(
-            filename,
-            select = Data_Header[i, "Column"],
-            nrows = 1,
-            skip = toc["Data Table", "Top"] - 2,
-            data.table = F,
-            header = F
-          )[1, 1]
+            )[1, 1]
 
-          TimeUnit <-
-            gsub("[\\(\\)]", "", regmatches(TimeUnit, gregexpr("\\(.*?\\)", TimeUnit))[[1]])
-          TimeTrace <- as_units(TimeTrace, TimeUnit)
-          TimeTrace <- TimeTrace[!is.na(TimeTrace)]
-        }
+            TimeUnit <-
+              gsub("[\\(\\)]", "", regmatches(TimeUnit, gregexpr("\\(.*?\\)", TimeUnit))[[1]])
+            TimeTrace <- as_units(TimeTrace, TimeUnit)
+            TimeTrace <- TimeTrace[!is.na(TimeTrace)]
+          }
 
-        if (("Result" %in% colnames(Data_Header)) &&
-            ("Averaged" %in% Import)) {
-          # get Averages / "Results"
-          resulttrace <- (na.exclude(
-            fread(
+          if (("Result" %in% colnames(Data_Header)) &&
+              ("Averaged" %in% Import)) {
+            # get Averages / "Results"
+            resulttrace <- (
+              fread(
+                filename,
+                select = Data_Header[i, "Column.1"],
+                nrows = toc["Data Table", "Bottom"] -
+                  toc["Data Table", "Top"],
+                skip = toc["Data Table", "Top"] -
+                  1,
+                data.table = F,
+                header = F
+              )
+            )[, 1]
+            if (all(resulttrace == 0)) {
+              stop(
+                "Raw trace is empty. Re-export table or run ImportEspionMeasures instead, to only import measures."
+              )
+            }
+            resultunit <- fread(
               filename,
               select = Data_Header[i, "Column.1"],
-              nrows = toc["Data Table", "Bottom"] -
-                toc["Data Table", "Top"],
-              skip = toc["Data Table", "Top"] -
-                1,
+              nrows = 1,
+              skip = toc["Data Table", "Top"] - 2,
               data.table = F,
               header = F
-            )
-          ))[, 1]
-          if (all(resulttrace == 0)) {
-            stop(
-              "Raw trace is empty. Re-export table or run ImportEspionMeasures instead, to only import measures."
-            )
+            )[1, 1]
+
+            resultunit <-
+              gsub("[\\(\\)]", "", regmatches(resultunit, gregexpr("\\(.*?\\)", resultunit))[[1]])
+            resulttrace <- as_units(resulttrace, resultunit)
+            resulttrace <- resulttrace[!is.na(resulttrace)]
+
+            STEPS[[i]] <-
+              newEPhysData(Data = resulttrace,
+                           TimeTrace = TimeTrace)
           }
 
-          resultunit <- fread(
-            filename,
-            select = Data_Header[i, "Column.1"],
-            nrows = 1,
-            skip = toc["Data Table", "Top"] - 2,
-            data.table = F,
-            header = F
-          )[1, 1]
-
-          resultunit <-
-            gsub("[\\(\\)]", "", regmatches(resultunit, gregexpr("\\(.*?\\)", resultunit))[[1]])
-          resulttrace <- as_units(resulttrace, resultunit)
-          resulttrace <- resulttrace[!is.na(resulttrace)]
-
-          STEPS[[i]] <-
-            newEPhysData(Data = resulttrace,
-                         TimeTrace = TimeTrace)
-        }
-
-        if ("Trials" %in% colnames(Data_Header) &&
-            ("Raw" %in% Import)) {
-          trialtraces <- (na.exclude(
-            fread(
+          if ("Trials" %in% colnames(Data_Header) &&
+              ("Raw" %in% Import)) {
+            trialtraces <- (
+              fread(
+                filename,
+                select = c((Data_Header[i, "Column.1"] +
+                              1):(Data_Header[i, "Column.1"] + Data_Header[i, "Trials"])),
+                nrows = toc["Data Table", "Bottom"] -
+                  toc["Data Table", "Top"],
+                skip = toc["Data Table", "Top"] -
+                  1,
+                data.table = F,
+                header = F
+              )
+            )
+            trialunits <- fread(
               filename,
-              select = c((Data_Header[i, "Column.1"] +
-                            1):(Data_Header[i, "Column.1"] + Data_Header[i, "Trials"])),
-              nrows = toc["Data Table", "Bottom"] -
-                toc["Data Table", "Top"],
-              skip = toc["Data Table", "Top"] -
-                1,
+              select = c((Data_Header[i, "Column.1"] + 1):(Data_Header[i, "Column.1"] +
+                                                             Data_Header[i, "Trials"])),
+              nrows = 1,
+              skip = toc["Data Table", "Top"] - 2,
               data.table = F,
               header = F
             )
-          ))
-          trialunits <- fread(
-            filename,
-            select = c((Data_Header[i, "Column.1"] + 1):(Data_Header[i, "Column.1"] +
-                                                           Data_Header[i, "Trials"])),
-            nrows = 1,
-            skip = toc["Data Table", "Top"] - 2,
-            data.table = F,
-            header = F
-          )
+            trialunits <-
+              unique(gsub("[\\(\\)]", "", regmatches(
+                trialunits, gregexpr("\\(.*?\\)", trialunits)
+              )[[1]]))
+            if (length(trialunits) > 1) {
+              stop("Error importing individual trials. distict units detected.")
+            }
 
-          trialunits <-
-            unique(gsub("[\\(\\)]", "", regmatches(
-              trialunits, gregexpr("\\(.*?\\)", trialunits)
-            )[[1]]))
-          if (length(trialunits) > 1) {
-            stop("Error importing individual trials. distict units detected.")
+            trialtraces <-
+              as.matrix(trialtraces[apply(trialtraces, 1, function(x) {
+                all(!is.na(x))
+              }), ])
+            trialtraces <- as_units(trialtraces, trialunits)
+            STEPS[[i]] <-
+              newEPhysData(Data = trialtraces,
+                           TimeTrace = TimeTrace)
           }
-
-          trialtraces <-
-            as.matrix(trialtraces[apply(trialtraces, 1, function(x) {
-              all(!is.na(x))
-            }),])
-          trialtraces <- as_units(trialtraces, trialunits)
-          STEPS[[i]] <-
-            newEPhysData(Data = trialtraces,
-                         TimeTrace = TimeTrace)
-        }
+        }, error = function (e){
+          stop("Importing Data failed for ", filename, " with error message ", e, " for Step '", Data_Header$Step[i], "' Channel '", Data_Header$Channel[i], "' Result '", Data_Header$Result[i], "'.")
+        })
       }
       close(pb)
     }
@@ -462,14 +469,15 @@ ImportEspion <- function(filename,
       colnames(measurements)[colnames(measurements) == "Marker"] <-
         "Name"
 
-      if (is.null(measurements$Relative)) {
-        measurements$Relative <- NA
-        measurements$Relative[measurements$Name == "B"] <- "a"
-        measurements$Relative[measurements$Name == "N1"] <- "P1"
-        measurements$Relative[measurements$Name == "P2"] <- "P1"
-      }
+      # if (is.null(measurements$Relative)) {
+      #   measurements$Relative <- NA
+      #   measurements$Relative[measurements$Name == "B"] <- "a"
+      #   measurements$Relative[measurements$Name == "N1"] <- "P1"
+      #   measurements$Relative[measurements$Name == "P2"] <- "P1"
+      # }
+      measurements$Relative <- NA # Relative slot very error prone. set empty.
 
-      M <- newERGMeasurements(measurements)
+      M <- newERGMeasurements(measurements, update.empty.relative = T)
     } else {
       M <- newERGMeasurements(data.frame(Channel=character(),Name=character(),Recording=numeric(),Time=numeric(),Relative=character()))
     }
@@ -483,6 +491,9 @@ ImportEspion <- function(filename,
     ExamDate <-
       as.POSIXct.numeric(as.numeric(ExamDate), origin = "1970-01-01 00:00.00 UTC")
 
+    #NEWFEATURE return metadata table if only metatdata requested for import or make other fx.
+
+    # else, return object.
     newERGExam(
       Data = STEPS,
       Metadata = Metadata,
@@ -623,7 +634,7 @@ get_measurements <- function(filename, toc, sep) {
   colnames(measurements)[colnames(measurements) == "Name.1"] <-
     "Marker"
   colnames(measurements)[colnames(measurements) == "R"] <-
-    "Repeat"
+    "Result" # Was Repeat
 
   TimeUnit <-enc2utf8( colnames(measurements)[colnames(measurements) == "ms"])
   colnames(measurements)[colnames(measurements) == "ms"] <- "Time"

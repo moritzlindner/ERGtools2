@@ -24,7 +24,7 @@ After setting the functions, the accession methods inherited from \link[EPhysDat
 \itemize{
 \item \link[=newERGExam]{newERGExam} and \link[=ImportEspion]{ImportEspion} for \link[=ERGExam]{ERGExam} objects. \cr
 \item \link[methods:new]{methods:new} and \link[=ImportEspionProtocol]{ImportEspionProtocol} for \link[=ERGProtocol]{ERGProtocol} objects. Experimental. \cr
-\item \link[methods:new]{methods:new} for \link[=ERGMeasurements]{ERGMeasurements-class} objects. \cr
+\item \link[methods:new]{methods:new} for \link[=ERGMeasurements-class]{ERGMeasurements-class} objects. \cr
 \item data(ERG) (\link[=ERGExam-data]{.SampleERGExam}) Load example ERG recording \cr\cr
 \item data(Measurements.data) (\link[=ERGMeasurements-data]{.SampleERGMeasurements}) Load example Measurements data \cr\cr
 }

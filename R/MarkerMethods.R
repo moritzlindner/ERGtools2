@@ -7,6 +7,7 @@
 #' @param ChannelBinding For AddMarker and DropMarker only. Channel to which the marker belongs. Usually defined by the Parent \linkS4class{ERGExam} object. Set to NA if not required.
 #' @param Relative For AddMarker and Measurements<- only. Index of the marker the new marker is relative to.
 #' @param drop.dependent For DropMarker and DropMeasurement only. Logical. If TRUE, dependent markers will also be dropped. If FALSE, fails if there are markes dependent on that removed.
+#' @param update.empty.relative Logical. If an empty relative value should be overwritten by an otherways matching marker.
 #' @return An updated version of the object, except for Markers, which returns a data.frame representing the Markers stored in the the \linkS4class{ERGExam} or the \linkS4class{ERGMeasurements} object.
 #' @seealso \link[EPhysData:EPhysSet-class]{EPhysData::EPhysSet-class} \link{Measurements-Methods} \link{Get}
 #' @examples
@@ -43,8 +44,9 @@ setGeneric(
   name = "AddMarker",
   def = function(X,
                  Marker,
-                 Relative,
-                 ChannelBinding) {
+                 Relative = NA,
+                 ChannelBinding,
+                 update.empty.relative=F) {
     standardGeneric("AddMarker")
   }
 )
@@ -52,19 +54,28 @@ setGeneric(
 #' @noMd
 setMethod("AddMarker",
           "ERGMeasurements",
-          function(X, Marker, Relative, ChannelBinding) {
-            # Check if the new marker is valid
-            existing_markers <- unique(X@Marker$Name[X@Marker$ChannelBinding==ChannelBinding])
-            if(length(existing_markers)>0){
-              if (Marker %in% existing_markers) {
-                stop("Marker name already exists in the Marker slot")
-              }
-            }
+          function(X, Marker, Relative, ChannelBinding, update.empty.relative=F) {
+
             if(is.null(Relative)){
               stop("'Relative' must be set, either to a valid marker name or to NA, if the new marker is not a relative marker." )
             }
+
+            if(length(Relative)==0){
+              Relative<-NA
+            }
+
             if(is.null(ChannelBinding)){
               stop("'ChannelBinding' should be set to any valid channel of the parent object. However, can be set to NA, if not required." )
+            }
+
+            if(length(Relative)>1){
+              Relative<-Relative[!is.na(Relative)]
+              if(length(Relative)>1){
+                Relative<-Relative[1]
+                warning("Multiple non-na values for 'Relative' provided. Taking first.")
+              } else {
+                warning("Multiple values for 'Relative' provided. Removing NA.")
+              }
             }
 
             if (!is.na(Relative) &&
@@ -74,6 +85,43 @@ setMethod("AddMarker",
             if (!is.na(Relative)) {
               if(!is.numeric(Relative))
                 stop("'Relative' must be a numeric pointing to an existing marker in the Marker slot")
+            }
+
+            # Check if the new marker is valid
+            existing_markers <-
+              unique(X@Marker$Name[X@Marker$ChannelBinding == ChannelBinding])
+
+            if(length(existing_markers)>0){
+
+              if (Marker %in% existing_markers) {
+                if (X@Marker$Relative[X@Marker$ChannelBinding == ChannelBinding & X@Marker$Name == Marker] %in% Relative) {
+                  message("This marker is already present in the object. doing nothing.")
+                  return(X)
+                } else {
+                  if (update.empty.relative) {
+                    message("An empty relative slot is being overwritten.")
+                    X@Marker$Relative[X@Marker$ChannelBinding == ChannelBinding & X@Marker$Name == Marker] <-
+                      Relative
+                    if (validObject(X)) {
+                      return(X)
+                    }
+                  } else {
+                    stop(
+                      paste0(
+                        "A Marker with the same name ('",
+                        Marker,
+                        "') but incompatible parent markers (Existing: '",
+                        X@Marker$Relative[X@Marker$ChannelBinding == ChannelBinding & X@Marker$Name == Marker] ,
+                        "', New: '",
+                        Relative,
+                        "' ) already exists in the Marker slot for the respective Channel ('",
+                        ChannelBinding,
+                        "')."
+                      )
+                    )
+                  }
+                }
+              }
             }
             new_row <-
               data.frame(Name = Marker,

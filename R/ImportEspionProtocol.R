@@ -162,7 +162,44 @@ ImportEspionProtocol<-function(filename){
       currChan<-new("ERGChannel")
       curr<-ChannelList[[c]][,s, drop=F]
       currChan@Name<-curr["Name",1]
-      currChan@Eye<-curr["Eye being tested",1]
+      tryCatch({
+        currChan@Eye<-as.std.eyename(curr["Eye being tested",1])
+      }, error = function (e){
+        eye.haystack<- c(
+          "OD",
+          "RE",
+          "Rechts",
+          "Right",
+          "Dexter",
+          "od",
+          "re",
+          "rechts",
+          "right",
+          "dexter",
+          "OS",
+          "LE",
+          "Links",
+          "Left",
+          "Sinister",
+          "os",
+          "le",
+          "links",
+          "left",
+          "sinister"
+        )
+        inchanneldesc <- str_detect(currChan@Name, eye.haystack)
+        if(sum(inchanneldesc)==1){
+          currChan@Eye <- eye.haystack[inchanneldesc]
+          orig.ch.name<-currChan@Name
+          currChan@Name <-
+            str_remove(currChan@Name, eye.haystack[inchanneldesc])
+          currChan@Name  <-
+            str_trim(currChan@Name)
+          message("Eye identifier ('", currChan@Eye, "') in '", filename, "' Step '", s, "' Channel '", c, "'. Channel Name: '", currChan@Name, "' was rerieved from channel name ('", orig.ch.name, "'). ")
+        } else {
+          warning("No valid Eye identifier in  '", filename, "', Step '", s, "' Channel '", c, "'. Channel Name: '", currChan@Name, "'. Error message: ", e, ". Consider correcting manually. ")
+        }
+      })
       currChan@Enabled<-curr["Enabled",1]=="On"
       currChan@LowFreqCutoff<-curr["Filter low frequency cutoff",1]
       currChan@HighFreqCutoff<-curr["Filter high frequency cutoff",1]

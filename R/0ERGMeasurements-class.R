@@ -14,7 +14,7 @@ validERGMeasurements <- function(object) {
   for (i in seq_len(nrow(object@Marker))) {
     if (!is.na(object@Marker$Relative[i])) {
       if (object@Marker$Relative[i] == i) {
-        return("Relative must not point back onto the same marker.")
+        return(paste0("Marker '", i,"' points to marker '", object@Marker$Name[object@Marker$Relative[i]], "' (Index: ", object@Marker$Relative[i], ") Relative must not point back onto the same marker."))
       }
     }
   }

@@ -14,7 +14,7 @@
 #' @section Object creation:
 #' * \link[=newERGExam]{newERGExam} and \link[=ImportEspion]{ImportEspion} for \link[=ERGExam]{ERGExam} objects. \cr
 #' * \link[methods:new]{methods:new} and \link[=ImportEspionProtocol]{ImportEspionProtocol} for \link[=ERGProtocol]{ERGProtocol} objects. Experimental. \cr
-#' * \link[methods:new]{methods:new} for \link[=ERGMeasurements]{ERGMeasurements-class} objects. \cr
+#' * \link[methods:new]{methods:new} for \link[=ERGMeasurements-class]{ERGMeasurements-class} objects. \cr
 #' * data(ERG) (\link[=ERGExam-data]{.SampleERGExam}) Load example ERG recording \cr\cr
 #' * data(Measurements.data) (\link[=ERGMeasurements-data]{.SampleERGMeasurements}) Load example Measurements data \cr\cr
 #'

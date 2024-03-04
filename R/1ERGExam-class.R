@@ -17,33 +17,43 @@ validERGExam <- function(object) {
   # Rejected (inEPhysRaw) - must be the same across all channels within one eye
   for (s in unique(object@Metadata$Step)) {
     for (e in unique(object@Metadata$Eye[object@Metadata$Step == s])) {
-      ids.equal <-
-        which(object@Metadata$Step == s & object@Metadata$Eye == e)
-      feature.list <- lapply(object@Data[ids.equal], Rejected)
-      feature.df <- tryCatch(
-        as.data.frame(do.call(cbind, feature.list)),
-        error = function(er) {
-          stop(
-            "'Rejected' slots are filled with vectors of unequal length in step ",
-            s,
-            "eye",
-            e,
-            "."
-          )
+      for (r in unique(object@Metadata$Result[object@Metadata$Step == s &
+                                              object@Metadata$Eye == e])) {
+        ids.equal <-
+          object@Metadata$Step == s & object@Metadata$Eye == e & object@Metadata$Result == r
+        feature.list <- lapply(object@Data[ids.equal], Rejected)
+        if (length(unique(unlist(lapply(feature.list,length))))!=1){
+          stop(paste0("Step '", s, "', Eye '", e, "', Repeat ,'", r, "': Unequal amount of recordings for the different channels."))
         }
-      )
-      if (!all(apply(feature.df, 1, function(x) {
-        if (length(x) > 1) {
-          var(x) == 0
-        } else{
-          TRUE
+        feature.df <- tryCatch(
+          as.data.frame(do.call(cbind, feature.list)),
+          error = function(er) {
+            stop(
+              paste0(
+                "Step '",
+                s,
+                "', Eye '",
+                e,
+                "', Repeat ,'",
+                r,
+                "': 'Rejected' slots are filled with vectors of unequal length in step ."
+              )
+            )
+          }
+        )
+        if (!all(apply(feature.df, 1, function(x) {
+          if (length(x) > 1) {
+            var(x) == 0
+          } else{
+            TRUE
+          }
+        }))) {
+          warnings("'Rejected' vectors are not identical across channels in step ",
+                   s,
+                   " eye ",
+                   e,
+                   ".")
         }
-      }))) {
-        warnings("'Rejected' vectors are not identical across channels in step ",
-             s,
-             " eye ",
-             e,
-             ".")
       }
     }
   }
@@ -193,7 +203,7 @@ validERGExam <- function(object) {
 #'   \item{Step}{A character vector containing the step name. A step describes data recorded in response to the same type of stimulus.}
 #'   \item{Eye}{A character vector. Possible values "RE" (right eye) and "LE" (left eye).}
 #'   \item{Channel}{A character vector containing the channel name. This can be "ERG", "VEP" or "OP" for instance.}
-#'   \item{Channel}{A numeric vector containing the indices of individual results contained in an ERG exam. E.g., if a recording to one identical stimulus is performed twice, these would be distinguished by different indices in the Result column. Warning: This is currently experimental}
+#'   \item{Result}{A numeric vector containing the indices of individual results contained in an ERG exam. E.g., if a recording to one identical stimulus is performed twice, these would be distinguished by different indices in the Result column. Warning: This is currently experimental}
 #' }
 #'
 #' @slot Stimulus
@@ -395,6 +405,7 @@ newERGExam <-
 
     # Set the values for the slots
     obj@Data <- Data
+    Metadata$Eye <- as.std.eyename(Metadata$Eye)
     obj@Metadata <- Metadata
     obj@Stimulus <- Stimulus
     obj@Averaged <- Averaged
