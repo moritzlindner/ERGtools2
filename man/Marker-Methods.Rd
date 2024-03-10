@@ -7,7 +7,7 @@
 \alias{Markers}
 \title{Access and Modify the Markers Stored in an ERGExam or ERGMeasurements Object}
 \usage{
-AddMarker(X, Marker, Relative, ChannelBinding)
+AddMarker(X, Marker, Relative = NA, ChannelBinding, update.empty.relative = F)
 
 DropMarker(X, Marker, ChannelBinding, drop.dependent = FALSE)
 
@@ -21,6 +21,8 @@ Markers(X)
 \item{Relative}{For AddMarker and Measurements<- only. Index of the marker the new marker is relative to.}
 
 \item{ChannelBinding}{For AddMarker and DropMarker only. Channel to which the marker belongs. Usually defined by the Parent \linkS4class{ERGExam} object. Set to NA if not required.}
+
+\item{update.empty.relative}{Logical. If an empty relative value should be overwritten by an otherways matching marker.}
 
 \item{drop.dependent}{For DropMarker and DropMeasurement only. Logical. If TRUE, dependent markers will also be dropped. If FALSE, fails if there are markes dependent on that removed.}
 }

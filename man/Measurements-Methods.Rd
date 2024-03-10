@@ -45,7 +45,7 @@ Measurements(
   ChannelBinding = NULL
 ) <- value
 
-newERGMeasurements(data)
+newERGMeasurements(data, update.empty.relative = F)
 
 ClearMeasurements(X)
 }
@@ -68,6 +68,8 @@ ClearMeasurements(X)
 
 \item{data}{For newERGMeasurements only. A data frame containing measurements data with columns:
 \code{Channel}, \code{Name}, \code{Recording}, \code{Time}, and \code{Relative}.}
+
+\item{update.empty.relative}{Logical. If an empty relative value should be overwritten by an otherways matching marker.}
 }
 \value{
 An updated version of the object, except for Measurements, which returns a data.frame representing the Measurements stored in the Measurements slot of the \linkS4class{ERGExam} object or the \linkS4class{ERGMeasurements} object-

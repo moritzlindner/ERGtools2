@@ -1,4 +1,4 @@
-#' Import ERG data and measurements from an Eosion CSV file
+#' Import ERG data and measurements from an Espion CSV file
 #'
 #'
 #' This function imports ERG recordings from *.csv files exported from the Diagnosys Espion™ software and creates an \link[=ERGExam]{ERGExam} object.
@@ -12,6 +12,7 @@
 #' @param Import A list of character vectors specifying which parts of the data to import.
 #'   Possible elements are "Raw" - for importing the raw recordings, "Averaged" - for importing the averaged recordings ("Results"), and "Measurements" - for importing the measured markers. Either of "Raw" or "Averaged" must be selected.
 #' @param Protocol An S4 object of class \link[Protocol]{ERGProtocol()} or a list thereof.
+#' @inheritParams Where
 #' @seealso \linkS4class{ERGExam} \link[Protocol]{ERGProtocol()}
 #'
 #' @examples
@@ -20,24 +21,32 @@
 #' ERG_Experiment <- ImportEspion("test.csv")
 #' }
 #'
-#' @return A \linkS4class{ERGExam} object.
+#' @return For ImportEspion: A \linkS4class{ERGExam} object.
 #'
 #' @importFrom data.table fread
 #' @importFrom units as_units
 #' @importFrom utils read.csv txtProgressBar setTxtProgressBar
 #' @importFrom stats na.exclude
-#' @importFrom stringr str_detect str_remove str_trim
+#' @importFrom stringr str_detect str_remove str_trim str_replace_all regex
 #' @importFrom EPhysData newEPhysData
 #' @name ImportEspion
 #' @export
-#' #(NA EXCLUDE REMOVED!!!! DOES THAT WORK??)
 ImportEspion <- function(filename,
                          sep = "\t",
                          Import = list ("Averaged", "Measurements"),
-                         Protocol = NULL) {
+                         Protocol = NULL,
+                         where = NULL) {
+  #(NA.EXCLUDE REMOVED!!!! DOES THAT WORK??)
   message(paste("Importing", filename))
 
   # Checks
+
+  if (!file.exists(filename)) {
+    stop("File ", filename, " does not exist")
+  }
+  if (sep != "\t") {
+    message("Import using fiels separators other than '\t' untested.")
+  }
 
   if (is.null(Protocol)) {
     warning(
@@ -65,13 +74,6 @@ ImportEspion <- function(filename,
     stop("Exactly one of 'Raw' and 'Averaged' must be selected for import.")
   }
 
-  if (!file.exists(filename)) {
-    stop("File ", filename, " does not exist")
-  }
-  if (sep != "\t") {
-    message("Import using fiels separators other than '\t' not tested.")
-  }
-
   if (!(all(Import %in% list ("Raw", "Averaged", "Measurements")))) {
     stop("'Import' must be one or several of the following: 'Raw','Averaged','Measurements'")
   }
@@ -80,571 +82,210 @@ ImportEspion <- function(filename,
   if (read.csv(filename,
                header = F,
                sep = sep,
-               nrow = 1)[1] == "Contents Table") {
-    # get Table of content
-    toc <- get_toc(filename, sep = sep)
-
-    if (!all(c(
-      "Header Table",
-      "Marker Table",
-      "Stimulus Table",
-      "Data Table"
-    ) %in% (rownames(toc)))) {
-      stop(
-        "'Header Table', 'Marker Table', 'Stimulus Table' and 'Data Table' must all be included in the data set (even if they should not be imported). At least one of these is missing."
-      )
-    }
-
-    # get protocol info
-    recording_info <-
-      get_content(filename, toc, "Header Table", sep = sep)
-    rownames(recording_info) <- recording_info$Parameter
-    recording_info$Parameter <- NULL
-    if (!all(
-      c(
-        "Protocol",
-        "Version",
-        "Date performed",
-        "Test method",
-        "Animal #",
-        "DOB"
-      ) %in%  rownames(recording_info)
-    )) {
-      stop(
-        "Table of content incomplete. Have these data been exported as anonymous? This is currently unsupported"
-      )
-    }
-
-    # Get Protocol info
-    if (!is.null(Protocol)) {
-      tmp1 <- sub(" \\[.*", "", recording_info["Protocol", "Value"])
-      if (is.list(Protocol)) {
-        idx <- which(tmp1 == unlist(lapply(Protocol, function(x) {
-          x@Name
-        })))
-        if (length(idx) == 0) {
-          stop("Required protocol not in list.")
-        }
-        if (length(idx) > 1) {
-          stop("Duplicate protocol entry in 'Protocols' list.")
-        }
-        Protocol <- Protocol[[idx]]
-      } else{
-        if (Protocol@Name != tmp1) {
-          stop("Provided protocol is not the required.")
-        }
-      }
-    }
-
-    # Get stimulus information
-    stim_info <- get_stim_info(filename, toc, sep)
-
-    if (!is.null(Protocol)) {
-      for (i in 1:nrow(stim_info)) {
-        stim_info$Background[i] <-
-          Protocol@Step[[stim_info$Step[i]]]@Adaptation
-      }
-
-    }
-
-    # Get Measurements
-    if ("Measurements" %in% Import) {
-      measurements <- get_measurements(filename, toc, sep)
-
-      # get RelativeTo
-      measurements$Relative <- as.character(NA)
-      if (!is.null(Protocol)) {
-        for (r in 1:nrow(measurements)) {
-          curr_markers <-
-            Protocol@Step[[measurements$Step[r]]]@Channels[[measurements$Channel[r]]]@Markers
-          curr_markers <- (lapply(curr_markers, function(x) {
-            c(x@Name, x@RelativeTo)
-          }))
-          curr_markers <- do.call(rbind, curr_markers)
-          if (!is.null(curr_markers)) {
-            val<-curr_markers[curr_markers[, 1] == measurements$Marker[r], 2]
-            if(length(val)==0){
-              val<-NA
-              warning(paste0("Marker '",measurements$Marker[r],"' not encountered in Protocol."))
-              }
-            measurements$Relative[r] <-val
-          }
-        }
-        # importing relative prone to error, clearing
-        measurements$Relative[measurements$Relative == ""] <- NA
-      }
-      measurements$Recording <- -1
-    } else{
-      measurements <-  data.frame()
-    }
-
-    if ("Data Table" %in% rownames(toc)) {
-      tmp <- toc # modify to only get header of data table
-      tmp$Right <-
-        tmp$Left + 5 # maximum width, if results are included
-      Data_Header <-
-        na.exclude(get_content(filename, tmp, "Data Table", sep = sep))
-    }
-
-    Metadata <- Data_Header[, c("Step", "Chan", "Result")]
-    colnames(Metadata)[colnames(Metadata) == "Chan"] <- "Channel"
-
-    Metadata$Eye <- "Unspecified"
-
-    # Define channel types
-    if (!is.null(Protocol)) {
-      Metadata$Channel_Name <- "Unknown"
-      for (i in 1:nrow(Metadata)) {
-        tryCatch({
-          if (Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Name !=
-              "false") {
-            Metadata$Channel_Name[i] <-
-              Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Name
-            Metadata$Eye[i] <-
-              Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Eye
-
-            inchanneldesc <-
-              str_detect(Metadata$Channel_Name[i], c("OD", "OS", "RE", "LE"))
-            if (!any(c("OD", "OS", "RE", "LE") %in% Metadata$Eye[i])) {
-              if (sum(inchanneldesc) == 1) {
-                Metadata$Eye[i] <- c("OD", "OS", "RE", "LE")[inchanneldesc]
-              }
-            }
-            if (sum(inchanneldesc) == 1) {
-              Metadata$Channel_Name[i] <-
-                str_remove(Metadata$Channel_Name[i], c("OD", "OS", "RE", "LE")[inchanneldesc])
-              Metadata$Channel_Name[i] <-
-                str_trim(Metadata$Channel_Name[i])
-            }
-            if (Metadata$Channel_Name[i] == "") {
-              curr_markers <-
-                unlist(lapply(Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Markers, function(x) {
-                  x@Name
-                }))
-              if (all(c("a", "B") %in% curr_markers)) {
-                Metadata$Channel_Name[i] <- "ERG_auto"
-              }
-              if (all(c("OP1", "OP2", "OP3") %in% curr_markers)) {
-                Metadata$Channel_Name[i] <- "OP_auto"
-              }
-              suppressWarnings({
-                if (all(c("N1", "P1") == curr_markers)) {
-                  Metadata$Channel_Name[i] <- "Flicker_auto"
-                }
-                if (all(c("N1", "P1", "N2") == curr_markers)) {
-                  Metadata$Channel_Name[i] <- "VEP_auto"
-
-                }
-              })
-              if (Metadata$Channel_Name[i] == "") {
-                Metadata$Channel_Name[i] <- "Unknown"
-              }
-            }
-          }
-        }, error = function(e){
-          stop("Importing Measurements with info from protocol file '", Protocol@Name, "' failed for ", filename, " with error message ", e, " for Step '", Metadata$Step[i], "' Channel '", Metadata$Channel[i], "' Result '", Metadata$Result[i], "'.")
-        })
-      }
-      Metadata$Recording <- 1:nrow(Metadata)
-      measurements <-
-        merge(measurements, Metadata, by = c("Step", "Channel", "Result"))
-      measurements$Eye <- measurements$Eye.y
-      measurements$Eye.x <- NULL
-      measurements$Eye.y <- NULL
-      measurements$Recording <- measurements$Recording.y
-      measurements$Recording.x <- NULL
-      measurements$Recording.y <- NULL
-      measurements$Channel <- measurements$Channel_Name
-      measurements$Result <- NULL
-      measurements$Channel_Name <- NULL
-
-      Metadata$Channel <- Metadata$Channel_Name
-      Metadata$Channel_Name <- NULL
-
-    } else{
-      if ("Measurements" %in% Import) {
-        tmp <-
-          unique(measurements[, c("Step", "Eye", "Channel", "Result")])
-        for (s in unique(measurements$Step)) {
-          for (c in unique(measurements$Channel[measurements$Step == s])) {
-            for (r in unique(measurements$Result[measurements$Step == s &
-                                                 measurements$Channel == c])) {
-              tryCatch({
-                current.measurement.idx <- (measurements$Step == s &
-                                              measurements$Channel == c &
-                                              measurements$Result == r)
-                current.metadata.idx <- (Metadata$Step == s &
-                                           Metadata$Channel == c &
-                                           Metadata$Result == r)
-                measurements[current.measurement.idx, "Recording"] <-
-                  which(Metadata$Step == s &
-                          Metadata$Channel == c & Metadata$Result == r)
-                curr_markers <-
-                  measurements[current.measurement.idx, "Marker"]
-                Metadata$Eye[current.metadata.idx] <-
-                  as.std.eyename(tmp$Eye[tmp$Step == s &
-                                           tmp$Channel == c &
-                                           tmp$Result == r])
-                if (all(c("a", "B") %in% curr_markers)) {
-                  Metadata$Channel[current.metadata.idx] <-
-                    "ERG_auto"
-                  measurements$Channel[current.measurement.idx] <-
-                    "ERG_auto"
-                }
-                if (all(c("OP1", "OP2", "OP3") %in% curr_markers)) {
-                  Metadata$Channel[current.metadata.idx] <- "OP_auto"
-                  measurements$Channel[current.measurement.idx] <-
-                    "OP_auto"
-                }
-                suppressWarnings({
-                  if (all(c("N1", "P1") == curr_markers)) {
-                    Metadata$Channel[current.metadata.idx] <-
-                      "ERG_Flicker"
-                    measurements$Channel[current.measurement.idx] <-
-                      "ERG_Flicker"
-                  }
-                  if (all(c("N1", "P1", "N2") == curr_markers)) {
-                    Metadata$Channel[current.metadata.idx] <-
-                      "VEP_auto"
-                    measurements$Channel[current.measurement.idx] <-
-                      "VEP_auto"
-                  }
-                })
-              }, error = function(e) {
-                stop("Importing Measurements failed for ", filename, " with error message ", e, " for Step '", s, "' Channel '", c, "' Result '", r, "'.")
-              })
-            }
-          }
-        }
-      } else {
-        warning(
-          "No information on type of recordings can be retrieved, consider including the 'Measurements' table from the raw file."
-        )
-      }
-    }
-
-    if (("Data Table" %in% rownames(toc))) {
-      tmp <- toc # modify to only get header of data table
-      tmp$Right <-
-        tmp$Left + 5 # maximum width, if results are included
-      Data_Header <-
-        na.exclude(get_content(filename, tmp, "Data Table", sep = sep))
-      Data_Header$Eye <- tmp$Eye
-      STEPS = vector("list", nrow(Data_Header))
-    }
-
-    # Get Data
-
-    if (("Data Table" %in% rownames(toc)) &&
-        any(c("Raw", "Averaged") %in% Import)) {
-      pb = txtProgressBar(min = 0,
-                          max = dim(Data_Header)[1],
-                          initial = 0)
-      for (i in 1:dim(Data_Header)[1]) {
-        setTxtProgressBar(pb, i)
-        tryCatch({
-          if (as.numeric(Data_Header$Chan[i]) == T) {
-            # get time trace
-            TimeTrace <- (
-              fread(
-                filename,
-                select = Data_Header[i, "Column"],
-                nrows = toc["Data Table", "Bottom"] -
-                  toc["Data Table", "Top"],
-                skip = toc["Data Table", "Top"] -
-                  1,
-                data.table = F,
-                header = F
-              )
-            )[, 1]
-            TimeUnit <- fread(
-              filename,
-              select = Data_Header[i, "Column"],
-              nrows = 1,
-              skip = toc["Data Table", "Top"] - 2,
-              data.table = F,
-              header = F
-            )[1, 1]
-
-            TimeUnit <-
-              gsub("[\\(\\)]", "", regmatches(TimeUnit, gregexpr("\\(.*?\\)", TimeUnit))[[1]])
-            TimeTrace <- as_units(TimeTrace, TimeUnit)
-            TimeTrace <- TimeTrace[!is.na(TimeTrace)]
-          }
-
-          if (("Result" %in% colnames(Data_Header)) &&
-              ("Averaged" %in% Import)) {
-            # get Averages / "Results"
-            resulttrace <- (
-              fread(
-                filename,
-                select = Data_Header[i, "Column.1"],
-                nrows = toc["Data Table", "Bottom"] -
-                  toc["Data Table", "Top"],
-                skip = toc["Data Table", "Top"] -
-                  1,
-                data.table = F,
-                header = F
-              )
-            )[, 1]
-            if (all(resulttrace == 0)) {
-              stop(
-                "Raw trace is empty. Re-export table or run ImportEspionMeasures instead, to only import measures."
-              )
-            }
-            resultunit <- fread(
-              filename,
-              select = Data_Header[i, "Column.1"],
-              nrows = 1,
-              skip = toc["Data Table", "Top"] - 2,
-              data.table = F,
-              header = F
-            )[1, 1]
-
-            resultunit <-
-              gsub("[\\(\\)]", "", regmatches(resultunit, gregexpr("\\(.*?\\)", resultunit))[[1]])
-            resulttrace <- as_units(resulttrace, resultunit)
-            resulttrace <- resulttrace[!is.na(resulttrace)]
-
-            STEPS[[i]] <-
-              newEPhysData(Data = resulttrace,
-                           TimeTrace = TimeTrace)
-          }
-
-          if ("Trials" %in% colnames(Data_Header) &&
-              ("Raw" %in% Import)) {
-            trialtraces <- (
-              fread(
-                filename,
-                select = c((Data_Header[i, "Column.1"] +
-                              1):(Data_Header[i, "Column.1"] + Data_Header[i, "Trials"])),
-                nrows = toc["Data Table", "Bottom"] -
-                  toc["Data Table", "Top"],
-                skip = toc["Data Table", "Top"] -
-                  1,
-                data.table = F,
-                header = F
-              )
-            )
-            trialunits <- fread(
-              filename,
-              select = c((Data_Header[i, "Column.1"] + 1):(Data_Header[i, "Column.1"] +
-                                                             Data_Header[i, "Trials"])),
-              nrows = 1,
-              skip = toc["Data Table", "Top"] - 2,
-              data.table = F,
-              header = F
-            )
-            trialunits <-
-              unique(gsub("[\\(\\)]", "", regmatches(
-                trialunits, gregexpr("\\(.*?\\)", trialunits)
-              )[[1]]))
-            if (length(trialunits) > 1) {
-              stop("Error importing individual trials. distict units detected.")
-            }
-
-            trialtraces <-
-              as.matrix(trialtraces[apply(trialtraces, 1, function(x) {
-                all(!is.na(x))
-              }), ])
-            trialtraces <- as_units(trialtraces, trialunits)
-            STEPS[[i]] <-
-              newEPhysData(Data = trialtraces,
-                           TimeTrace = TimeTrace)
-          }
-        }, error = function (e){
-          stop("Importing Data failed for ", filename, " with error message ", e, " for Step '", Data_Header$Step[i], "' Channel '", Data_Header$Channel[i], "' Result '", Data_Header$Result[i], "'.")
-        })
-      }
-      close(pb)
-    }
-
-    if ("Measurements" %in% Import) {
-      # Transfer Group info to recording_info table
-      if (is.null(unique(measurements$Group))) {
-        measurements$Group <- ""
-      }
-      recording_info["Group", 1] <- unique(measurements$Group)
-
-      colnames(measurements)[colnames(measurements) == "Marker"] <-
-        "Name"
-
-      # if (is.null(measurements$Relative)) {
-      #   measurements$Relative <- NA
-      #   measurements$Relative[measurements$Name == "B"] <- "a"
-      #   measurements$Relative[measurements$Name == "N1"] <- "P1"
-      #   measurements$Relative[measurements$Name == "P2"] <- "P1"
-      # }
-      measurements$Relative <- NA # Relative slot very error prone. set empty.
-
-      M <- newERGMeasurements(measurements, update.empty.relative = T)
-    } else {
-      M <- newERGMeasurements(data.frame(Channel=character(),Name=character(),Recording=numeric(),Time=numeric(),Relative=character()))
-    }
-
-    DOB <-
-      as.Date(as.character(recording_info["DOB", 1]), format =    "%d/%m/%Y")
-
-    ExamDate <-
-      as.POSIXct(strptime(recording_info["Date performed", 1], format =
-                            "%d/%m/%Y %H:%M:%S"))
-    ExamDate <-
-      as.POSIXct.numeric(as.numeric(ExamDate), origin = "1970-01-01 00:00.00 UTC")
-
-    #NEWFEATURE return metadata table if only metatdata requested for import or make other fx.
-
-    # else, return object.
-    newERGExam(
-      Data = STEPS,
-      Metadata = Metadata,
-      Stimulus = stim_info,
-      Measurements = M,
-      ExamInfo = list(
-        ProtocolName = recording_info["Protocol", 1],
-        Version = recording_info["Version", 1],
-        ExamDate = as.POSIXct(strptime(recording_info["Date performed", 1], format =
-                                         "%d/%m/%Y %H:%M:%S")),
-        Filename = filename,
-        RecMode = recording_info["Test method", 1],
-        Investigator = recording_info["Investigator", 1]
-      ),
-      SubjectInfo = list(
-        Subject = recording_info["Animal #", 1],
-        DOB = as.Date(as.character(recording_info["DOB", 1]), format =    "%d/%m/%Y"),
-        Gender = recording_info["Gender", 1],
-        Group = unique(measurements$Group)
-      )
-    )
-  } else{
+               nrow = 1)[[1]] != "Contents Table") {
     stop(paste(filename, " does not begin with a table of content."))
   }
-}
+  # get Table of content
+  toc <- get_toc(filename, sep = sep)
 
-get_toc <- function(filename, sep = "\t") {
-  toc <- fread(
-    filename,
-    sep = sep,
-    data.table = F,
-    skip = 1,
-    header = T,
-    blank.lines.skip = T,
-    select = c("Table", "Left", "Right", "Top", "Bottom"),
-    encoding = "UTF-8"
-  )
-
-  HeaderTabPos <-
-    which(toc$Table == "Header Table") # if vertical table, chop off after end of Header
-  if (length(HeaderTabPos) > 1) {
-    # "Header Table" found twice, so its a vertical table
-    EndOfTOC <-
-      min(which(toc$Table == "")[which(toc$Table == "") > HeaderTabPos[1]]) # this is the first blank line after TOC
-    toc <- toc[1:EndOfTOC, ]
+  if (!all(c("Header Table",
+             "Marker Table",
+             "Stimulus Table",
+             "Data Table") %in% (rownames(toc)))) {
+    stop(
+      "'Header Table', 'Marker Table', 'Stimulus Table' and 'Data Table' must all be included in the data set (even if they should not be imported). At least one of these is missing."
+    )
   }
 
-  toc = toc[!toc$Table == "", ]
-  tmp <- toc$Table
-  toc$Table <- NULL
-  toc <-
-    data.frame(apply(toc, 2, function(x)
-      as.numeric(as.character(x))))
-  rownames(toc) <- tmp
 
-  # check if Header and Stimulus Info present
-  if (!sum(rownames(toc) %in% c("Header Table", "Stimulus Table")) == 2) {
-    stop("Table of content incomplete.")
+  # get protocol info
+  recording_info <- ImportEspionInfo(filename)
+  if (!all(
+    c(
+      "Protocol",
+      "Version",
+      "Dateperformed",
+      "Testmethod",
+      "Animal",
+      "DOB"
+    ) %in%  names(recording_info)
+  )) {
+    stop(
+      "Table of content incomplete. Have these data been exported as anonymous? This is currently unsupported"
+    )
   }
 
-  return(toc)
-}
-
-#' @importFrom data.table fread
-get_content <- function(filename, toc, what, sep = "\t") {
-  #Sys.setlocale("LC_ALL", "C")
-  recording_info <- fread(
-    filename,
-    sep = sep,
-    select = toc[what, "Left"]:toc[what, "Right"],
-    nrows = toc[what, "Bottom"] - toc[what, "Top"] +
-      1,
-    skip = toc[what, "Top"] - 1,
-    data.table = F,
-    header = F,
-    encoding = "UTF-8"
-  )
-
-  if (!(what %in% (rownames(toc)))) {
-    stop("'", what, "' not fount in Table of Content.")
+  # Get Protocol info
+  if (!is.null(Protocol)) {
+    tmp1 <- sub(" \\[.*", "", recording_info$Protocol)
+    if (is.list(Protocol)) {
+      idx <- which(tmp1 == unlist(lapply(Protocol, function(x) {
+        x@Name
+      })))
+      if (length(idx) == 0) {
+        stop("Required protocol not in list.")
+      }
+      if (length(idx) > 1) {
+        stop("Duplicate protocol entry in 'Protocols' list.")
+      }
+      Protocol <- Protocol[[idx]]
+    } else{
+      if (Protocol@Name != tmp1) {
+        stop("Provided protocol is not the required.")
+      }
+    }
   }
-  tmp <-  fread(
-    filename,
-    sep = sep,
-    select = toc[what, "Left"]:toc[what, "Right"],
-    nrows = 1,
-    skip = toc[what, "Top"] -
-      3,
-    data.table = F,
-    header = F,
-    encoding = "UTF-8"
+
+  # Get stimulus information
+  stim_info <- ImportEspionStimTab(filename, sep, Protocol)
+
+  # get Metadata
+  Metadata <-
+    ImportEspionMetadata(filename, sep = sep, Protocol = Protocol)
+  Metadata$Channel<-Metadata$Channel_Name
+
+  # prepare for loading only requested relevant
+  if(!is.null(where)){
+    where.idx <- Where.generic(Metadata,
+                               nrow(Metadata),
+                               stim_info,
+                               where = where)
+    if(length(where.idx)==0){
+      stop("'where' selection does not return any data for the given file. Try 'ImportEspionMetadata()' and 'ImportEspionStimTab()' to find available key-value pairs for 'where")
+    }
+  }else{
+    where.idx<-1:nrow(Metadata)
+  }
+
+  # Get Data
+  if (("Data Table" %in% rownames(toc))) {
+    tmp <- toc # modify to only get header of data table
+    tmp$Right <-
+      tmp$Left + 5 # maximum width, if results are included
+    Data_Header <-
+      na.exclude(get_content(filename, tmp, "Data Table", sep = sep))
+    Data_Header$Eye <- tmp$Eye
+    rownames(Data_Header)<-NULL
+    Data_Header<-Data_Header[where.idx,]
+    STEPS = vector("list", nrow(Data_Header))
+  }
+
+  if (("Data Table" %in% rownames(toc)) &&
+      any(c("Raw", "Averaged") %in% Import)) {
+    pb = txtProgressBar(min = 0,
+                        max = dim(Data_Header)[1],
+                        initial = 0)
+    for (i in 1:dim(Data_Header)[1]) {
+      setTxtProgressBar(pb, i)
+      tryCatch({
+        if (as.numeric(Data_Header$Chan[i]) == T) {
+          # get time trace
+          TimeTrace <- get_trace(toc, Data_Header, i, "TimeTrace")
+        }
+
+        if (("Result" %in% colnames(Data_Header)) &&
+            ("Averaged" %in% Import)) {
+          # get Averages / "Results"
+          resulttrace <-
+            get_trace(toc, Data_Header, i, "ResultTrace")
+
+          STEPS[[i]] <-
+            newEPhysData(Data = resulttrace,
+                         TimeTrace = TimeTrace)
+        }
+
+        if ("Trials" %in% colnames(Data_Header) &&
+            ("Raw" %in% Import)) {
+          trialtraces <- get_trace(toc, Data_Header, i, "TrialTrace")
+          STEPS[[i]] <-
+            newEPhysData(Data = trialtraces,
+                         TimeTrace = TimeTrace)
+        }
+      }, error = function (e) {
+        stop(
+          "Importing Data failed for ",
+          basename(filename),
+          " with error message: ",
+          e,
+          " for Step '",
+          Data_Header$Step[i],
+          "' Channel '",
+          Data_Header$Channel[i],
+          "' Result '",
+          Data_Header$Result[i],
+          "'."
+        )
+      })
+    }
+    close(pb)
+  }
+
+  #subset Metadata and stim_info to required
+  Metadata<-Metadata[where.idx,]
+  stim_info<-stim_info[stim_info$Step %in% Metadata$Step,]
+
+  # Get Measurements
+  if ("Measurements" %in% Import) {
+    measurements <- get_measurements(filename, toc, sep)
+    measurements$Relative <- NA
+
+    Metadata$Recording <- 1:nrow(Metadata)
+    measurements <-
+      merge(measurements,
+            Metadata[, c("Step", "Channel", "Result", "Eye", "Recording")],
+            by = c("Step", "Channel", "Result", "Eye"))
+
+    if (all(is.null(unique(measurements$Group)))) {
+      measurements$Group <- NULL
+    }
+    if(length(unique(measurements$Group))==1){
+      recording_info$Group <- unique(measurements$Group)
+    }
+
+    colnames(measurements)[colnames(measurements) == "Marker"] <-
+      "Name"
+
+    M <- newERGMeasurements(measurements, update.empty.relative = T)
+
+  } else{
+    M <- newERGMeasurements(data.frame(Channel=character(),Name=character(),Recording=numeric(),Time=numeric(),Relative=character()))
+  }
+
+  #  BUGFIX Truncate empty STEPS to dims of others from same Step if unequal
+
+  DOB <-
+    as.Date(as.character(recording_info$DOB), format =    "%d/%m/%Y")
+
+  ExamDate <-
+    as.POSIXct(strptime(recording_info$Dateperformed, format =
+                          "%d/%m/%Y %H:%M:%S"))
+  ExamDate <-
+    as.POSIXct.numeric(as.numeric(ExamDate), origin = "1970-01-01 00:00.00 UTC")
+
+
+  # return the object
+  newERGExam(
+    Data = STEPS,
+    Metadata = Metadata,
+    Stimulus = stim_info,
+    Measurements = M,
+    ExamInfo = list(
+      ProtocolName = recording_info$Protocol,
+      Version = recording_info$Version,
+      ExamDate = as.POSIXct(
+        strptime(recording_info$Dateperformed, format =
+                   "%d/%m/%Y %H:%M:%S")
+      ),
+      Filename = filename,
+      RecMode = recording_info$Testmethod,
+      Investigator = recording_info$Investigator
+    ),
+    SubjectInfo = list(
+      Subject = recording_info$Animal,
+      DOB = as.Date(as.character(recording_info$DOB), format =    "%d/%m/%Y"),
+      Gender = recording_info$Gender,
+      Group = unique(measurements$Group)
+    )
   )
-
-  tmp <-
-    make.unique(make.names(iconv(tmp, "ASCII//TRANSLIT", sub = '')))
-
-  colnames(recording_info) <- tmp
-
-  return(recording_info)
 }
 
-
-get_stim_info <- function(filename, toc, sep) {
-  stim_info <-
-    as.data.frame(get_content(filename, toc, "Stimulus Table", sep = sep))
-  colnames(stim_info)[stringr::str_detect(colnames(stim_info), "cd.")] <-
-    "Intensity"
-  stim_info$Background <- NA
-  stim_info$Background[grepl("LA", stim_info[, "Description"], fixed = TRUE, useBytes = TRUE)] <-
-    "LA"
-  stim_info$Background[grepl("DA", stim_info[, "Description"], fixed = TRUE, useBytes = TRUE)] <-
-    "DA"
-  stim_info$Type <- NA
-  stim_info$Type[stim_info$Background == "DA"] <- "Flash"
-  stim_info$Type[grepl("Flash",
-                       stim_info[, "Description"],
-                       fixed = TRUE,
-                       useBytes = TRUE)] <- "Flash"
-  stim_info$Type[grepl("Flicker",
-                       stim_info[, "Description"],
-                       fixed = TRUE,
-                       useBytes = TRUE)] <- "Flicker"
-
-  stim_info$Description <- enc2utf8(stim_info$Description)
-
-  return(stim_info)
-}
-
-#' @importFrom units as_units
-get_measurements <- function(filename, toc, sep) {
-  measurements <-
-    get_content(filename, toc, "Marker Table", sep = sep)
-  measurements <-
-    measurements[, c("Group", "S", "C", "R", "Eye", "Name.1", "uV", "ms")]
-  colnames(measurements)[colnames(measurements) == "S"] <- "Step"
-  colnames(measurements)[colnames(measurements) == "C"] <-
-    "Channel"
-  colnames(measurements)[colnames(measurements) == "Name.1"] <-
-    "Marker"
-  colnames(measurements)[colnames(measurements) == "R"] <-
-    "Result" # Was Repeat
-
-  TimeUnit <-enc2utf8( colnames(measurements)[colnames(measurements) == "ms"])
-  colnames(measurements)[colnames(measurements) == "ms"] <- "Time"
-  measurements$Time <- as_units(measurements$Time, TimeUnit)
-
-  voltageunit <-
-    colnames(measurements)[colnames(measurements) == "uV"]
-  colnames(measurements)[colnames(measurements) == "uV"] <-
-    "Voltage"
-  measurements$Voltage <-
-    as_units(measurements$Voltage, voltageunit)
-  return(measurements)
-}

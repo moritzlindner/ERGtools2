@@ -85,6 +85,10 @@ After setting the functions, the accession methods inherited from \link[EPhysDat
 \item \link[=ggPlotRecordings]{ggPlotRecordings}	Uses ggplot2 to plot ERG traces from multiple ERGExam objects
 \item \link[=interactiveMeasurements]{interactiveMeasurements}: Interactive visual placement of markers.#'
 }
+
+TODO ImportEspionInfo, ImportEspionStimTab ImportEspionMetadata
+TODO as.std.channelname(channel_str, clear.unmatched = F) is.std.channelname(channel_str) erg_str() op_str() vep_str()
+TODO as.std.eyename(eye_str) eye.haystack()od_str() os_str()
 }
 
 \examples{

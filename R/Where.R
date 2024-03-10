@@ -28,116 +28,140 @@ setMethod("Where",
           function(X,
                    where,
                    expected.length = NULL) {
-            if (!is.list(where)) {
-              if (is.null(where)) {
-                # if all should be returnd
-                idx <- 1:nrow(Metadata(X))
-                if(!is.null(expected.length)){
-                  if(is.numeric(expected.length)){
-                    if (length(idx) != expected.length) {
-                      stop(
-                        paste0(
-                          length(idx),
-                          " recordings match the selection criteria but only ",
-                          expected.length,
-                          " matches were expected."
-                        )
-                      )
-                    }
-                  } else {
-                    stop("'expected.length' must be NULL or numeric")
-                  }
-                }
-                return(idx)
-              } else {
-                if(is.numeric(where) || is.integer(where)){ # allow pass thorugh of Recording indices
-                  if(all(where %in% 1:length(X))){
-                    return(where)
-                  } else {
-                    stop("Where is numeric, but not a valid recording index.")
-                  }
-                } else {
-                  stop("'where' argument must be a list, or NULL for retirning all indices).")
-                }
-              }
-            }
-            md.sel <- which(names(where) %in% colnames(Metadata(X)))
-            stim.sel <-
-              which(names(where) %in% colnames(StimulusTable(X)))
-
-            if (all(length(md.sel) == 0, length(stim.sel) == 0)) {
-              stop(
-                "Names of 'where' must be valid column names from the object's metadata or stimulus table."
+            MD <- Metadata(X)
+            LENGTH.X <- length(X)
+            STIMTAB <- StimulusTable(X)
+            return(
+              Where.generic(
+                MD = MD,
+                LENGTH.X = LENGTH.X,
+                STIMTAB = STIMTAB,
+                where = where,
+                expected.length = expected.length
               )
-            }
-            if (length(stim.sel) != 0) {
-              # for the entries regarding the stimulus table, convert to step
-              stim <- StimulusTable(X)
-              stim.steps <- !logical(nrow(StimulusTable(X)))
-              for (n in names(where)[stim.sel]) {
-                if (class(where[[n]]) != class(stim[, n])) {
-                  # check if has correct class
-                  stop(
-                    paste0(
-                      "Entry for '",
-                      n,
-                      "' in 'where' is of type '",
-                      class(where[[n]]),
-                      "' while content of the corresponding coulumn in the stimulus table is of type '",
-                      class(stim[, n]),
-                      "'."
-                    )
-                  )
-                }
-                stim.steps <- stim.steps & stim[, n] %in% where[[n]]
-              }
-              stim.steps <- StimulusTable(X)$Step[stim.steps]
-              if ("Step" %in% names(where)) {
-                stim.steps <- stim.steps[stim.steps %in% where$Step]
-              } else{
-                where$Step <- stim.steps
-              }
-              md.sel <-
-                which(names(where) %in% colnames(Metadata(X))) # update md.sel
-            }
-
-            if (length(md.sel) != 0) {
-              # now for the entries in metadata column
-              md <- Metadata(X)
-              md.logidx <- !logical(nrow(Metadata(X)))
-              for (n in names(where)[md.sel]) {
-                if (class(where[[n]]) != class(md[, n])) {
-                  # check if has correct class
-                  stop(
-                    paste0(
-                      "Entry for '",
-                      n,
-                      "' in 'where' is of type '",
-                      class(where[[n]]),
-                      "' while content of the corresponding coulumn in the meatadta is of type '",
-                      class(md[, n]),
-                      "'."
-                    )
-                  )
-                }
-                md.logidx <- md.logidx & md[, n] %in% where[[n]]
-              }
-              idx <- which(md.logidx)
-            }
-            if (!is.null(expected.length)) {
-              if (length(idx) != expected.length) {
-                stop(
-                  paste0(
-                    length(idx),
-                    " recordings match the selection criteria but only ",
-                    expected.length,
-                    " matches were expected."
-                  )
-                )
-              }
-            }
-            return(idx)
+            )
           })
+
+#' @keywords internal
+Where.generic <- function(MD,
+                          LENGTH.X,
+                          STIMTAB,
+                          where,
+                          expected.length = NULL
+                          ) {
+  if (!is.list(where)) {
+    if (is.null(where)) {
+      # if all should be returned
+      idx <- 1:nrow(MD)
+      if (!is.null(expected.length)) {
+        if (is.numeric(expected.length)) {
+          if (length(idx) != expected.length) {
+            stop(
+              paste0(
+                length(idx),
+                " recordings match the selection criteria but only ",
+                expected.length,
+                " matches were expected."
+              )
+            )
+          }
+        } else {
+          stop("'expected.length' must be NULL or numeric")
+        }
+      }
+      return(idx)
+    } else {
+      if (is.numeric(where) ||
+          is.integer(where)) {
+        # allow pass thorugh of Recording indices
+        if (all(where %in% 1:LENGTH.X)) {
+          return(where)
+        } else {
+          stop("Where is numeric, but not a valid recording index.")
+        }
+      } else {
+        stop("'where' argument must be a list, or NULL for retirning all indices).")
+      }
+    }
+  }
+  md.sel <- which(names(where) %in% colnames(MD))
+  stim.sel <-
+    which(names(where) %in% colnames(STIMTAB))
+
+  if (all(length(md.sel) == 0, length(stim.sel) == 0)) {
+    stop(
+      "Names of 'where' must be valid column names from the object's metadata or stimulus table."
+    )
+  }
+  if (length(stim.sel) != 0) {
+    # for the entries regarding the stimulus table, convert to step
+    stim <- STIMTAB
+    stim.steps <- !logical(nrow(STIMTAB))
+    for (n in names(where)[stim.sel]) {
+      if (class(where[[n]]) != class(stim[, n])) {
+        # check if has correct class
+        stop(
+          paste0(
+            "Entry for '",
+            n,
+            "' in 'where' is of type '",
+            class(where[[n]]),
+            "' while content of the corresponding coulumn in the stimulus table is of type '",
+            class(stim[, n]),
+            "'."
+          )
+        )
+      }
+      stim.steps <- stim.steps & stim[, n] %in% where[[n]]
+    }
+    stim.steps <- STIMTAB$Step[stim.steps]
+    if ("Step" %in% names(where)) {
+      stim.steps <- stim.steps[stim.steps %in% where$Step]
+    } else{
+      where$Step <- stim.steps
+    }
+    md.sel <-
+      which(names(where) %in% colnames(MD)) # update md.sel
+  }
+
+  if (length(md.sel) != 0) {
+    # now for the entries in metadata column
+    md <- MD
+    md.logidx <- !logical(nrow(MD))
+    for (n in names(where)[md.sel]) {
+      if (class(where[[n]]) != class(md[, n])) {
+        # check if has correct class
+        stop(
+          paste0(
+            "Entry for '",
+            n,
+            "' in 'where' is of type '",
+            class(where[[n]]),
+            "' while content of the corresponding coulumn in the meatadta is of type '",
+            class(md[, n]),
+            "'."
+          )
+        )
+      }
+      md.logidx <- md.logidx & md[, n] %in% where[[n]]
+    }
+    idx <- which(md.logidx)
+  }
+  if (!is.null(expected.length)) {
+    if (length(idx) != expected.length) {
+      stop(
+        paste0(
+          length(idx),
+          " recordings match the selection criteria but only ",
+          expected.length,
+          " matches were expected."
+        )
+      )
+    }
+  }
+  return(idx)
+}
+
 
 #' @noMd
 #' @exportMethod IndexOf

@@ -6,8 +6,8 @@
 #' @param filename The path to the CSV file containing the protocol data.
 #' @return An instance of the Protocol S4 class.
 #'
-#' @importFrom  data.table fread
-#' @importFrom stringr str_detect
+#' @importFrom data.table fread
+#' @importFrom stringr str_detect str_remove str_trim str_replace_all regex
 #' @importFrom methods new
 #' @export
 ImportEspionProtocol<-function(filename){
@@ -122,7 +122,7 @@ ImportEspionProtocol<-function(filename){
   for (s in 1:Protocol@nSteps){
     currStep<-new("ERGStep")
     currStep@Description <-
-      StepParam[[s]]$x[rownames(StepParam[[s]]) == "Description"]
+      str_replace_all(enc2utf8(StepParam[[s]]$x[rownames(StepParam[[s]]) == "Description"]), regex("[^A-Za-z0-9]+"), " ")
     currStep@Adaptation <-
       StepParam[[s]]$x[rownames(StepParam[[s]]) == "Adaptation required"]
 
@@ -162,42 +162,17 @@ ImportEspionProtocol<-function(filename){
       currChan<-new("ERGChannel")
       curr<-ChannelList[[c]][,s, drop=F]
       currChan@Name<-curr["Name",1]
+      orig.ch.name<-currChan@Name
+      currChan@Name<-as.std.channelname(orig.ch.name)
       tryCatch({
         currChan@Eye<-as.std.eyename(curr["Eye being tested",1])
       }, error = function (e){
-        eye.haystack<- c(
-          "OD",
-          "RE",
-          "Rechts",
-          "Right",
-          "Dexter",
-          "od",
-          "re",
-          "rechts",
-          "right",
-          "dexter",
-          "OS",
-          "LE",
-          "Links",
-          "Left",
-          "Sinister",
-          "os",
-          "le",
-          "links",
-          "left",
-          "sinister"
-        )
-        inchanneldesc <- str_detect(currChan@Name, eye.haystack)
+        inchanneldesc <- str_detect(orig.ch.name, eye.haystack())
         if(sum(inchanneldesc)==1){
-          currChan@Eye <- eye.haystack[inchanneldesc]
-          orig.ch.name<-currChan@Name
-          currChan@Name <-
-            str_remove(currChan@Name, eye.haystack[inchanneldesc])
-          currChan@Name  <-
-            str_trim(currChan@Name)
-          message("Eye identifier ('", currChan@Eye, "') in '", filename, "' Step '", s, "' Channel '", c, "'. Channel Name: '", currChan@Name, "' was rerieved from channel name ('", orig.ch.name, "'). ")
+          currChan@Eye <- as.std.eyename(orig.ch.name, exact = F)
+          message("Eye identifier ('", currChan@Eye, "') in '", basename(filename), "' Step '", s, "' Channel '", c, "'. Channel Name: '", currChan@Name, "' was rerieved from channel name ('", orig.ch.name, "'). ")
         } else {
-          warning("No valid Eye identifier in  '", filename, "', Step '", s, "' Channel '", c, "'. Channel Name: '", currChan@Name, "'. Error message: ", e, ". Consider correcting manually. ")
+          warning("No valid Eye identifier in  '", basename(filename), "', Step '", s, "' Channel '", c, "'. Channel Name: '", currChan@Name, "'. Error message: ", e, ". Consider correcting manually. ")
         }
       })
       currChan@Enabled<-curr["Enabled",1]=="On"
