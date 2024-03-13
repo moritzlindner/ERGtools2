@@ -133,7 +133,7 @@ get_measurements <- function(filename, toc, sep) {
 #' @importFrom data.table fread
 #' @importFrom units as_units
 #' @keywords internal
-get_trace <- function(toc, Data_Header, IDX, what) {
+get_trace <- function(filename, toc, Data_Header, IDX, what) {
   if (what == "TimeTrace") {
     sel = Data_Header[IDX, "Column"]
   }

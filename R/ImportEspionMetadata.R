@@ -148,7 +148,7 @@ ImportEspionMetadata <- function(filename,
 
   } else {
     # if marker table contained in file
-    if (!all(c("Marker Table", ) %in% (rownames(toc)))) {
+    if (!c("Marker Table" %in% (rownames(toc)))) {
       stop("'Marker Table' must be included in the data set if Protocol is missing.")
     }
     measurements <- get_measurements(filename, toc, sep)

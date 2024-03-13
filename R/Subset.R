@@ -71,7 +71,7 @@ setMethod("Subset",
               Time = Time,
               TimeExclusive = TimeExclusive,
               Repeats = Repeats,
-              SetItem = Recording,
+              SetItems = Recording,
               Raw = Raw,
               Simplify = FALSE
             )

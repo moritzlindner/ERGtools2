@@ -180,14 +180,14 @@ ImportEspion <- function(filename,
       tryCatch({
         if (as.numeric(Data_Header$Chan[i]) == T) {
           # get time trace
-          TimeTrace <- get_trace(toc, Data_Header, i, "TimeTrace")
+          TimeTrace <- get_trace(filename, toc, Data_Header, i, "TimeTrace")
         }
 
         if (("Result" %in% colnames(Data_Header)) &&
             ("Averaged" %in% Import)) {
           # get Averages / "Results"
           resulttrace <-
-            get_trace(toc, Data_Header, i, "ResultTrace")
+            get_trace(filename, toc, Data_Header, i, "ResultTrace")
 
           STEPS[[i]] <-
             newEPhysData(Data = resulttrace,
@@ -196,7 +196,7 @@ ImportEspion <- function(filename,
 
         if ("Trials" %in% colnames(Data_Header) &&
             ("Raw" %in% Import)) {
-          trialtraces <- get_trace(toc, Data_Header, i, "TrialTrace")
+          trialtraces <- get_trace(filename, toc, Data_Header, i, "TrialTrace")
           STEPS[[i]] <-
             newEPhysData(Data = trialtraces,
                          TimeTrace = TimeTrace)

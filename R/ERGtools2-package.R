@@ -64,6 +64,7 @@
 #' TODO ImportEspionInfo, ImportEspionStimTab ImportEspionMetadata
 #' TODO as.std.channelname(channel_str, clear.unmatched = F) is.std.channelname(channel_str) erg_str() op_str() vep_str()
 #' TODO as.std.eyename(eye_str) eye.haystack()od_str() os_str()
+#' TODO Save Loas
 #'
 #' @examples
 #' # a typical workflow
@@ -78,7 +79,7 @@
 #' ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG_auto", Result = as.integer(1))) # pick one and have a look at the traces as imported
 #'
 #' @author \href{https://www.lindnerlab.de}{Moritz Lindner}
-#'
+#' @aliases ERGtools2-package
 #' @docType package
-#' @name .Overview
-"_PACKAGE"
+#' @name ERGtools2-package
+NULL

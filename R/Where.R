@@ -49,6 +49,7 @@ Where.generic <- function(MD,
                           where,
                           expected.length = NULL
                           ) {
+
   if (!is.list(where)) {
     if (is.null(where)) {
       # if all should be returned
@@ -80,10 +81,26 @@ Where.generic <- function(MD,
           stop("Where is numeric, but not a valid recording index.")
         }
       } else {
-        stop("'where' argument must be a list, or NULL for retirning all indices).")
+        stop("'where' argument must be a list, or NULL for retaining all indices).")
       }
     }
   }
+
+  # convert numeric to integer inside where list
+  where <- lapply(where, function(x) {
+    if (is.numeric(x)) {
+      out <- as.integer(x)
+      if (out != x) {
+        stop("Numeric argument '",
+             x,
+             "' of 'where' cannot be converted into integer.")
+      }
+    } else {
+      out <- x
+    }
+    out
+  })
+
   md.sel <- which(names(where) %in% colnames(MD))
   stim.sel <-
     which(names(where) %in% colnames(STIMTAB))
