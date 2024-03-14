@@ -166,9 +166,12 @@ ImportEspion <- function(filename,
       na.exclude(get_content(filename, tmp, "Data Table", sep = sep))
     Data_Header$Eye <- tmp$Eye
     rownames(Data_Header)<-NULL
-    Data_Header<-Data_Header[where.idx,]
+    #Data_Header<-Data_Header[where.idx,]
     STEPS = vector("list", nrow(Data_Header))
   }
+
+  # does where.idx result in correct indexing?
+  # why does TimeTrace become nV?
 
   if (("Data Table" %in% rownames(toc)) &&
       any(c("Raw", "Averaged") %in% Import)) {
@@ -178,28 +181,31 @@ ImportEspion <- function(filename,
     for (i in 1:dim(Data_Header)[1]) {
       setTxtProgressBar(pb, i)
       tryCatch({
-        if (as.numeric(Data_Header$Chan[i]) == T) {
-          # get time trace
-          TimeTrace <- get_trace(filename, toc, Data_Header, i, "TimeTrace")
+        if (as.numeric(Data_Header$Chan[i]) == 1) {
+          #if(i==1 || (Data_Header$Step[i]!=Data_Header$Step[i-1])){ # only the first for new step contains a time frame
+            # get time trace
+            TimeTrace <- get_trace(filename, toc, Data_Header, i, "TimeTrace")
+          #}
         }
+        if (i %in% where.idx){ # only import, if selected by where
+          if (("Result" %in% colnames(Data_Header)) &&
+              ("Averaged" %in% Import)) {
+            # get Averages / "Results"
+            resulttrace <-
+              get_trace(filename, toc, Data_Header, i, "ResultTrace")
 
-        if (("Result" %in% colnames(Data_Header)) &&
-            ("Averaged" %in% Import)) {
-          # get Averages / "Results"
-          resulttrace <-
-            get_trace(filename, toc, Data_Header, i, "ResultTrace")
+            STEPS[[i]] <-
+              newEPhysData(Data = resulttrace,
+                           TimeTrace = TimeTrace)
+          }
 
-          STEPS[[i]] <-
-            newEPhysData(Data = resulttrace,
-                         TimeTrace = TimeTrace)
-        }
-
-        if ("Trials" %in% colnames(Data_Header) &&
-            ("Raw" %in% Import)) {
-          trialtraces <- get_trace(filename, toc, Data_Header, i, "TrialTrace")
-          STEPS[[i]] <-
-            newEPhysData(Data = trialtraces,
-                         TimeTrace = TimeTrace)
+          if ("Trials" %in% colnames(Data_Header) &&
+              ("Raw" %in% Import)) {
+            trialtraces <- get_trace(filename, toc, Data_Header, i, "TrialTrace")
+            STEPS[[i]] <-
+              newEPhysData(Data = trialtraces,
+                           TimeTrace = TimeTrace)
+          }
         }
       }, error = function (e) {
         stop(
@@ -219,9 +225,11 @@ ImportEspion <- function(filename,
     }
     close(pb)
   }
+  STEPS<-STEPS[where.idx]
 
   #subset Metadata and stim_info to required
   Metadata<-Metadata[where.idx,]
+  rownames(Metadata)<-NULL
   stim_info<-stim_info[stim_info$Step %in% Metadata$Step,]
 
   # Get Measurements

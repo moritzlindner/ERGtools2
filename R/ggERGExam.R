@@ -41,6 +41,8 @@ setMethod(
     # ggplot workaround
     Time<-Value<-Eye<-Channel<-colourby<-NULL
 
+    stopifnot(CheckAvgFxSet(X))
+
     X <- lapply(X, function(x) {
       t <- TimeTrace(x)
       interval <- round(length(t) / 300)

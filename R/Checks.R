@@ -28,9 +28,7 @@ setMethod("CheckAvgFxSet",
             fx.set <- unlist(lapply(X@Data, function(x) {
               suppressWarnings({
                 dat <-
-                  GetData(x, Raw = FALSE, Time = c(min(TimeTrace(x)), min(min(
-                    TimeTrace(x)[5], max(TimeTrace(x))
-                  ))))
+                  GetData(x, Raw = FALSE, Time = c(min(TimeTrace(x)), TimeTrace(x)[min(5,length(TimeTrace(x)))]))
               })
               return(as.logical(ncol(dat) == 1))
             }))

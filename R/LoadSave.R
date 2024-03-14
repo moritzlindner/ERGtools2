@@ -125,6 +125,8 @@ Load.ERGExam <- function(filename) {
   SubjectInfo$DOB <- as.Date(SubjectInfo$DOB, origin = "1970-01-01")
   Imported = as.POSIXct(con$open("Imported")$read(),origin="1970-01-01")
 
+  message("TODO: IMPORT METADATA")
+
   out<-newERGExam(
     Data = DATA,
     Metadata = Metadata,
