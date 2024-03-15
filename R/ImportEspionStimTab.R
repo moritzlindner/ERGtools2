@@ -5,8 +5,8 @@
 #' # Import stimulus information from a *.csv file exported from the Diagnosys Espion™ software.
 #' ImportEspionInfo("test.txt")
 #' }
-#'
 #' @return For ImportEspionStimTab: A \link[data.frame]{data.frame()} containing the stimulus information.
+#' @export
 ImportEspionStimTab <- function(filename,
                          sep = "\t",
                          Protocol = NULL) {

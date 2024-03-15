@@ -262,7 +262,7 @@ ImportEspion <- function(filename,
   #  BUGFIX Truncate empty STEPS to dims of others from same Step if unequal
 
   DOB <-
-    as.Date(as.character(recording_info$DOB), format =    "%d/%m/%Y")
+    as.Date(as.character(recording_info$DOB), format =    "%d/%m/%Y", origin = "1970-01-01")
 
   ExamDate <-
     as.POSIXct(strptime(recording_info$Dateperformed, format =
@@ -290,7 +290,7 @@ ImportEspion <- function(filename,
     ),
     SubjectInfo = list(
       Subject = recording_info$Animal,
-      DOB = as.Date(as.character(recording_info$DOB), format =    "%d/%m/%Y"),
+      DOB = as.Date(as.character(recording_info$DOB), format =    "%d/%m/%Y", origin = "1970-01-01"),
       Gender = recording_info$Gender,
       Group = unique(measurements$Group)
     )

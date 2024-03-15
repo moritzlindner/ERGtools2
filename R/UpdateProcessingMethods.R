@@ -10,7 +10,7 @@
 #'
 #' #' @examples
 #' data(ERG)
-#' AverageFunction(ERG,where=pairlist(Step=1))<-median
+#' AverageFunction(ERG,where=list(Step=1))<-median
 #' stop(GetData(updated_ERG,raw=F))
 #'
 #' updated_ERG
@@ -22,19 +22,19 @@ NULL
 #' @describeIn UpdateProcessingMethods Update the FilterFunction for all Recordings in an \linkS4class{ERGExam}, or only those slected using \code{where}.
 #' @exportMethod FilterFunction<-
 setMethod("FilterFunction<-", signature = "ERGExam", function(X, where, value) {
-  return(functionunpdater(X, where, value, "FilterFunction<-"))
+  return(functionupdater(X, where, value, "FilterFunction<-"))
 })
 
 #' @describeIn UpdateProcessingMethods Update the Rejected for all Recordings in an \linkS4class{ERGExam}, or only those slected using \code{where}.
 #' @exportMethod Rejected<-
 setMethod("Rejected<-", signature = "ERGExam", function(X, where, value) {
-  return(functionunpdater(X, where, value, "Rejected<-"))
+  return(functionupdater(X, where, value, "Rejected<-"))
 })
 
 #' @describeIn UpdateProcessingMethods Update the AverageFunction for all Recordings in an \linkS4class{ERGExam}, or only those slected using \code{where}.
 #' @exportMethod AverageFunction<-
 setMethod("AverageFunction<-", signature = "ERGExam", function(X, where, value) {
-  return(functionunpdater(X, where, value, "AverageFunction<-"))
+  return(functionupdater(X, where, value, "AverageFunction<-"))
 })
 
 #' @describeIn UpdateProcessingMethods This method is used to set standard functions for processing \linkS4class{ERGExam} data. It defines default functions for averaging, filtering, and signal rejection based on the stimulus type.
@@ -78,37 +78,18 @@ setMethod(
 #' @importFrom EPhysData Metadata AverageFunction<- Rejected<- FilterFunction<-
 #' @keywords internal
 #' @noMd
-functionunpdater<-function(X, where, value, what) {
+functionupdater<-function(X, where, value, what) {
   Md <- merge(Metadata(X),StimulusTable(X))
-  sel <- rep(TRUE, nrow(Md))
-
-  # Validity checks
-  if (!is.pairlist(where)) {
-    stop("'where' argument should be a pairlist.")
-  }
-  for (tag in names(where)) {
-    if (!(tag %in% colnames(Md))) {
-      stop(paste("Invalid column name:", tag))
-    }
-    if(!any(where[[tag]] %in% Md[,tag])){
-      stop(paste0("None of the values given for ",tag, " (", where[tag], ") are present in the Metadata of Stimulus Table of 'X'"))
-    }
-  }
-
-  # upate
-  for (i in 1:length(where)) {
-    sel <- Md[, names(where)[i]] %in% unlist(where[i]) & sel
-  }
-  sel <- which(sel)
+  sel <- Where(X,where = where)
   for (i in sel) {
     if (what == "FilterFunction<-") {
-      FilterFunction(X@Data[[i]]) <- value
+      FilterFunction(X@Data[[i]]) <- function(x) value(x)
     }
     if (what == "Rejected<-") {
-      Rejected(X@Data[[i]]) <- value
+      Rejected(X@Data[[i]]) <- function(x) value(x)
     }
     if (what == "AverageFunction<-") {
-      AverageFunction(X@Data[[i]]) <- value
+      AverageFunction(X@Data[[i]]) <- function(x) value(x)
     }
   }
   if (validERGExam(X)) {

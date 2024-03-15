@@ -53,19 +53,20 @@ setMethod(
 
     dat <- as.data.frame(X)
 
-    # This is specific for Espion
+
     stimtab <- StimulusTable(X)
     dat <- merge(dat, stimtab, by = "Step")
-    dat$Description <-
-      iconv(dat$Description, "UTF-8", "UTF-8", sub = '')
-    dat$Channel <-
-      iconv(dat$Channel, "ASCII//TRANSLIT", sub = '')
-    dat$Background <-
-      iconv(dat$Background, "ASCII//TRANSLIT", sub = '')
-    dat$Type <-
-      iconv(dat$Type, "ASCII//TRANSLIT", sub = '')
-    dat$Value <- set_units(dat$Value, "uV")
-    colnames(dat)[str_detect(colnames(dat),"cd.")]<-"Intensity"
+    # This is specific for Espion - should be obsolete
+    # dat$Description <-
+    #   iconv(dat$Description, "UTF-8", "UTF-8", sub = '')
+    # dat$Channel <-
+    #   iconv(dat$Channel, "ASCII//TRANSLIT", sub = '')
+    # dat$Background <-
+    #   iconv(dat$Background, "ASCII//TRANSLIT", sub = '')
+    # dat$Type <-
+    #   iconv(dat$Type, "ASCII//TRANSLIT", sub = '')
+    # dat$Value <- set_units(dat$Value, "uV")
+    # colnames(dat)[str_detect(colnames(dat),"cd.")]<-"Intensity"
 
     # Measurements
     if(show.markers){

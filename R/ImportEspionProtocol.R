@@ -164,14 +164,16 @@ ImportEspionProtocol<-function(filename){
       currChan@Name<-curr["Name",1]
       orig.ch.name<-currChan@Name
       currChan@Name<-as.std.channelname(orig.ch.name)
-      tryCatch({
-        currChan@Eye<-as.std.eyename(curr["Eye being tested",1])
+      currChan@Eye<-tryCatch({
+        as.std.eyename(curr["Eye being tested",1])
       }, error = function (e){
         inchanneldesc <- str_detect(orig.ch.name, eye.haystack())
         if(sum(inchanneldesc)==1){
-          currChan@Eye <- as.std.eyename(orig.ch.name, exact = F)
-          message("Eye identifier ('", currChan@Eye, "') in '", basename(filename), "' Step '", s, "' Channel '", c, "'. Channel Name: '", currChan@Name, "' was rerieved from channel name ('", orig.ch.name, "'). ")
+          extr<-as.std.eyename(orig.ch.name, exact = F)
+          message("Eye identifier ('", extr, "') in '", basename(filename), "', Step '", s, "', Channel '", c, "' (Name: '", currChan@Name, "') was extracted from original channel name ('", orig.ch.name, "'). ")
+          extr
         } else {
+          as.character(NA)
           warning("No valid Eye identifier in  '", basename(filename), "', Step '", s, "' Channel '", c, "'. Channel Name: '", currChan@Name, "'. Error message: ", e, ". Consider correcting manually. ")
         }
       })

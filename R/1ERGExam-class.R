@@ -1,17 +1,44 @@
 #' @importFrom EPhysData Rejected FilterFunction AverageFunction
 #' @importFrom stats var
 validERGExam <- function(object) {
-  # Check if the data frame has the required columns
-  required_columns <- c("Step", "Eye", "Channel")
+
+  # Check if the metadata has the required columns and are of correct format
+  required_columns <- c("Step", "Eye", "Channel","Result")
   if (!all(required_columns %in% names(object@Metadata))) {
     stop(
       "Metadata provided is not in correct format. Must be a data.frame with the columns 'Step', 'Eye', and 'Channel'."
     )
   }
+  if (!("integer" %in% class(object@Metadata$Step)) ||
+      !("integer" %in% class(object@Metadata$Result))) {
+    stop(
+      "Metadata columns 'Step' and 'Result' must be of class 'integer'. They are: '",
+      class(object@Metadata$Step),
+      "' and '",
+      class(object@Metadata$Result),
+      "', respectivley."
+    )
+  }
+  if (!("character" %in% class(object@Metadata$Channel)) ||
+      !("character" %in% class(object@Metadata$Eye))) {
+    stop(
+      "Metadata columns 'Step' and 'Result' must be of class 'integer'. They are: '",
+      class(object@Metadata$Step),
+      "' and '",
+      class(object@Metadata$Result),
+      "', respectivley."
+    )
+  }
+
+  if(any(is.na(object@Metadata[,c("Step", "Eye", "Channel","Result")]))){
+    stop(
+      "The essential columns of the Metadata slot ('Step', 'Eye', 'Channel','Result') must not contain missing values."
+    )
+  }
 
   # Check if Eye entries valid
-  if (!all(unique(object@Metadata$Eye) %in% c("RE", "LE","OD","OS","Unspecified","Both"))) {
-    stop("Only 'RE', 'LE', 'OD', 'OS' 'Both' or 'Unspecified' are allowed as eye identifiers")
+  if (!all(unique(object@Metadata$Eye) %in% eye.haystack())) {
+    stop("Eye identifiers must be any of the values returned by 'eye.haystack()'.")
   }
 
   # Rejected (inEPhysRaw) - must be the same across all channels within one eye
@@ -134,7 +161,7 @@ validERGExam <- function(object) {
   if (object@Averaged){
     Repeats<-unique(unlist(lapply(object@Data,function(x){dim(x)[2]})))
     if(length(Repeats)!=1 || Repeats != 1){
-      warning("Object does not appear to contain averaged data. Multiple repeats observed.")
+      message("Object does not appear to contain averaged data. Multiple repeats observed. This message is likely irrelevant, as the 'Averaged' is obsolete.")
     }
   }
 
@@ -162,6 +189,38 @@ validERGExam <- function(object) {
   if (!all(object@Stimulus$Step %in% unique(Metadata(object)$Step))) {
     stop("All stimuli described must correspond to a Step as defined in 'Metadata'.")
   }
+
+  if (any(is.na(object@Stimulus[, c("Step", "Description", "Intensity", "Background", "Type")]))) {
+    stop(
+      "The essential columns of the Stimulus slot ('Step', 'Description', 'Intensity','Background'),'Type' must not contain missing values."
+    )
+  }
+
+  if (!("integer" %in% class(object@Stimulus$Step)) ||
+      !("integer" %in% class(object@Stimulus$Intensity))) {
+    stop(
+      "Stimulus slot columns 'Step' and 'Intensity' must be of class 'integer'. They are: '",
+      class(object@Stimulus$Step),
+      "' and '",
+      class(object@Stimulus$Intensity),
+      "', respectivley."
+    )
+  }
+
+  if (!("character" %in% class(object@Stimulus$Description)) ||
+      !("character" %in% class(object@Stimulus$Background)) ||
+    !("character" %in% class(object@Stimulus$Type))) {
+    stop(
+      "Stimulus slot columns 'Description', 'Background' and 'Type' must be of class 'character'. They are: '",
+      class(object@Stimulus$Description),
+      "', '",
+      class(object@Stimulus$Background),
+      "' and '",
+      class(object@Stimulus$Type),
+      "', respectivley."
+    )
+  }
+
 
   #Essential fields
   if (!(

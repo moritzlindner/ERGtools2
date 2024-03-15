@@ -33,7 +33,7 @@ An updated ERGExan object.
 
 #' @examples
 data(ERG)
-AverageFunction(ERG,where=pairlist(Step=1))<-median
+AverageFunction(ERG,where=list(Step=1))<-median
 stop(GetData(updated_ERG,raw=F))
 
 updated_ERG

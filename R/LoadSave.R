@@ -14,6 +14,7 @@ NULL
 
 #' @export
 #' @importFrom stringr str_detect
+#' @importFrom units deparse_unit
 #' @importFrom hdf5r H5File
 #' @importFrom EPhysData Save
 #' @rdname LoadSave-methods
@@ -47,6 +48,7 @@ setMethod("Save",
             M_SLOT <- con$create_group("Measurements")
             M_SLOT$create_dataset("Marker",X@Measurements@Marker,gzip_level = 9)
             M_SLOT$create_dataset("Measurements",X@Measurements@Measurements,gzip_level = 9)
+            M_SLOT[["TimeUnit"]] <- deparse_unit(X@Measurements@Measurements$Time)
             con[["ExamInfo_Content"]] <- names(X@ExamInfo)
             E_SLOT <- con$create_group("ExamInfo")
             for (i in 1:length(X@ExamInfo)){
@@ -108,6 +110,15 @@ Load.ERGExam <- function(filename) {
   Metadata = con$open("Metadata")$read()
   Stimulus = con$open("Stimulus")$read()
   Averaged = con$open("Averaged")$read()
+
+
+  M_SLOT <- con$open("Measurements")
+  M <- new("ERGMeasurements")
+  M@Marker<-M_SLOT$open("Marker")$read()
+  M@Measurements<-M_SLOT$open("Measurements")$read()
+  M@Measurements$Time<-as_units(M@Measurements$Time, M_SLOT$open("TimeUnit")$read())
+  stopifnot(validObject(M))
+
   ExamInfo_Content = con$open("ExamInfo_Content")$read()
   ExamInfo <- list()
   E_SLOT <- con$open("ExamInfo")
@@ -125,12 +136,11 @@ Load.ERGExam <- function(filename) {
   SubjectInfo$DOB <- as.Date(SubjectInfo$DOB, origin = "1970-01-01")
   Imported = as.POSIXct(con$open("Imported")$read(),origin="1970-01-01")
 
-  message("TODO: IMPORT METADATA")
-
   out<-newERGExam(
     Data = DATA,
     Metadata = Metadata,
     Stimulus = Stimulus,
+    Measurements = M,
     Averaged = Averaged,
     ExamInfo = ExamInfo,
     SubjectInfo = SubjectInfo
@@ -138,26 +148,10 @@ Load.ERGExam <- function(filename) {
 
   out@Imported <- Imported
 
-#
-#   bad ref
-#   make new sample file,
-#   ehler in rep(FALSE, ncol(Data)) : ungültiges 'times' Argument
-#   Called from: X@Rejected(X@Data)
-#   Browse[1]> Q
-#   > DATA[[1]]@Rejected
-#   function (x)  {     rep(FALSE, ncol(Data)) }
-#   <environment: 0x5cc583f80588>
-#     > DATA[[27]]@Rejected
-#   function (x)  {     rep(FALSE, ncol(Data)) }
-#   <environment: 0x5cc589c1c408>
-#     > ERG@Data[[1]]@Rejected
-#   function (x)
-#   {
-#     rep(FALSE, ncol(Data))
-#   }
-#   <bytecode: 0x5cc586584e98>
-#     <environment: 0x5cc57eb974b0>
+  con$close_all()
 
-
+  if(validObject(out)){
+    return(out)
+  }
 
 }

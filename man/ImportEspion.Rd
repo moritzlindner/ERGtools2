@@ -79,7 +79,6 @@ Metadata <- ImportEspionMetadata("test.txt")
 # Import stimulus information from a *.csv file exported from the Diagnosys Espion™ software.
 ImportEspionInfo("test.txt")
 }
-
 }
 \seealso{
 \linkS4class{ERGExam} \link[Protocol]{ERGProtocol()}
