@@ -151,7 +151,7 @@ ImportEspionMetadata <- function(filename,
           new.chname <-
             inferre.channel.names.from.markers(unique(unlist(curr.markers)))
           message(
-            "Several channel names detected for channel '",
+            "Empty channel name detected for channel '",
             c,
             "'. Inferring by markers to: '",
             new.chname,
