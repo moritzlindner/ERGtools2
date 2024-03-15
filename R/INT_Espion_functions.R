@@ -92,6 +92,10 @@ get_stim_info <- function(filename, toc, sep) {
                        stim_info[, "Description"],
                        fixed = TRUE,
                        useBytes = TRUE)] <- "Flash"
+  stim_info$Type[grepl("Single",
+                       stim_info[, "Description"],
+                       fixed = TRUE,
+                       useBytes = TRUE)] <- "Flash"
   stim_info$Type[grepl("Flicker",
                        stim_info[, "Description"],
                        fixed = TRUE,
