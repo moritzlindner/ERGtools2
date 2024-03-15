@@ -9,8 +9,8 @@ validERGExam <- function(object) {
       "Metadata provided is not in correct format. Must be a data.frame with the columns 'Step', 'Eye', and 'Channel'."
     )
   }
-  if (!("integer" %in% class(object@Metadata$Step)) ||
-      !("integer" %in% class(object@Metadata$Result))) {
+  if (!(any(c("integer","numeric") %in% class(object@Metadata$Step))) ||
+      !(any(c("integer","numeric") %in% class(object@Metadata$Result)))) {
     stop(
       "Metadata columns 'Step' and 'Result' must be of class 'integer'. They are: '",
       class(object@Metadata$Step),
@@ -22,7 +22,7 @@ validERGExam <- function(object) {
   if (!("character" %in% class(object@Metadata$Channel)) ||
       !("character" %in% class(object@Metadata$Eye))) {
     stop(
-      "Metadata columns 'Step' and 'Result' must be of class 'integer'. They are: '",
+      "Metadata columns 'Channel' and 'Eye' must be of class 'character'. They are: '",
       class(object@Metadata$Step),
       "' and '",
       class(object@Metadata$Result),
@@ -196,8 +196,8 @@ validERGExam <- function(object) {
     )
   }
 
-  if (!("integer" %in% class(object@Stimulus$Step)) ||
-      !("integer" %in% class(object@Stimulus$Intensity))) {
+  if (!(any(c("integer","numeric") %in% class(object@Stimulus$Step))) ||
+      !(any(c("integer","numeric") %in% class(object@Stimulus$Intensity)))) {
     stop(
       "Stimulus slot columns 'Step' and 'Intensity' must be of class 'integer'. They are: '",
       class(object@Stimulus$Step),
