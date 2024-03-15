@@ -127,8 +127,24 @@ ImportEspionMetadata <- function(filename,
             new.chname,
             "'."
           )
-        } else {
-          relevantsteps <- unique(Metadata$Step[Metadata$Channel == c])
+        } #else {
+#          relevantsteps <- unique(Metadata$Step[Metadata$Channel == c])
+#          curr.markers <- lapply(relevantsteps, function(x) {
+#            as.data.frame(Protocol@Step[[Metadata$Step[x]]]@Channels[[Metadata$Channel[c]]])$Marker.Name
+#          })
+#          new.chname <-
+#            inferre.channel.names.from.markers(unique(unlist(curr.markers)))
+#          message(
+#            "Several channel names detected for channel '",
+#            c,
+#            "'. Inferring by markers to: '",
+#            new.chname,
+#            "'."
+#          )
+#        }
+      } else {
+        if(is.na(new.chname)){
+          #          relevantsteps <- unique(Metadata$Step[Metadata$Channel == c])
           curr.markers <- lapply(relevantsteps, function(x) {
             as.data.frame(Protocol@Step[[Metadata$Step[x]]]@Channels[[Metadata$Channel[c]]])$Marker.Name
           })
@@ -141,8 +157,9 @@ ImportEspionMetadata <- function(filename,
             new.chname,
             "'."
           )
+          }
         }
-      }
+        
       Metadata$Channel_Name[Metadata$Channel == c] <- new.chname
     }
 
