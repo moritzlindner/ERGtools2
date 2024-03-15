@@ -144,7 +144,7 @@ ImportEspionMetadata <- function(filename,
 #        }
       } else {
         if(is.na(new.chname)){
-          #          relevantsteps <- unique(Metadata$Step[Metadata$Channel == c])
+          relevantsteps <- unique(Metadata$Step[Metadata$Channel == c])
           curr.markers <- lapply(relevantsteps, function(x) {
             as.data.frame(Protocol@Step[[Metadata$Step[x]]]@Channels[[Metadata$Channel[c]]])$Marker.Name
           })
