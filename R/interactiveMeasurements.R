@@ -33,7 +33,7 @@
 setGeneric(
   name = "interactiveMeasurements",
   def = function(X,
-                 Channel = "ERG_auto",
+                 Channel = "ERG",
                  Eye = Eyes(X)) {
     standardGeneric("interactiveMeasurements")
   }
@@ -43,7 +43,7 @@ setGeneric(
 setMethod("interactiveMeasurements",
           "ERGExam", {
             function(X,
-                     Channel = "ERG_auto",
+                     Channel = "ERG",
                      Eye = Eyes(X)) {
 
               # internal functions

@@ -2,8 +2,7 @@
 #'
 #' Merges two or more ERGExam objects into a single ERGExam object.
 #'
-#' @inheritParams Subset-method
-#' @param Y An ERGExam object or a list of ERGExam objects to be merged with \code{X}.
+#' @param ERGExam_list A list of ERGExam objects to be merged with \code{X}.
 #' @param mergemethod will allow to specify how exactly the objects should be merged in future versions. currently only "Append" (the default) is supported.
 #' @return An ERGExam object representing the merged data. the file names, protocol names and dates from the individual files merged are stored as additional columns in the Stimulus table. Use \code{Metadata()} to see those.
 #' @noMd
@@ -14,37 +13,34 @@
 #' exam1<-Subset(ERG,where=list(Step=as.integer(c(1,2,3))))
 #' exam2<-Subset(ERG,where=list(Eye="RE"))
 #' # merge
-#' merged_exam <- MergeERGExams(exam1, exam2)
-#'
-#' @exportMethod MergeERGExams
-setGeneric(
-  name = "MergeERGExams",
-  def = function(X, Y, mergemethod = "Append")
-  {
-    standardGeneric("MergeERGExams")
+#' merged_exam <- MergeERGExams(list(exam1, exam2))#'
+#' @export
+MergeERGExams <- function(ERGExam_list, mergemethod = "Append") {
+  message("Merging exams is experimental.")
+  if (!("list" %in% class(ERGExam_list))) {
+    stop("'ERGExam_list' must be a list of 'ERGExam' objects")
   }
-)
+  if (!all(unlist(lapply(ERGExam_list, class)) %in% "ERGExam")) {
+    stop("'ERGExam_list' must be a list of 'ERGExam' objects")
+  }
+  out <- ERGExam_list[[1]]
+  rest <- ERGExam_list[2:length(ERGExam_list)]
+  for (ex in rest) {
+    tryCatch(
+      out <- merge2ERGExams(out, ex),
+      error = function(e) {
+        stop("Mergin Exams failed for ",
+             Subject(ex), ", ",
+             ExamDate(ex), ", ",
+             ProtocolName(ex),
+             " with message: ",
+             e)
+      }
+    )
+  }
+  return(out)
 
-#' @noMd
-setMethod("MergeERGExams",
-          "ERGExam",
-          function(X, Y, mergemethod) {
-            if ("ERGExam" %in% class(Y)) {
-              return(merge2ERGExams(X, Y))
-            }
-            if ("list" %in% class(Y)) {
-              out <- X
-              for (ex in Y) {
-                tryCatch(
-                  out <- merge2ERGExams(out, ex),
-                  error = function(e) {
-                    stop("Mergin Exams failed for ", ProtocolName(ex), "with message: ",e)
-                  }
-                )
-              }
-              return(out)
-            }
-          })
+}
 
 #' @noMd
 #' @keywords internal
@@ -115,11 +111,11 @@ merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
       merge2ERGMeasurements(
         exam1@Measurements,
         exam2@Measurements,
-        old.obj2.indices = 1:length(exam2),
-        new.obj2.indices = 1:length(exam2)+length(exam1)
+        increment.obj2.recording.index.by = length(exam1)
       )
 
     examinfo <- exam1@ExamInfo
+    examinfo$ProtocolName<-paste(exam1@ExamInfo$ProtocolName,exam2@ExamInfo$ProtocolName,sep=" and ")
     examinfo$Filename <- "Merged Exam"
 
     # Create a new ERGExam instance with merged data and metadata
@@ -211,9 +207,7 @@ merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
       merge2ERGMeasurements(
         exam1@Measurements,
         measurements2,
-        old.obj2.indices = pointer.updates.for.obj2$obj2.idx,
-        new.obj2.indices = pointer.updates.for.obj2$obj2.idx+length(exam1)
-      )
+        increment.obj2.recording.index.by = length(exam1))
 
     examinfo <- exam1@ExamInfo
     examinfo$Filename <- "Merged Exam"
@@ -241,9 +235,7 @@ merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
 #'
 #' @param obj1 An object of class ERGMeasurements.
 #' @param obj2 Another object of class ERGMeasurements.
-#' @param increment.recording.index Logical, indicating whether to increment recording indices of obj2.
-#' @param old.obj2.indices Optional vector of old recording indices in obj2.
-#' @param new.obj2.indices Optional vector of new recording indices to replace the old indices.
+#' @param increment.obj2.recording.index.by Numeric indicating by what number to increment the recording indices by. Could be e.g. the number of recordings in object 1.
 #' @noMd
 #' @return An object of class ERGMeasurements, representing the merged data.
 #' @keywords internal
@@ -273,7 +265,7 @@ merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
 #' Measurements.data2
 #'
 #' # now merge both objects
-#' merge2ERGMeasurements(Measurements.data,Measurements.data2)
+#' merge2ERGMeasurements(Measurements.data,Measurements.data2, max(Measurements(Measurements.data)[,"Recording"]))
 #'
 #' # other example
 #'
@@ -291,18 +283,24 @@ merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
 #'
 #' Measurements.data3 <- new("ERGMeasurements", Marker = marker_df3, Measurements = measurements_df3)
 #'
-#' merge2ERGMeasurements(Measurements.data2,Measurements.data3)
+#' merge2ERGMeasurements(Measurements.data2,Measurements.data3,max(Measurements(Measurements.data2)[,"Recording"]))
 #'
 #'
 #' @export merge2ERGMeasurements
 merge2ERGMeasurements <-
   function(obj1,
            obj2,
-           increment.recording.index = T,
-           old.obj2.indices = NULL,
-           new.obj2.indices = NULL) {
+           increment.obj2.recording.index.by) {
     if (!validObject(obj1) || !validObject(obj2)) {
       stop("One or both of the objects are not valid ERGMeasurements objects.")
+    }
+    if(length(MarkerNames(obj1))==0 || length(MarkerNames(obj2)==0)){
+      if(length(MarkerNames(obj1))==0){
+        return(obj2)
+      }
+      if(length(MarkerNames(obj2))==0){
+        return(obj1)
+      }
     }
 
     obj1.m <- obj1@Marker
@@ -312,18 +310,20 @@ merge2ERGMeasurements <-
     rownames(obj2.m) <- NULL
     obj2.m$obj2.idx <- 1:nrow(obj2.m)
     pointer.updates.for.obj2 <-
-      merge(obj1.m[, c("Name", "ChannelBinding","obj1.idx")], obj2.m[, c("Name", "ChannelBinding","obj2.idx")])[, c("obj1.idx", "obj2.idx")]
+      merge(obj1.m[, c("Name", "ChannelBinding", "obj1.idx")], obj2.m[, c("Name", "ChannelBinding", "obj2.idx")])[, c("obj1.idx", "obj2.idx")]
 
     #Check parent markers of relatives match
-    obj2.rel<-obj2.m$Relative[pointer.updates.for.obj2$obj2.idx]
-    obj2.rel<-obj2.rel[!is.na(obj2.rel)]
-    pointer.pairs<-pointer.updates.for.obj2[match(obj2.rel,pointer.updates.for.obj2$obj2.idx),]
+    obj2.rel <- obj2.m$Relative[pointer.updates.for.obj2$obj2.idx]
+    obj2.rel <- obj2.rel[!is.na(obj2.rel)]
+    pointer.pairs <-
+      pointer.updates.for.obj2[match(obj2.rel, pointer.updates.for.obj2$obj2.idx), ]
     if (!(all(is.na(pointer.pairs)))) {
       for (i in 1:nrow(pointer.pairs)) {
         if (!all(obj1.m[pointer.pairs$obj1.idx[i], c("Name", "ChannelBinding")] == obj2.m[pointer.pairs$obj2.idx[i], c("Name", "ChannelBinding")])) {
-          obj1.probl <- obj1.m[obj1.m$Relative %in% pointer.pairs$obj1.idx[i], ]
+          obj1.probl <-
+            obj1.m[obj1.m$Relative %in% pointer.pairs$obj1.idx[i],]
           obj2.probl <-
-            obj2.m[obj2.m$Relative %in% pointer.pairs$obj2.idx[i], ]
+            obj2.m[obj2.m$Relative %in% pointer.pairs$obj2.idx[i],]
           stop(
             "At least 1 marker mismatch was detected: Marker '",
             obj1.probl[1, 1],
@@ -342,7 +342,7 @@ merge2ERGMeasurements <-
     # for appending
     obj2.idx <-
       which(!(1:nrow(obj2.m) %in% pointer.updates.for.obj2$obj2.idx))
-    if(length(obj2.idx)>0){
+    if (length(obj2.idx) > 0) {
       obj1.idx <- nrow(obj1.m) + 1:length(obj2.idx)
       pointer.appending.for.obj2 <-
         data.frame(obj2.idx = obj2.idx, obj1.idx = obj1.idx)
@@ -357,8 +357,8 @@ merge2ERGMeasurements <-
           obj2.m$Relative[pointer.appending.for.obj2$obj2.idx[i]] <-
             pointer.appending.for.obj2$obj1.idx[pointer.appending.for.obj2$obj2.idx == obj2.m$Relative[pointer.appending.for.obj2$obj2.idx[i]]]
         }
-        obj1.m[pointer.appending.for.obj2$obj1.idx[i],] <-
-          obj2.m[pointer.appending.for.obj2$obj2.idx[i],]
+        obj1.m[pointer.appending.for.obj2$obj1.idx[i], ] <-
+          obj2.m[pointer.appending.for.obj2$obj2.idx[i], ]
       }
     }
 
@@ -391,31 +391,17 @@ merge2ERGMeasurements <-
       obj2.measurements$obj1.idx.y[!is.na(obj2.measurements$obj1.idx.y)]
 
     # update recording indices.
-    if (increment.recording.index) {
+    if (!is.null(increment.obj2.recording.index.by)) {
       obj2.measurements$Recording <-
-        obj2.measurements$Recording + max(obj1@Measurements$Recording)
-    } else {
-      if (!is.null(old.obj2.indices)) {
-        if (length(new.obj2.indices) == length(old.obj2.indices) &&
-            length(old.obj2.indices) == length (unique(obj1@Measurements$Recording))) {
-          if (all(old.obj2.indices) %in% obj1@Measurements$Recording) {
-            obj1@Measurements$Recording <-
-              new.obj2.indices[match(obj1@Measurements$Recording, old.obj2.indices)]
-          } else{
-            stop("All indicies in 'old.obj2.indices' must be valid recoding indices in 'X'.")
-          }
-        } else {
-          stop("Lengths of 'old.obj2.indices' and 'new.obj2.indices' must match.")
-        }
-      }
+        obj2.measurements$Recording + increment.obj2.recording.index.by
+
+      obj2.measurements <-
+        obj2.measurements[, c("Recording", "Marker", "Time")]
+
+      out <- new("ERGMeasurements")
+      out@Marker <- obj1.m
+      out@Measurements <- rbind(obj1@Measurements, obj2.measurements)
     }
-
-    obj2.measurements <-
-      obj2.measurements[, c("Recording", "Marker", "Time")]
-
-    out <- new("ERGMeasurements")
-    out@Marker <- obj1.m
-    out@Measurements <- rbind(obj1@Measurements, obj2.measurements)
     if (validObject(out)) {
       return(out)
     } else {

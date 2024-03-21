@@ -6,7 +6,7 @@ validERGExam <- function(object) {
   required_columns <- c("Step", "Eye", "Channel","Result")
   if (!all(required_columns %in% names(object@Metadata))) {
     stop(
-      "Metadata provided is not in correct format. Must be a data.frame with the columns 'Step', 'Eye', and 'Channel'."
+      "Metadata provided is not in correct format. Must be a data.frame with the columns 'Step', 'Eye', 'Channel', and 'Result'."
     )
   }
   if (!(any(c("integer","numeric") %in% class(object@Metadata$Step))) ||
@@ -31,9 +31,32 @@ validERGExam <- function(object) {
   }
 
   if(any(is.na(object@Metadata[,c("Step", "Eye", "Channel","Result")]))){
+<<<<<<< HEAD
     warning(
       "The essential columns of the Metadata slot ('Step', 'Eye', 'Channel','Result') must not contain missing values. Update these manually to ensure downstream methods won't fail."
+||||||| parent of 39b9049 (minor bugfixes)
+    stop(
+      "The essential columns of the Metadata slot ('Step', 'Eye', 'Channel','Result') must not contain missing values."
+=======
+    warning(
+      "The essential columns of the Metadata slot ('Step', 'Eye', 'Channel','Result') should not contain missing values. Check using 'Metadata()' and update manually."
+>>>>>>> 39b9049 (minor bugfixes)
     )
+  }
+
+  if (any(
+    colnames(object@Metadata) %in% c(
+      "Description",
+      "Intensity",
+      "Background",
+      "Type",
+      "Name",
+      "ChannelBinding",
+      "Relative",
+      "Time"
+    )
+  )) {
+    warning("'Description', 'Intensity', 'Background', 'Type', 'Name', 'ChannelBinding', 'Relative', and 'Time' are reserved column names and should not be used as extra column names in 'Metadata'." )
   }
 
   # Check if Eye entries valid
@@ -50,7 +73,7 @@ validERGExam <- function(object) {
           object@Metadata$Step == s & object@Metadata$Eye == e & object@Metadata$Result == r
         feature.list <- lapply(object@Data[ids.equal], Rejected)
         if (length(unique(unlist(lapply(feature.list,length))))!=1){
-          stop(paste0("Step '", s, "', Eye '", e, "', Repeat ,'", r, "': Unequal amount of recordings for the different channels."))
+          stop(paste0("Step '", s, "', Eye '", e, "', Result ,'", r, "': Unequal amount of recordings for the different channels."))
         }
         feature.df <- tryCatch(
           as.data.frame(do.call(cbind, feature.list)),
@@ -61,7 +84,7 @@ validERGExam <- function(object) {
                 s,
                 "', Eye '",
                 e,
-                "', Repeat ,'",
+                "', Result ,'",
                 r,
                 "': 'Rejected' slots are filled with vectors of unequal length in step ."
               )
@@ -159,8 +182,8 @@ validERGExam <- function(object) {
 
   # Averaged slot
   if (object@Averaged){
-    Repeats<-unique(unlist(lapply(object@Data,function(x){dim(x)[2]})))
-    if(length(Repeats)!=1 || Repeats != 1){
+    Trials<-unique(unlist(lapply(object@Data,function(x){dim(x)[2]})))
+    if(length(Trials)!=1 || Trials != 1){
       message("Object does not appear to contain averaged data. Multiple repeats observed. This message is likely irrelevant, as the 'Averaged' is obsolete.")
     }
   }
@@ -191,19 +214,49 @@ validERGExam <- function(object) {
   }
 
   if (any(is.na(object@Stimulus[, c("Step", "Description", "Intensity", "Background", "Type")]))) {
+<<<<<<< HEAD
     warning(
       "The essential columns of the Stimulus slot ('Step', 'Description', 'Intensity','Background'),'Type' must not contain missing values. Update these manually to ensure downstream methods won't fail."
+||||||| parent of 39b9049 (minor bugfixes)
+    stop(
+      "The essential columns of the Stimulus slot ('Step', 'Description', 'Intensity','Background'),'Type' must not contain missing values."
+=======
+    warning(
+      "The essential columns of the Stimulus slot ('Step', 'Description', 'Intensity','Background'),'Type' should not contain missing values. Use 'Stimulus()' to check and adjust manually."
+>>>>>>> 39b9049 (minor bugfixes)
     )
   }
 
+<<<<<<< HEAD
   if (!(any(c("integer","numeric") %in% class(object@Stimulus$Step))) ||
       !(any(c("integer","numeric") %in% class(object@Stimulus$Intensity)))) {
+||||||| parent of 39b9049 (minor bugfixes)
+  if (!("integer" %in% class(object@Stimulus$Step)) ||
+      !("integer" %in% class(object@Stimulus$Intensity))) {
+=======
+  if (any(
+    colnames(object@Stimulus) %in% c(
+      "Channel",
+      "Result",
+      "Eye",
+      "Name",
+      "ChannelBinding",
+      "Relative",
+      "Time"
+    )
+  )) {
+    warning("'Channel', 'Result','Eye', 'Type', 'Name', 'ChannelBinding', 'Relative', and 'Time' are reserved column names and should not be used as extra column names in 'Stimulus'." )
+  }
+
+  if (!("integer" %in% class(object@Stimulus$Step)) ||
+      !(any(c("numeric","integer") %in% class(object@Stimulus$Intensity)))) {
+>>>>>>> 39b9049 (minor bugfixes)
     stop(
-      "Stimulus slot columns 'Step' and 'Intensity' must be of class 'integer'. They are: '",
+      "Stimulus slot columns 'Step' and 'Intensity' must be of class 'integer' and 'numeric' or 'integer', respectivley.. They are: '",
       class(object@Stimulus$Step),
       "' and '",
       class(object@Stimulus$Intensity),
-      "', respectivley."
+      "'."
     )
   }
 
@@ -341,7 +394,7 @@ ERGExam <- setClass(
     Stimulus = data.frame(
       Step = character(),
       Description = character(),
-      Intensity = as_units(integer(), unitless),
+      Intensity = as_units(numeric(), unitless),
       Background = character(),
       Type = character()
     ),
@@ -409,20 +462,24 @@ ERGExam <- setClass(
 #' # Create example data and metadata
 #' Data <-
 #'   list(
-#'     makeExampleEPhysData(nsets = 10, replicate_count = 3),
-#'     makeExampleEPhysData(nsets = 10, replicate_count = 3),
-#'     makeExampleEPhysData(nsets = 5, replicate_count = 6),
-#'     makeExampleEPhysData(nsets = 5, replicate_count = 6)
+#'     makeExampleEPhysData(sample_points = 100, replicate_count = 3),
+#'     makeExampleEPhysData(sample_points = 100, replicate_count = 3),
+#'     makeExampleEPhysData(sample_points = 100, replicate_count = 6),
+#'     makeExampleEPhysData(sample_points = 100, replicate_count = 6)
 #'   )  # List of EPhysData objects
 #' Metadata <-
 #'   data.frame(
-#'     Step = c("A1", "A1", "A2", "A2"),
+#'     Step = as.integer(c(1,1,2,2)),
 #'     Eye = c("RE", "LE", "LE", "LE"),
-#'     Channel = c("Ch1", "Ch1", "Ch1", "Ch2")
+#'     Channel = c("Ch1", "Ch1", "Ch1", "Ch2"),
+#'     Result = as.integer(c(1,1,1,1))
 #'   )
 #' Stimulus <-
-#'   data.frame(Step = c("A1", "A2"),
-#'              Name = c("Stim1", "Stim2"))  # Example stimulus data
+#'   data.frame(Step = as.integer(c(1, 2)),
+#'              Description = c("Stim1", "Stim2"),
+#'              Intensity = as.numeric(c(1,10)),
+#'              Background = c("DA","DA"),
+#'              Type = c("Flash","Flash"))  # Example stimulus data
 #' ExamInfo <-
 #'   list(
 #'     ProtocolName = "ERG Protocol",
@@ -471,6 +528,10 @@ newERGExam <-
     obj@Measurements <- Measurements
     obj@ExamInfo <- ExamInfo
     obj@SubjectInfo <- SubjectInfo
+
+    if (is.null(obj@SubjectInfo$Group)) {
+      obj@SubjectInfo$Group<-"DEFAULT"
+    }
 
     # Set default values for other slots
     obj@Imported <- as.POSIXct(Sys.time())

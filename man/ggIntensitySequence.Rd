@@ -41,7 +41,7 @@ data(ERG)
 ERG<-SetStandardFunctions(ERG)
 ERG <- AutoPlaceMarkers(ERG)
 data <- list(ERG, ERG)
-ggIntensitySequence(data, Background = "DA", Type = "Flash", Channel = "ERG_auto")
+ggIntensitySequence(data, Background = "DA", Type = "Flash", Channel = "ERG")
 
 }
 \seealso{

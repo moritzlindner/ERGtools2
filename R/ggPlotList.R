@@ -16,6 +16,7 @@
 #' @importFrom ggplot2 ggplot aes geom_line geom_point geom_errorbar scale_x_log10 facet_wrap labs
 #' @importFrom ggpubr theme_pubr
 #' @importFrom tidyr %>%
+#' @importFrom dplyr summarise
 #' @seealso  \link[ggplot2:ggplot]{ggplot2:ggplot}
 #'
 #' @examples
@@ -24,7 +25,7 @@
 #' ERG<-SetStandardFunctions(ERG)
 #' ERG <- AutoPlaceMarkers(ERG)
 #' data <- list(ERG, ERG)
-#' ggIntensitySequence(data, Background = "DA", Type = "Flash", Channel = "ERG_auto")
+#' ggIntensitySequence(data, Background = "DA", Type = "Flash", Channel = "ERG")
 #'
 #' @export
 ggIntensitySequence <-
@@ -145,7 +146,7 @@ PlotIntensitySequence<-ggIntensitySequence
 #' ERG<-SetStandardFunctions(ERG)
 #' ERG <- AutoPlaceMarkers(ERG)
 #' data <- list(ERG, ERG)
-#' ggStepSequence(data, Background = "DA", Type = "Flash", Channel = "ERG_auto",Markers = c("a", "B"))
+#' ggStepSequence(data, Background = "DA", Type = "Flash", Channel = "ERG",Markers = c("a", "B"))
 #'
 #' @export
 ggStepSequence <-
@@ -218,9 +219,10 @@ PlotStepSequence<-ggStepSequence
 #'
 #' @return A ggplot2 plot object.
 #'
-#' @importFrom ggplot2 geom_hline geom_line facet_grid scale_color_manual theme
+#' @importFrom ggplot2 geom_hline geom_line facet_grid scale_color_manual theme geom_ribbon
 #' @importFrom ggpubr theme_pubclean
 #' @importFrom stringr str_detect
+#' @importFrom units drop_units
 #'
 #' @examples
 #' # Example usage:
@@ -228,7 +230,7 @@ PlotStepSequence<-ggStepSequence
 #' ERG<-SetStandardFunctions(ERG)
 #' ERG <- AutoPlaceMarkers(ERG)
 #' data <- list(ERG, ERG)
-#' ggPlotRecordings(data, Background = "DA", Type = "Flash", Channel = "ERG_auto")
+#' ggPlotRecordings(data, Background = "DA", Type = "Flash", Channel = "ERG")
 #'
 #' @export
 ggPlotRecordings<-function(List,
@@ -240,11 +242,49 @@ ggPlotRecordings<-function(List,
 
   # ggplot workaround
   Time<-Value<-Eye<-Result<-NULL
+  commoncolnames<-c("Step","Channel","Result","Eye","Repeat","Time")
 
   results <- lapply(List, function(x) {
+
+    # todo: downsample
+    # x<-lapply(x,function(y){
+    #   yt<-TimeTrace(y)
+    #   yt[yt %in% pretty(yt,300)]
+    #   Subset(y,Time)
+    #   y
+    # })
+
+    # SD
+    sdev <- x
+    AverageFunction(sdev, where = 1:length(sdev)) <- sd
+    sdev <- Subset(sdev, Raw = F)
+    df.sdev <- as.data.frame(sdev)
+    df.sdev<-df.sdev[,c(commoncolnames,"Value")]
+    colnames(df.sdev)[colnames(df.sdev)=="Value"]<-"sdev"
+
+    # N
+    n <- x
+    AverageFunction(n, where = 1:length(n)) <- length
+    n <- Subset(n, Raw = F)
+    df.n <- as.data.frame(n)
+    df.n<-df.n[,c(commoncolnames,"Value")]
+    colnames(df.n)[colnames(df.n)=="Value"]<-"n"
+    df.n$n<-drop_units(df.n$n)
+
+    # Avg as per set fx.
+    x <- Subset(x, Raw = F)
     df <- as.data.frame(x)
+    df<-df[,c(commoncolnames,"Value")]
+
+    df<-merge(df,df.sdev,by=commoncolnames)
+    df<-merge(df,df.n,by=commoncolnames)
+    df$SEM<-df$sdev/df$n
+
     tab <- StimulusTable(x)
     df$Subject <- Subject(x)
+    if (length(x@SubjectInfo$Group)==0) {
+      x@SubjectInfo$Group<-"DEFAULT"
+    }
     df$Group <- x@SubjectInfo$Group
     df$ExamDate <- min(x@ExamInfo$ExamDate)
     tab$Description <-
@@ -272,11 +312,15 @@ ggPlotRecordings<-function(List,
   ggplot(data = results, aes(
     x = Time,
     y = Value,
+    ymin = Value - SEM,
+    ymax = Value + SEM,
     color = Eye,
+    fill = Eye,
     linetype = as.factor(Result)
   )) +
     geom_hline(yintercept = as_units(0,"uV"), colour = "gray") +
     geom_line() +
+    geom_ribbon(alpha=0.2, colour=NA) +
     facet_grid(Type+Background+Intensity+Channel~Group+Subject,
                scales = scales
     ) +
@@ -327,63 +371,73 @@ get_measurements_for_Plot <- function(List,
   # subset object
   List <- lapply(List, function(x) {
     if(!CheckAvgFxSet(x)){
-      stop("Average functions must be set for all objects in the list.")
+      stop("Average functions must be set for all objects in the list, but is missing for: ", Subject(x)," recorded on ", as.character(ExamDate(x)), ". ")
     }
-    md <- merge(Metadata(x), StimulusTable(x))
-    sel <-
-      md$Background %in% Background &
-      md$Type %in% Type & md$Channel %in% Channel
-    avg.fx.buffer <-
-      lapply(x, function(y) {
-        AverageFunction(y)
-      }, ReturnEPhysSet = F)
-    avg.fx.buffer <- avg.fx.buffer[sel]
+    tryCatch({
+      md <- merge(Metadata(x), StimulusTable(x))
+      sel <-
+        md$Background %in% Background &
+        md$Type %in% Type & md$Channel %in% Channel
+      avg.fx.buffer <-
+        lapply(x, function(y) {
+          AverageFunction(y)
+        }, ReturnEPhysSet = F)
+      avg.fx.buffer <- avg.fx.buffer[sel]
 
-    rejected.buffer <-
-      lapply(x, function(y) {
-        Rejected(y)
-      }, ReturnEPhysSet = F)
-    rejected.buffer <- rejected.buffer[sel]
+      rejected.buffer <-
+        lapply(x, function(y) {
+          Rejected(y, return.fx = T)
+        }, ReturnEPhysSet = F)
+      rejected.buffer <- rejected.buffer[sel]
 
-    filter.fx.buffer <-
-      lapply(x, function(y) {
-        FilterFunction(y)
-      }, ReturnEPhysSet = F)
-    filter.fx.buffer <- filter.fx.buffer[sel]
+      filter.fx.buffer <-
+        lapply(x, function(y) {
+          FilterFunction(y)
+        }, ReturnEPhysSet = F)
+      filter.fx.buffer <- filter.fx.buffer[sel]
 
-    x <- Subset(x, where = which(sel))
+      x <- Subset(x, where = which(sel), Raw = T)
 
-    for (y in 1:length(x)) {
-      AverageFunction(x[[y]])<-avg.fx.buffer[[y]]
-      Rejected(x[[y]])<-as.vector(Rejected(x[[y]]))
-      FilterFunction(x[[y]])<-filter.fx.buffer[[y]]
-    }
-    return(x)
+      for (y in 1:length(x)) {
+        AverageFunction(x[[y]])<-avg.fx.buffer[[y]]
+        Rejected(x[[y]])<-as.vector(Rejected(x[[y]]))
+        FilterFunction(x[[y]])<-filter.fx.buffer[[y]]
+      }
+      return(x)
+    }, error = function(e){
+      stop("Fetching Metadata and Stimulus values failed for ", Subject(x)," recorded on ", as.character(ExamDate(x)), " with error message: ", e)
+    })
   })
 
   results <- lapply(List, function(x) {
-    df <- Measurements(x)
-    df$Subject <- Subject(x)
-    df$Group <- x@SubjectInfo$Group
-    df$ExamDate <- min(x@ExamInfo$ExamDate)
-    df$Subject <- Subject(x)
-    df$Group <- x@SubjectInfo$Group
-    df$ExamDate <- x@ExamInfo$ExamDate
-    if(nrow(df)>0){
+    tryCatch({
+      df <- Measurements(x)
       df$Subject <- Subject(x)
+      if (length(x@SubjectInfo$Group)==0) {
+        x@SubjectInfo$Group<-"DEFAULT"
+      }
       df$Group <- x@SubjectInfo$Group
       df$ExamDate <- min(x@ExamInfo$ExamDate)
-    }else{
-      df$Subject <- character()
-      df$Group <- character()
-      df$ExamDate <- as.Date(x = integer(0), origin = "1970-01-01")
-    }
-    df <-
-      merge(df,
-            StimulusTable(x),
-            by.x = "Step",
-            by.y = "Step")
-    return(df)
+      df$Subject <- Subject(x)
+      df$ExamDate <- x@ExamInfo$ExamDate
+      if(nrow(df)>0){
+        df$Subject <- Subject(x)
+        df$Group <- x@SubjectInfo$Group
+        df$ExamDate <- min(x@ExamInfo$ExamDate)
+      }else{
+        df$Subject <- character()
+        df$Group <- character()
+        df$ExamDate <- as.Date(x = integer(0), origin = "1970-01-01")
+      }
+      df <-
+        merge(df,
+              StimulusTable(x),
+              by.x = "Step",
+              by.y = "Step")
+      return(df)
+    }, error = function(e){
+      stop("Fetching Measurements failed for ", Subject(x)," recorded on ", as.character(ExamDate(x)), " with error message: ", e)
+    })
   })
   results <- do.call(rbind.data.frame, results)
   # type conversion and column names

@@ -8,7 +8,7 @@
 #' @return A numeric vector of  containing the index of a recording defined by the parameters, or NULL if entry was not found.
 #' @examples
 #' data(ERG)
-#' Where(ERG,list(Channel="ERG_auto", Intensity=1))
+#' Where(ERG,list(Channel="ERG", Intensity=1))
 #'
 #' @name Where
 #' @exportMethod Where
@@ -86,20 +86,6 @@ Where.generic <- function(MD,
     }
   }
 
-  # convert numeric to integer inside where list
-  where <- lapply(where, function(x) {
-    if (is.numeric(x)) {
-      out <- as.integer(x)
-      if (out != x) {
-        stop("Numeric argument '",
-             x,
-             "' of 'where' cannot be converted into integer.")
-      }
-    } else {
-      out <- x
-    }
-    out
-  })
 
   md.sel <- which(names(where) %in% colnames(MD))
   stim.sel <-

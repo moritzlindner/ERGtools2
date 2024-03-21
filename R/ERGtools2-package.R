@@ -72,11 +72,11 @@
 #' StimulusTable(ERG) # have a look whats inside
 #' Metadata(ERG)
 #' ERG<-SetStandardFunctions(ERG)
-#' ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG_auto", Result = as.integer(1))) # pick one and have a look at the traces as imported
+#' ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG", Result = as.integer(1))) # pick one and have a look at the traces as imported
 #'
 #' ERG <- AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG_auto")) # automatically place markers
 #'
-#' ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG_auto", Result = as.integer(1))) # pick one and have a look at the traces as imported
+#' ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG", Result = as.integer(1))) # pick one and have a look at the traces as imported
 #'
 #' @author \href{https://www.lindnerlab.de}{Moritz Lindner}
 #' @aliases ERGtools2-package

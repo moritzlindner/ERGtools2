@@ -38,7 +38,7 @@ data(ERG)
 ERG<-SetStandardFunctions(ERG)
 ERG <- AutoPlaceMarkers(ERG)
 data <- list(ERG, ERG)
-ggStepSequence(data, Background = "DA", Type = "Flash", Channel = "ERG_auto",Markers = c("a", "B"))
+ggStepSequence(data, Background = "DA", Type = "Flash", Channel = "ERG",Markers = c("a", "B"))
 
 }
 \seealso{

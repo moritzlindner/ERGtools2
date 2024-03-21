@@ -67,20 +67,24 @@ with the specified data and attributes.
 # Create example data and metadata
 Data <-
   list(
-    makeExampleEPhysData(nsets = 10, replicate_count = 3),
-    makeExampleEPhysData(nsets = 10, replicate_count = 3),
-    makeExampleEPhysData(nsets = 5, replicate_count = 6),
-    makeExampleEPhysData(nsets = 5, replicate_count = 6)
+    makeExampleEPhysData(sample_points = 100, replicate_count = 3),
+    makeExampleEPhysData(sample_points = 100, replicate_count = 3),
+    makeExampleEPhysData(sample_points = 100, replicate_count = 6),
+    makeExampleEPhysData(sample_points = 100, replicate_count = 6)
   )  # List of EPhysData objects
 Metadata <-
   data.frame(
-    Step = c("A1", "A1", "A2", "A2"),
+    Step = as.integer(c(1,1,2,2)),
     Eye = c("RE", "LE", "LE", "LE"),
-    Channel = c("Ch1", "Ch1", "Ch1", "Ch2")
+    Channel = c("Ch1", "Ch1", "Ch1", "Ch2"),
+    Result = as.integer(c(1,1,1,1))
   )
 Stimulus <-
-  data.frame(Step = c("A1", "A2"),
-             Name = c("Stim1", "Stim2"))  # Example stimulus data
+  data.frame(Step = as.integer(c(1, 2)),
+             Description = c("Stim1", "Stim2"),
+             Intensity = as.numeric(c(1,10)),
+             Background = c("DA","DA"),
+             Type = c("Flash","Flash"))  # Example stimulus data
 ExamInfo <-
   list(
     ProtocolName = "ERG Protocol",

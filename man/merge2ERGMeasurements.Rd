@@ -4,24 +4,14 @@
 \alias{merge2ERGMeasurements}
 \title{Merge two ERGMeasurements objects}
 \usage{
-merge2ERGMeasurements(
-  obj1,
-  obj2,
-  increment.recording.index = T,
-  old.obj2.indices = NULL,
-  new.obj2.indices = NULL
-)
+merge2ERGMeasurements(obj1, obj2, increment.obj2.recording.index.by)
 }
 \arguments{
 \item{obj1}{An object of class ERGMeasurements.}
 
 \item{obj2}{Another object of class ERGMeasurements.}
 
-\item{increment.recording.index}{Logical, indicating whether to increment recording indices of obj2.}
-
-\item{old.obj2.indices}{Optional vector of old recording indices in obj2.}
-
-\item{new.obj2.indices}{Optional vector of new recording indices to replace the old indices.}
+\item{increment.obj2.recording.index.by}{Numeric indicating by what number to increment the recording indices by. Could be e.g. the number of recordings in object 1.}
 }
 \value{
 An object of class ERGMeasurements, representing the merged data.
@@ -56,7 +46,7 @@ Measurements.data2 <- new("ERGMeasurements", Marker = marker_df, Measurements = 
 Measurements.data2
 
 # now merge both objects
-merge2ERGMeasurements(Measurements.data,Measurements.data2)
+merge2ERGMeasurements(Measurements.data,Measurements.data2, max(Measurements(Measurements.data)[,"Recording"]))
 
 # other example
 
@@ -74,7 +64,7 @@ measurements_df3 <- data.frame(
 
 Measurements.data3 <- new("ERGMeasurements", Marker = marker_df3, Measurements = measurements_df3)
 
-merge2ERGMeasurements(Measurements.data2,Measurements.data3)
+merge2ERGMeasurements(Measurements.data2,Measurements.data3,max(Measurements(Measurements.data2)[,"Recording"]))
 
 
 }

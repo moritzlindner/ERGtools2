@@ -6,7 +6,7 @@
 #' @param Time Numeric vector of length 2 representing the time range for data extraction.
 #'             Default is the entire time range (i.e., keep all data).
 #' @param TimeExclusive Keep only the two time points stated under 'Time', not the range.
-#' @param Repeats Specifies which of the repeated measurements (if any) to use for extraction.
+#' @param Trials Specifies which of the repeated measurements (if any) to use for extraction.
 #'                It can be either a numeric vector specifying the indices of the repeated measurements
 #'                or a logical vector of the same length as repeats stored,
 #'                where `TRUE` indicates using that column for extraction. Default is the inverse of the \code{\link{Rejected-method}}(X) vector.
@@ -19,14 +19,14 @@
 #' @name Subset-method
 #' @examples
 #' data(ERG)
-#' Subset(ERG,where=list(Channel="ERG_auto"))
+#' Subset(ERG,where=list(Channel="ERG"))
 #' @exportMethod Subset
 setMethod("Subset",
           signature(X = "ERGExam"),
           function(X,
                    Time = NULL,
                    TimeExclusive = FALSE,
-                   Repeats = NULL,
+                   Trials = NULL,
                    Raw = TRUE,
                    where = NULL,
                    ...) {
@@ -70,7 +70,7 @@ setMethod("Subset",
               Y,
               Time = Time,
               TimeExclusive = TimeExclusive,
-              Repeats = Repeats,
+              Trials = Trials,
               SetItems = Recording,
               Raw = Raw,
               Simplify = FALSE

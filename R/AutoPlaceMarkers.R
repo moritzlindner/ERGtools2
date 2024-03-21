@@ -21,7 +21,10 @@
 #' ERG<-SetStandardFunctions(ERG)
 #' imported_Markers<-Measurements(ERG)
 #' head(imported_Markers)
-#' ERG<-AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG_auto"))
+#' ERG<-ClearMeasurements(ERG)
+#' imported_Markers_cleared<-Measurements(ERG)#'
+#' head(imported_Markers_cleared)
+#' ERG<-AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG"))
 #' autoplaced_Markers<-Measurements(ERG)
 #' head(autoplaced_Markers)
 #'
@@ -125,7 +128,7 @@ setGeneric(
     standardGeneric("AutoPlaceAB")
   }
 )
-#' @importFrom EPhysMethods filter.bandpass
+#' @importFrom EPhysMethods filter.bandpass freq.to.w
 #' @noMd
 setMethod(
   "AutoPlaceAB",
@@ -134,7 +137,8 @@ setMethod(
     dat<-getdf(X)
     sample.rate<-attr(dat,"sample.rate")
 
-    dat$Filtered <- filter.bandpass(dat$Voltage, sample.rate, 5, 75)
+    cutoff<-freq.to.w(x=c(5,75),time.trace<-TimeTrace(X))
+    dat$Filtered <- filter.bandpass(dat$Voltage, cutoff[1], cutoff[2])
     B_estimate <- which.max(dat$Filtered)
     a_estimate <- which.min(dat$Filtered[1:B_estimate])
 
@@ -165,7 +169,7 @@ setGeneric(
     standardGeneric("AutoPlaceFlicker")
   }
 )
-#' @importFrom EPhysMethods filter.bandpass fastfourier
+#' @importFrom EPhysMethods filter.bandpass fastfourier freq.to.w
 #' @noMd
 setMethod(
   "AutoPlaceFlicker",
@@ -173,8 +177,8 @@ setMethod(
   definition = function(X) {
     dat<-getdf(X)
     sample.rate<-attr(dat,"sample.rate")
-
-    dat$Filtered <- filter.bandpass(dat$Voltage, sample.rate, 3, 75)
+    cutoff<-freq.to.w(x=c(3,75),time.trace<-TimeTrace(X))
+    dat$Filtered <- filter.bandpass(dat$Voltage, cutoff[1], cutoff[2])
     fft<-fastfourier(dat$Filtered,samp.freq = sample.rate)
     fft<-fft[fft$freq<100,]
     domfreq<-fft$freq[which.max(Re(fft$fur))]
@@ -234,7 +238,7 @@ setGeneric(
     standardGeneric("AutoPlaceVEP")
   }
 )
-#' @importFrom EPhysMethods filter.bandpass
+#' @importFrom EPhysMethods filter.bandpass freq.to.w
 #' @noMd
 setMethod(
   "AutoPlaceVEP",
@@ -242,11 +246,13 @@ setMethod(
   definition = function(X) {
     dat<-getdf(X)
     sample.rate<-attr(dat,"sample.rate")
-    dat$Filtered <- filter.bandpass(dat$Voltage, sample.rate, 10, 150)
+    cutoff<-freq.to.w(x=c(10,150),time.trace<-TimeTrace(X))
+    dat$Filtered <- filter.bandpass(dat$Voltage, cutoff[1], cutoff[2])
     N1_estimate <- which.min(dat$Filtered)
     P1_estimate <- which.max(dat$Filtered[(N1_estimate-30):N1_estimate])+N1_estimate-30 # use first local max left of N1
 
-    dat$Filtered <- filter.bandpass(dat$Voltage, sample.rate, 2, 150)
+    cutoff<-freq.to.w(x=c(2,150),time.trace<-TimeTrace(X))
+    dat$Filtered <- filter.bandpass(dat$Voltage, cutoff[1], cutoff[2])
     P2_estimate <- which.max(dat$Filtered[N1_estimate:(N1_estimate+50)])+N1_estimate
 
     search_left<-0.005/(1/sample.rate) # 5 ms

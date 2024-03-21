@@ -8,12 +8,14 @@
 #' @param Stimulus.type.names A \link[base:pairlist]{base::pairlist} specifying the names identifying the different stimulus types, e.g., \code{Flash="Flash"} or \code{Flash="Blitz"}.
 #' @return An updated ERGExan object.
 #'
-#' #' @examples
+#' @examples
 #' data(ERG)
-#' AverageFunction(ERG,where=list(Step=1))<-median
-#' stop(GetData(updated_ERG,raw=F))
+#' ERG<-SetStandardFunctions(ERG)
+#' ggERGTrace(ERG,where=list(Intensity=1,Channel="ERG",Eye="RE"))
 #'
-#' updated_ERG
+#' AverageFunction(ERG,where=list(Intensity=1))<-min
+#' ggERGTrace(ERG,where=list(Intensity=1,Channel="ERG",Eye="RE"))
+#'
 #'
 #' @seealso \link[EPhysData:Get_Set_EPhysData]{EPhysData::Get_Set_EPhysData}, \link[EPhysMethods:autoreject.by.distance]{EPhysMethods::autoreject.by.distance}, \link[EPhysMethods:autoreject.by.signalfree]{EPhysMethods::autoreject.by.signalfree}, \link[EPhysMethods:filter.bandpass]{EPhysMethods::filter.bandpass}, \link[EPhysMethods:filter.detrend]{EPhysMethods::filter.detrend},
 #' @name UpdateProcessingMethods
@@ -68,9 +70,7 @@ setMethod(
         Rejected(X@Data[[i]]) <- autoreject.by.distance
       }
     }
-    if (validERGExam(X)) {
-      return(X)
-    }
+    return(X)
   }
 )
 
@@ -83,16 +83,16 @@ functionupdater<-function(X, where, value, what) {
   sel <- Where(X,where = where)
   for (i in sel) {
     if (what == "FilterFunction<-") {
-      FilterFunction(X@Data[[i]]) <- function(x) value(x)
+      FilterFunction(X@Data[[i]]) <- value
     }
     if (what == "Rejected<-") {
-      Rejected(X@Data[[i]]) <- function(x) value(x)
+      Rejected(X@Data[[i]]) <- value
     }
     if (what == "AverageFunction<-") {
-      AverageFunction(X@Data[[i]]) <- function(x) value(x)
+      AverageFunction(X@Data[[i]]) <- value
     }
   }
-  if (validERGExam(X)) {
-    return(X)
-  }
+  # if (validERGExam(X)) {
+     return(X)
+  # }
 }

@@ -36,6 +36,6 @@ data(ERG)
 ERG<-SetStandardFunctions(ERG)
 ERG <- AutoPlaceMarkers(ERG)
 data <- list(ERG, ERG)
-ggPlotRecordings(data, Background = "DA", Type = "Flash", Channel = "ERG_auto")
+ggPlotRecordings(data, Background = "DA", Type = "Flash", Channel = "ERG")
 
 }

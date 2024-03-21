@@ -93,8 +93,8 @@ types
 
 # Assigning new values to the description of selected stimuli
 Stimulus(ERG)
-new_descriptions <- c("New Desc 1", "New Desc 2")
-StimulusDescription(ERG, where = list(Type = "Flicker")) <- new_descriptions
+new_descriptions <- c("New Desc 1", "New Desc 2", "New Desc 2")
+StimulusDescription(ERG, where = list(Type = "Flash")) <- new_descriptions
 # Now let's check if the descriptions have been updated
 updated_descriptions <- Stimulus(ERG)
 updated_descriptions

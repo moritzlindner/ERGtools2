@@ -189,6 +189,20 @@ ImportEspionProtocol<-function(filename){
           currChan@Markers[[m]]<-currMarker
         }
       }
+
+      if(!is.std.channelname(currChan@Name)){
+        old<-currChan@Name
+        inferred.name<-inferre.channel.names.from.markers(unlist(lapply(currChan@Markers, function(x){x@Name})))
+        if(inferred.name!="Unknown"){
+          currChan@Name<-inferred.name
+        } else {
+          if(currChan@Name==""){
+            currChan@Name<-inferred.name
+          }
+        }
+        warning("No valid Channel name in  '", basename(filename), "', Step '", s, "' Channel '", c, "'. Original channel name '", old, "' was changed to ",  currChan@Name, ".")
+      }
+
       currStep@Channels[[c]]<-currChan
     }
     Steps[[s]]<-currStep

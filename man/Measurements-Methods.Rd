@@ -66,7 +66,7 @@ ClearMeasurements(X)
 
 \item{value}{For Measurements<- only. Plain numeric value or value of class units (\link[units:units]{units::units} with a time unit set. If \code{NULL} it will remove the indicated row.}
 
-\item{data}{For newERGMeasurements only. A data frame containing measurements data with columns:
+\item{data}{For newERGMeasurements only. A data Measurementsframe containing measurements data with columns:
 \code{Channel}, \code{Name}, \code{Recording}, \code{Time}, and \code{Relative}.}
 
 \item{update.empty.relative}{Logical. If an empty relative value should be overwritten by an otherways matching marker.}

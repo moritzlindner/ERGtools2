@@ -242,6 +242,7 @@ ImportEspion <- function(filename,
       merge(measurements,
             Metadata[, c("Step", "Channel", "Result", "Eye", "Recording")],
             by = c("Step", "Channel", "Result", "Eye"))
+    Metadata$Recording <- NULL
 
     if (all(is.null(unique(measurements$Group)))) {
       measurements$Group <- NULL
@@ -259,7 +260,19 @@ ImportEspion <- function(filename,
     M <- newERGMeasurements(data.frame(Channel=character(),Name=character(),Recording=numeric(),Time=numeric(),Relative=character()))
   }
 
-  #  BUGFIX Truncate empty STEPS to dims of others from same Step if unequal
+  # Dump empty traces
+
+  EmptyTraces<-unlist((lapply(STEPS, function(x) {
+    sum(drop_units(x@Data))
+  })))==0
+
+  STEPS<-STEPS[!EmptyTraces]
+  Metadata<-Metadata[!EmptyTraces,]
+  rownames(Metadata)<-NULL
+  stim_info<-stim_info[stim_info$Step %in% unique(Metadata$Step),]
+  rownames(stim_info)<-NULL
+
+  # Subject and Exam data
 
   DOB <-
     as.Date(as.character(recording_info$DOB), format =    "%d/%m/%Y", origin = "1970-01-01")
@@ -269,6 +282,18 @@ ImportEspion <- function(filename,
                           "%d/%m/%Y %H:%M:%S"))
   ExamDate <-
     as.POSIXct.numeric(as.numeric(ExamDate), origin = "1970-01-01 00:00.00 UTC")
+
+
+  # data strangely pooled, every second from other channel.
+  # is this in file or import mistake?
+  #   how to make fail proof?
+  # ggEPhysData(Subset(STEPS[[5]],Trials=seq(1,50,2)))
+  # Warnmeldungen:
+  #   1: In GetData(x, Raw = Raw) :
+  #   Averaging function function (x) {    x} returns more than a single value per time point. Has a valid function been set? Try e.g.: AverageFunction(X)<-mean
+  # 2: In ggEPhysData(Subset(STEPS[[5]], Trials = seq(1, 50, 2))) :
+  #   No averaging function set.
+  # > ggEPhysData(Subset(STEPS[[5]],Trials=seq(2,50,2)))
 
 
   # return the object

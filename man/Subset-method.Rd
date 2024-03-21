@@ -8,7 +8,7 @@
   X,
   Time = NULL,
   TimeExclusive = FALSE,
-  Repeats = NULL,
+  Trials = NULL,
   Raw = TRUE,
   where = NULL,
   ...
@@ -22,7 +22,7 @@ Default is the entire time range (i.e., keep all data).}
 
 \item{TimeExclusive}{Keep only the two time points stated under 'Time', not the range.}
 
-\item{Repeats}{Specifies which of the repeated measurements (if any) to use for extraction.
+\item{Trials}{Specifies which of the repeated measurements (if any) to use for extraction.
 It can be either a numeric vector specifying the indices of the repeated measurements
 or a logical vector of the same length as repeats stored,
 where \code{TRUE} indicates using that column for extraction. Default is the inverse of the \code{\link{Rejected-method}}(X) vector.}
@@ -39,7 +39,7 @@ The \code{Subset} function creates a new \code{ERGExam}  object containing a sub
 }
 \examples{
 data(ERG)
-Subset(ERG,where=list(Channel="ERG_auto"))
+Subset(ERG,where=list(Channel="ERG"))
 }
 \seealso{
 \link[EPhysData:Subset]{EPhysData::Subset}

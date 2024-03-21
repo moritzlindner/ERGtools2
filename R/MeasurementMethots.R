@@ -6,7 +6,7 @@
 #' @inheritParams Marker-Methods
 #' @inheritParams Where
 #' @param value For Measurements<- only. Plain numeric value or value of class units (\link[units:units]{units::units} with a time unit set. If \code{NULL} it will remove the indicated row.
-#' @param data For newERGMeasurements only. A data frame containing measurements data with columns:
+#' @param data For newERGMeasurements only. A data Measurementsframe containing measurements data with columns:
 #'   \code{Channel}, \code{Name}, \code{Recording}, \code{Time}, and \code{Relative}.
 #' @param create.marker.if.missing Logical. If TRUE and the marker does not exist, it will be created.
 #' @param update.empty.relative Logical. If an empty relative value should be overwritten by an otherways matching marker.
@@ -116,7 +116,9 @@ setMethod("Measurements",
                    Marker =  NULL,
                    quiet = F) {
 
-            where = Where(X, where)
+            if(!is.null(where)){
+              where = Where(X, where)
+            }
 
             measurements <- Measurements(X@Measurements, where, Marker, quiet)
             if (nrow(measurements) != 0) {

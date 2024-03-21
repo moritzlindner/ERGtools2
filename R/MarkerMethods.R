@@ -19,7 +19,7 @@
 #'
 #' # Add a new Marker to an ERGMeasurements object
 #' data(ERG)
-#' new_erg <- AddMarker(ERG, Marker = "Marker1", Relative = NA, ChannelBinding = "ERG_auto")
+#' new_erg <- AddMarker(ERG, Marker = "Marker1", Relative = NA, ChannelBinding = "ERG")
 #' # but this would fail:
 #' # new_erg <- DropMarker(ERG, Marker = "Marker1")
 #' Markers(new_erg)

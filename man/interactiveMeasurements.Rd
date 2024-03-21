@@ -4,7 +4,7 @@
 \alias{interactiveMeasurements}
 \title{Interactively perform measurements on an ERGExam object}
 \usage{
-interactiveMeasurements(X, Channel = "ERG_auto", Eye = Eyes(X))
+interactiveMeasurements(X, Channel = "ERG", Eye = Eyes(X))
 }
 \arguments{
 \item{X}{An \linkS4class{ERGExam}}

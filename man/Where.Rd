@@ -24,6 +24,6 @@ This method gets the indices of recordings stored in an \linkS4class{ERGExam} ob
 }
 \examples{
 data(ERG)
-Where(ERG,list(Channel="ERG_auto", Intensity=1))
+Where(ERG,list(Channel="ERG", Intensity=1))
 
 }

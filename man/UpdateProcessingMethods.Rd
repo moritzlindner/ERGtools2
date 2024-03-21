@@ -30,13 +30,6 @@ SetStandardFunctions(
 }
 \value{
 An updated ERGExan object.
-
-#' @examples
-data(ERG)
-AverageFunction(ERG,where=list(Step=1))<-median
-stop(GetData(updated_ERG,raw=F))
-
-updated_ERG
 }
 \description{
 These methods are used to set filter, rejection and averaging functions for \link{ERGExam} objects.
@@ -53,6 +46,16 @@ They allow setting the functions to a subset of recordings based on the specifie
 \item \code{SetStandardFunctions()}: This method is used to set standard functions for processing \linkS4class{ERGExam} data. It defines default functions for averaging, filtering, and signal rejection based on the stimulus type.
 
 }}
+\examples{
+data(ERG)
+ERG<-SetStandardFunctions(ERG)
+ggERGTrace(ERG,where=list(Intensity=1,Channel="ERG",Eye="RE"))
+
+AverageFunction(ERG,where=list(Intensity=1))<-min
+ggERGTrace(ERG,where=list(Intensity=1,Channel="ERG",Eye="RE"))
+
+
+}
 \seealso{
 \link[EPhysData:Get_Set_EPhysData]{EPhysData::Get_Set_EPhysData}, \link[EPhysMethods:autoreject.by.distance]{EPhysMethods::autoreject.by.distance}, \link[EPhysMethods:autoreject.by.signalfree]{EPhysMethods::autoreject.by.signalfree}, \link[EPhysMethods:filter.bandpass]{EPhysMethods::filter.bandpass}, \link[EPhysMethods:filter.detrend]{EPhysMethods::filter.detrend},
 }
