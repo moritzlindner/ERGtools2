@@ -207,7 +207,7 @@ get_trace <- function(filename, toc, Data_Header, IDX, what) {
 
 #' @keywords internal
 inferre.channel.names.from.markers<-function(markers){
-  
+
   checkfx <- function(l, pos,markers) {
     any(unlist(lapply(l[names(l) %in% pos], function(x) {
       all(x %in% markers)
@@ -215,10 +215,9 @@ inferre.channel.names.from.markers<-function(markers){
       !any(unlist(lapply(l[!(names(l) %in% pos)], function(x) {
         all(x %in% markers)
       })))
-    
+
   }
-  
-  markers<-toupper(markers)
+
   def_markers<-list(
     ERG_flash=c("A","B"),
     ERG_flicker=c("P1","N1"),
@@ -226,18 +225,18 @@ inferre.channel.names.from.markers<-function(markers){
     VEP_early=c("P1","N1","P2"),
     VEP_late=c("P100","N75","N135","P200","P300")
   )
-  
-  
+  markers<-toupper(markers)
+
   # ERG
-  if(checkfx(def_markers,c("ERG_flash","ERG_flicker"),markers)){
+  if (checkfx(def_markers, c("ERG_flash", "ERG_flicker"), markers)) {
     return("ERG")
   }
   # OP
-  if(checkfx(def_markers,c("ERG_OP"),markers)){
+  if (checkfx(def_markers, c("ERG_OP"), markers)) {
     return("OP")
   }
   # VEP
-  if(checkfx(def_markers,c("VEP_early","VEP_late"),markers)){
+  if (checkfx(def_markers, c("VEP_early", "VEP_late"), markers)) {
     return("VEP")
   }
   return("Unknown")

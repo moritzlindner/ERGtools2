@@ -21,7 +21,7 @@ This method generates a \link[ggplot2:ggplot]{ggplot2::ggplot} plot for a single
 }
 \examples{
 data(ERG)
-AverageFunction(ERG, where=pairlist(Step = 3,Channel = "ERG",Result = 1)) <- mean
+AverageFunction(ERG, where=pairlist(Step = as.integer(3),Channel = "ERG",Result = as.integer(1))) <- mean
 ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG", Result = as.integer(1)))
 # the information obtained from the interactive plot can be used e.g. to update marker positions.
 }

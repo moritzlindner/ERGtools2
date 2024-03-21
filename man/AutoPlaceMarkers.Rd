@@ -60,7 +60,7 @@ ERG<-SetStandardFunctions(ERG)
 imported_Markers<-Measurements(ERG)
 head(imported_Markers)
 ERG<-ClearMeasurements(ERG)
-imported_Markers_cleared<-Measurements(ERG)#'
+imported_Markers_cleared<-Measurements(ERG)
 head(imported_Markers_cleared)
 ERG<-AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG"))
 autoplaced_Markers<-Measurements(ERG)

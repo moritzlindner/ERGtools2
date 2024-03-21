@@ -31,16 +31,8 @@ validERGExam <- function(object) {
   }
 
   if(any(is.na(object@Metadata[,c("Step", "Eye", "Channel","Result")]))){
-<<<<<<< HEAD
     warning(
-      "The essential columns of the Metadata slot ('Step', 'Eye', 'Channel','Result') must not contain missing values. Update these manually to ensure downstream methods won't fail."
-||||||| parent of 39b9049 (minor bugfixes)
-    stop(
-      "The essential columns of the Metadata slot ('Step', 'Eye', 'Channel','Result') must not contain missing values."
-=======
-    warning(
-      "The essential columns of the Metadata slot ('Step', 'Eye', 'Channel','Result') should not contain missing values. Check using 'Metadata()' and update manually."
->>>>>>> 39b9049 (minor bugfixes)
+      "The essential columns of the Metadata slot ('Step', 'Eye', 'Channel','Result') should not contain missing values. Check using 'Metadata()' to ensure downstream methods won't fail."
     )
   }
 
@@ -214,26 +206,11 @@ validERGExam <- function(object) {
   }
 
   if (any(is.na(object@Stimulus[, c("Step", "Description", "Intensity", "Background", "Type")]))) {
-<<<<<<< HEAD
     warning(
-      "The essential columns of the Stimulus slot ('Step', 'Description', 'Intensity','Background'),'Type' must not contain missing values. Update these manually to ensure downstream methods won't fail."
-||||||| parent of 39b9049 (minor bugfixes)
-    stop(
-      "The essential columns of the Stimulus slot ('Step', 'Description', 'Intensity','Background'),'Type' must not contain missing values."
-=======
-    warning(
-      "The essential columns of the Stimulus slot ('Step', 'Description', 'Intensity','Background'),'Type' should not contain missing values. Use 'Stimulus()' to check and adjust manually."
->>>>>>> 39b9049 (minor bugfixes)
+      "The essential columns of the Stimulus slot ('Step', 'Description', 'Intensity','Background'),'Type' should not contain missing values. Use 'Stimulus()' to check and adjust manually to ensure downstream methods won't fail."
     )
   }
 
-<<<<<<< HEAD
-  if (!(any(c("integer","numeric") %in% class(object@Stimulus$Step))) ||
-      !(any(c("integer","numeric") %in% class(object@Stimulus$Intensity)))) {
-||||||| parent of 39b9049 (minor bugfixes)
-  if (!("integer" %in% class(object@Stimulus$Step)) ||
-      !("integer" %in% class(object@Stimulus$Intensity))) {
-=======
   if (any(
     colnames(object@Stimulus) %in% c(
       "Channel",
@@ -250,9 +227,8 @@ validERGExam <- function(object) {
 
   if (!("integer" %in% class(object@Stimulus$Step)) ||
       !(any(c("numeric","integer") %in% class(object@Stimulus$Intensity)))) {
->>>>>>> 39b9049 (minor bugfixes)
     stop(
-      "Stimulus slot columns 'Step' and 'Intensity' must be of class 'integer' and 'numeric' or 'integer', respectivley.. They are: '",
+      "Stimulus slot columns 'Step' and 'Intensity' must be of class 'integer' and 'numeric' or 'integer', respectivley. They are: '",
       class(object@Stimulus$Step),
       "' and '",
       class(object@Stimulus$Intensity),
