@@ -121,6 +121,10 @@ setMethod("interactiveMeasurements",
 
 
               markers <- Markers(curr)
+              if(nrow(markers)==0){
+                curr<-AutoPlaceMarkers(curr)
+                markers <- Markers(curr)
+              }
               for (i in 1:nrow(markers)) {
                 markers$ChannelBinding[i]
                 if (!(markers$ChannelBinding[i] %in% Channel)) {
@@ -387,7 +391,7 @@ setMethod("interactiveMeasurements",
                 output$measurement_output <-
                   renderDataTable({
                     tmp <- merge(
-                      Metadata(CURR$data)[, colnames(Metadata(curr) != "key")],
+                      Metadata(CURR$data)[, colnames(Metadata(curr)) %in% c("Step","Channel","Result","Eye","ExamDate")],
                       Measurements(CURR$data@Measurements),
                       by = 0,
                       by.y = "Recording"
@@ -396,7 +400,6 @@ setMethod("interactiveMeasurements",
 
                   }, width = "100%", selection = "single",
                   options = list(dom = 't'))
-
               }
 
 

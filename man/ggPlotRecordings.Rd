@@ -4,25 +4,16 @@
 \alias{ggPlotRecordings}
 \title{Uses ggplot2 to plot ERG traces from multiple ERGExam objects}
 \usage{
-ggPlotRecordings(
-  List,
-  Background = "DA",
-  Type = "Flash",
-  Channel = "ERG",
-  wrap_by = "Channel",
-  scales = "free_y"
-)
+ggPlotRecordings(List, where = list(), wrap_by = "Channel", scales = "free_y")
 }
 \arguments{
 \item{List}{A list of ERG exams.}
 
-\item{Background}{Background condition for the exams.}
-
-\item{Type}{Type of exam (e.g., "Flash").}
-
-\item{Channel}{The channel to plot (e.g., "ERG").}
+\item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
 
 \item{wrap_by}{Wrapping parameter for facetting ("Channel" or NULL).}
+
+\item{scales}{Passed on to \link[ggplot2:facet_grid]{ggplot2:facet_grid}.}
 }
 \value{
 A ggplot2 plot object.
@@ -36,6 +27,6 @@ data(ERG)
 ERG<-SetStandardFunctions(ERG)
 ERG <- AutoPlaceMarkers(ERG)
 data <- list(ERG, ERG)
-ggPlotRecordings(data, Background = "DA", Type = "Flash", Channel = "ERG")
+ggPlotRecordings(data, where = list(Background = "DA", Type = "Flash", Channel = "ERG"))
 
 }

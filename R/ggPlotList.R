@@ -25,14 +25,13 @@
 #' ERG<-SetStandardFunctions(ERG)
 #' ERG <- AutoPlaceMarkers(ERG)
 #' data <- list(ERG, ERG)
-#' ggIntensitySequence(data, Background = "DA", Type = "Flash", Channel = "ERG")
+#' ggIntensitySequence(data, where= list(Background = "DA", Type = "Flash", Channel = "ERG"))
 #'
 #' @export
 ggIntensitySequence <-
   function(List,
-           Background = "DA",
-           Type = "Flash",
-           Channel = NULL,
+           where = list(Background = "DA",
+                        Type = "Flash"),
            Markers = c("a", "B", "N1", "P1"),
            Parameter =  "Amplitude",
            wrap_by = "Channel") {
@@ -41,11 +40,9 @@ ggIntensitySequence <-
     Group<-Name<-Intensity<-Voltage<-sd<-Time<-Amplitude<-sem<-ImplicitTime<-NULL
 
     # Extract Measurements and related info
-    results <- get_measurements_for_Plot(
+    results <- Collect_Measurements(
       List = List,
-      Background = Background,
-      Type = Type,
-      Channel = Channel,
+      where = where,
       Markers = Markers
     )
 
@@ -127,9 +124,7 @@ PlotIntensitySequence<-ggIntensitySequence
 #' This function generates a \link[ggplot2:ggplot]{ggplot2:ggplot} plot of step sequence (i.e. sequential recordings within a single protocol) data for multiple ERG exams.
 #'
 #' @param List A list of ERG exams.
-#' @param Background Background condition for the exams.
-#' @param Type Type of exam (e.g., "Flash").
-#' @param Channel The channel to plot (e.g., "ERG").
+#' @inheritParams Where
 #' @param Markers Vector of markers to include in the plot (e.g. c("a","B)).
 #' @param wrap_by Wrapping parameter for facetting ("Channel" or NULL).
 #'
@@ -146,27 +141,25 @@ PlotIntensitySequence<-ggIntensitySequence
 #' ERG<-SetStandardFunctions(ERG)
 #' ERG <- AutoPlaceMarkers(ERG)
 #' data <- list(ERG, ERG)
-#' ggStepSequence(data, Background = "DA", Type = "Flash", Channel = "ERG",Markers = c("a", "B"))
+#' ggStepSequence(data, where = list(Background = "DA", Type = "Flash", Channel = "ERG"), Markers = c("a", "B"))
 #'
 #' @export
 ggStepSequence <-
   function(List,
-           Background = "DA",
-           Type = "Flash",
-           Channel = NULL,
+           where = list(Background = "DA",
+                        Type = "Flash"),
            Markers = c("N1", "P1"),
-           wrap_by = "Channel") {
+           wrap_by = "Channel")
+  {
 
     #dplyr workaround
     Step<-Group<-Name<-Intensity<-Voltage<-sd<-Time<-Amplitude<-sem<-ImplicitTime<-NULL
 
 
     # Extract Measurements and related info
-    results <- get_measurements_for_Plot(
+    results <- Collect_Measurements(
       List = List,
-      Background = Background,
-      Type = Type,
-      Channel = Channel,
+      where = where,
       Markers = Markers
     )
 
@@ -212,84 +205,90 @@ PlotStepSequence<-ggStepSequence
 #' This function generates a \link[ggplot2:ggplot]{ggplot2:ggplot} plot of ERG traces from multiple ERGExam objects.
 #'
 #' @param List A list of ERG exams.
-#' @param Background Background condition for the exams.
-#' @param Type Type of exam (e.g., "Flash").
-#' @param Channel The channel to plot (e.g., "ERG").
+#' @inheritParams Where
 #' @param wrap_by Wrapping parameter for facetting ("Channel" or NULL).
+#' @param scales Passed on to \link[ggplot2:facet_grid]{ggplot2:facet_grid}.
 #'
 #' @return A ggplot2 plot object.
 #'
-#' @importFrom ggplot2 geom_hline geom_line facet_grid scale_color_manual theme geom_ribbon
+#' @importFrom ggplot2 geom_hline geom_line facet_grid scale_color_manual theme geom_ribbon scale_fill_manual guides
 #' @importFrom ggpubr theme_pubclean
 #' @importFrom stringr str_detect
 #' @importFrom units drop_units
-#'
 #' @examples
 #' # Example usage:
 #' data(ERG)
 #' ERG<-SetStandardFunctions(ERG)
 #' ERG <- AutoPlaceMarkers(ERG)
 #' data <- list(ERG, ERG)
-#' ggPlotRecordings(data, Background = "DA", Type = "Flash", Channel = "ERG")
+#' ggPlotRecordings(data, where = list(Background = "DA", Type = "Flash", Channel = "ERG"))
 #'
 #' @export
-ggPlotRecordings<-function(List,
-                         Background = "DA",
-                         Type = "Flash",
-                         Channel = "ERG",
-                         wrap_by = "Channel",
-                         scales = "free_y"){
+ggPlotRecordings <- function(List,
+                             where = list(),
+                             wrap_by = "Channel",
+                             scales = "free_y"){
 
   # ggplot workaround
   Time<-Value<-Eye<-Result<-NULL
   commoncolnames<-c("Step","Channel","Result","Eye","Repeat","Time")
+  message("Running 'ggPlotRecordings()'. This may take a while for long ERGExam lists. ")
 
   results <- lapply(List, function(x) {
+    tryCatch({
 
-    # todo: downsample
-    # x<-lapply(x,function(y){
-    #   yt<-TimeTrace(y)
-    #   yt[yt %in% pretty(yt,300)]
-    #   Subset(y,Time)
-    #   y
-    # })
+      x<-Subset(x,where=where, Raw = T)
 
-    # SD
-    sdev <- x
-    AverageFunction(sdev, where = 1:length(sdev)) <- sd
-    sdev <- Subset(sdev, Raw = F)
-    df.sdev <- as.data.frame(sdev)
-    df.sdev<-df.sdev[,c(commoncolnames,"Value")]
-    colnames(df.sdev)[colnames(df.sdev)=="Value"]<-"sdev"
+      # downsample
+      x<-lapply(x,function(y){
+        yt<-TimeTrace(y)
+        sample<-yt %in% pretty(yt,250)
+        unitbuffer<-deparse_unit(y@Data)
+        y@Data<-as_units(apply(y@Data,2,y@filter.fx)[sample,1:dim(y)[2]],unitbuffer)
+        y@TimeTrace<-yt[sample]
+        FilterFunction(y)<- function(z){z}
+        return(y)
+      })
 
-    # N
-    n <- x
-    AverageFunction(n, where = 1:length(n)) <- length
-    n <- Subset(n, Raw = F)
-    df.n <- as.data.frame(n)
-    df.n<-df.n[,c(commoncolnames,"Value")]
-    colnames(df.n)[colnames(df.n)=="Value"]<-"n"
-    df.n$n<-drop_units(df.n$n)
+      # SD
+      sdev <- x
+      AverageFunction(sdev, where = 1:length(sdev)) <- sd
+      sdev <- Subset(sdev, Raw = F)
+      df.sdev <- as.data.frame(sdev)
+      df.sdev<-df.sdev[,c(commoncolnames,"Value")]
+      colnames(df.sdev)[colnames(df.sdev)=="Value"]<-"sdev"
 
-    # Avg as per set fx.
-    x <- Subset(x, Raw = F)
-    df <- as.data.frame(x)
-    df<-df[,c(commoncolnames,"Value")]
+      # N
+      n <- x
+      AverageFunction(n, where = 1:length(n)) <- length
+      n <- Subset(n, Raw = F)
+      df.n <- as.data.frame(n)
+      df.n<-df.n[,c(commoncolnames,"Value")]
+      colnames(df.n)[colnames(df.n)=="Value"]<-"n"
+      df.n$n<-drop_units(df.n$n)
 
-    df<-merge(df,df.sdev,by=commoncolnames)
-    df<-merge(df,df.n,by=commoncolnames)
-    df$SEM<-df$sdev/df$n
+      # Avg as per set fx
+      x <- Subset(x, Raw = F)
+      df <- as.data.frame(x)
+      df<-df[,c(commoncolnames,"Value")]
 
-    tab <- StimulusTable(x)
-    df$Subject <- Subject(x)
-    if (length(x@SubjectInfo$Group)==0) {
-      x@SubjectInfo$Group<-"DEFAULT"
-    }
-    df$Group <- x@SubjectInfo$Group
-    df$ExamDate <- min(x@ExamInfo$ExamDate)
-    tab$Description <-
-      iconv(tab$Description, "ASCII//TRANSLIT", sub = '')
-    df <- merge(df, tab)
+      df<-merge(df,df.sdev,by=commoncolnames)
+      df<-merge(df,df.n,by=commoncolnames)
+      df$SEM<-df$sdev/df$n
+
+      tab <- StimulusTable(x)
+      df$Subject <- Subject(x)
+      if (length(x@SubjectInfo$Group)==0) {
+        x@SubjectInfo$Group<-"DEFAULT"
+      }
+      df$Group <- x@SubjectInfo$Group
+      df$ExamDate <- min(x@ExamInfo$ExamDate)
+      tab$Description <-
+        iconv(tab$Description, "ASCII//TRANSLIT", sub = '')
+      df <- merge(df, tab)
+    }, error = function (e){
+      stop("Gathering data failed for ", Subject(x), ", ", ProtocolName(x), " with error message: ", e)
+    })
 
   })
 
@@ -299,16 +298,8 @@ ggPlotRecordings<-function(List,
     "Intensity"
   results$Step <- iconv(results$Step, "ASCII//TRANSLIT", sub = '')
 
-  # subsetting
-  if (is.null(Channel)) {
-    Channel <- unique(results$Channel)
-  }
 
-  results <-
-    results[results$Background %in% Background &
-              results$Type %in% Type &
-              results$Channel == Channel,]
-
+  # plot
   ggplot(data = results, aes(
     x = Time,
     y = Value,
@@ -327,7 +318,9 @@ ggPlotRecordings<-function(List,
     theme_pubclean(base_size = 8) +
     #labs(x = paste0("Time [", si_x, "]"), y = paste0("Voltage [", si_y, "]")) +
     scale_color_manual(values = c("RE" = "darkred", "LE" = "darkblue","OD" = "darkred", "OS" = "darkblue")) +
-    theme(panel.grid.major = element_line(size = .1))
+    scale_fill_manual(values = c("RE" = "darkred", "LE" = "darkblue","OD" = "darkred", "OS" = "darkblue")) +
+    theme(panel.grid.major = element_line(size = .1))+
+    guides(fill = "none")
 }
 
 #' @export
@@ -337,12 +330,10 @@ PlotRecordings<-ggPlotRecordings
 
 #' Get measurements for plotting
 #'
-#' This function extracts measurements and related information for plotting.
+#' This function extracts measurements and related information, e.g. for plotting or statistics.
 #'
 #' @param List A list of ERG exams.
-#' @param Background Background condition for the exams.
-#' @param Type Type of exam (e.g., "Flash").
-#' @param Channel The channel to plot (e.g., "ERG").
+#' @inheritParams Where
 #' @param Markers Vector of markers to include in the plot.
 #'
 #' @return A data frame with measurements for plotting.#'
@@ -352,12 +343,10 @@ PlotRecordings<-ggPlotRecordings
 #' data(ERG)
 #' ERG<-SetStandardFunctions(ERG)
 #' ERG <- AutoPlaceMarkers(ERG)
-#' get_measurements_for_Plot(list(ERG,ERG), Background = "DA", Type = "Flash", Channel = NULL)
-#' @noRd
-get_measurements_for_Plot <- function(List,
-                                      Background = "DA",
-                                      Type = "Flash",
-                                      Channel = NULL,
+#' Collect_Measurements(list(ERG,ERG), list(Background = "DA", Type = "Flash"))
+#' @export
+Collect_Measurements <- function(List,
+                                      where = list(),
                                       Markers = c("a", "B", "N1", "P1")) {
   # could add compatibility w single Exam
   if (!all(unlist((lapply(List, function(x) {
@@ -365,44 +354,13 @@ get_measurements_for_Plot <- function(List,
   }))))) {
     stop("'List' is not a list of ERGExams.")
   }
-  if (is.null(Channel)) {
-    Channel <- unique(unlist(lapply(List,Channels)))
-  }
   # subset object
   List <- lapply(List, function(x) {
     if(!CheckAvgFxSet(x)){
       stop("Average functions must be set for all objects in the list, but is missing for: ", Subject(x)," recorded on ", as.character(ExamDate(x)), ". ")
     }
     tryCatch({
-      md <- merge(Metadata(x), StimulusTable(x))
-      sel <-
-        md$Background %in% Background &
-        md$Type %in% Type & md$Channel %in% Channel
-      avg.fx.buffer <-
-        lapply(x, function(y) {
-          AverageFunction(y)
-        }, ReturnEPhysSet = F)
-      avg.fx.buffer <- avg.fx.buffer[sel]
-
-      rejected.buffer <-
-        lapply(x, function(y) {
-          Rejected(y, return.fx = T)
-        }, ReturnEPhysSet = F)
-      rejected.buffer <- rejected.buffer[sel]
-
-      filter.fx.buffer <-
-        lapply(x, function(y) {
-          FilterFunction(y)
-        }, ReturnEPhysSet = F)
-      filter.fx.buffer <- filter.fx.buffer[sel]
-
-      x <- Subset(x, where = which(sel), Raw = T)
-
-      for (y in 1:length(x)) {
-        AverageFunction(x[[y]])<-avg.fx.buffer[[y]]
-        Rejected(x[[y]])<-as.vector(Rejected(x[[y]]))
-        FilterFunction(x[[y]])<-filter.fx.buffer[[y]]
-      }
+      x <- Subset(x, where = where, Raw = T)
       return(x)
     }, error = function(e){
       stop("Fetching Metadata and Stimulus values failed for ", Subject(x)," recorded on ", as.character(ExamDate(x)), " with error message: ", e)
@@ -412,28 +370,29 @@ get_measurements_for_Plot <- function(List,
   results <- lapply(List, function(x) {
     tryCatch({
       df <- Measurements(x)
-      df$Subject <- Subject(x)
-      if (length(x@SubjectInfo$Group)==0) {
-        x@SubjectInfo$Group<-"DEFAULT"
+      df<-df[,!(colnames(df) %in% ExtraMetaColumns(x))]
+      if(nrow(df)==0){
+        message("No measurements found for, " ,Subject(x),". Consider running 'AutoPlaceMarkers()' first.")
       }
-      df$Group <- x@SubjectInfo$Group
-      df$ExamDate <- min(x@ExamInfo$ExamDate)
-      df$Subject <- Subject(x)
-      df$ExamDate <- x@ExamInfo$ExamDate
+
       if(nrow(df)>0){
+        if (length(x@SubjectInfo$Group)==0) {
+          x@SubjectInfo$Group<-"DEFAULT"
+        }
         df$Subject <- Subject(x)
-        df$Group <- x@SubjectInfo$Group
+        df$Group <- GroupName(x)
         df$ExamDate <- min(x@ExamInfo$ExamDate)
       }else{
         df$Subject <- character()
         df$Group <- character()
         df$ExamDate <- as.Date(x = integer(0), origin = "1970-01-01")
       }
+
       df <-
         merge(df,
               StimulusTable(x),
-              by.x = "Step",
-              by.y = "Step")
+              by.x = c("Step","Description"),
+              by.y = c("Step","Description"))
       return(df)
     }, error = function(e){
       stop("Fetching Measurements failed for ", Subject(x)," recorded on ", as.character(ExamDate(x)), " with error message: ", e)

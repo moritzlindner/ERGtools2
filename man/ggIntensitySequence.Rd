@@ -6,9 +6,7 @@
 \usage{
 ggIntensitySequence(
   List,
-  Background = "DA",
-  Type = "Flash",
-  Channel = NULL,
+  where = list(Background = "DA", Type = "Flash"),
   Markers = c("a", "B", "N1", "P1"),
   Parameter = "Amplitude",
   wrap_by = "Channel"
@@ -17,17 +15,17 @@ ggIntensitySequence(
 \arguments{
 \item{List}{A list of ERG exams.}
 
-\item{Background}{Background condition for the exams.}
-
-\item{Type}{Type of exam (e.g., "Flash").}
-
-\item{Channel}{The channel to plot (e.g., "ERG").}
-
 \item{Markers}{Vector of markers to include in the plot.}
 
 \item{Parameter}{The parameter to plot ("Amplitude" or "Time").}
 
 \item{wrap_by}{Wrapping parameter for facetting ("Channel" or NULL).}
+
+\item{Background}{Background condition for the exams.}
+
+\item{Type}{Type of exam (e.g., "Flash").}
+
+\item{Channel}{The channel to plot (e.g., "ERG").}
 }
 \value{
 A ggplot2 plot object.
@@ -41,7 +39,7 @@ data(ERG)
 ERG<-SetStandardFunctions(ERG)
 ERG <- AutoPlaceMarkers(ERG)
 data <- list(ERG, ERG)
-ggIntensitySequence(data, Background = "DA", Type = "Flash", Channel = "ERG")
+ggIntensitySequence(data, where= list(Background = "DA", Type = "Flash", Channel = "ERG"))
 
 }
 \seealso{

@@ -175,7 +175,7 @@ setMethod(
       }
     }
     if(return.as == "grid"){
-      return(grid.arrange(grobs = plotrows, ncol = 2))
+      return(grid.arrange(grobs = plotrows, ncol = 2, top=textGrob(Subject(X))))
     }
     if(return.as == "list"){
       return(plotrows)

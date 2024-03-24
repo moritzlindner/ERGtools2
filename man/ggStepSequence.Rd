@@ -6,9 +6,7 @@
 \usage{
 ggStepSequence(
   List,
-  Background = "DA",
-  Type = "Flash",
-  Channel = NULL,
+  where = list(Background = "DA", Type = "Flash"),
   Markers = c("N1", "P1"),
   wrap_by = "Channel"
 )
@@ -16,11 +14,7 @@ ggStepSequence(
 \arguments{
 \item{List}{A list of ERG exams.}
 
-\item{Background}{Background condition for the exams.}
-
-\item{Type}{Type of exam (e.g., "Flash").}
-
-\item{Channel}{The channel to plot (e.g., "ERG").}
+\item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
 
 \item{Markers}{Vector of markers to include in the plot (e.g. c("a","B)).}
 
@@ -38,7 +32,7 @@ data(ERG)
 ERG<-SetStandardFunctions(ERG)
 ERG <- AutoPlaceMarkers(ERG)
 data <- list(ERG, ERG)
-ggStepSequence(data, Background = "DA", Type = "Flash", Channel = "ERG",Markers = c("a", "B"))
+ggStepSequence(data, where = list(Background = "DA", Type = "Flash", Channel = "ERG"), Markers = c("a", "B"))
 
 }
 \seealso{
