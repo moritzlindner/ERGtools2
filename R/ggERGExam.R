@@ -20,6 +20,7 @@
 #' @importFrom ggplot2 ggplot aes geom_line facet_grid vars ggtitle facet_wrap element_line
 #' @importFrom ggpubr theme_pubr
 #' @importFrom gridExtra grid.arrange
+#' @importFrom grid textGrob
 #' @importFrom EPhysData as.data.frame lapply
 #' @importFrom stringr str_detect
 #' @importFrom units set_units
