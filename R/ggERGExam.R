@@ -48,7 +48,9 @@ setMethod(
       t <- TimeTrace(x)
       interval <- round(length(t) / 300)
       keep <- t[round(t / interval) == t / interval]
-      x<-Subset(x, Time = keep, TimeExclusive = T, Raw = F)
+      suppressMessages(
+        x<-Subset(x, Time = keep, TimeExclusive = T, Raw = F)
+      )
       return(x)
     })
 
@@ -73,6 +75,7 @@ setMethod(
     if(show.markers){
       mes<-Measurements(X)
       colnames(mes)[colnames(mes)=="Voltage"]<-"Value"
+      mes<-merge(mes,Stimulus(X))
     }
 
     plotrows <- list()
@@ -137,7 +140,8 @@ setMethod(
                   data = curr.mes,
                   aes(group = Name),
                   color = "black",
-                  size = 1.0675
+                  linewidth = 1.0675,
+                  alpha = 0.3
                 ) +
                 geom_point(data = curr.mes, aes(group = Name), color = "black")
             }
