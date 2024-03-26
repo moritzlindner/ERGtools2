@@ -19,11 +19,11 @@ This method allows interactive marker placement on \linkS4class{ERGExam} objects
 data(ERG)
 ERG<-SetStandardFunctions(ERG)
 \dontrun{
-ERG<-interactiveMeasurements(ERG)
+ERG<-interactiveMeasurements(ERG, Channel="OP",Eye="RE")
 }
 Measurements(ERG)
 \dontrun{
-ERG<-interactiveMeasurements(ERG)
+ERG<-interactiveMeasurements(ERG, Channel="ERG")
 }
 Measurements(ERG)
 

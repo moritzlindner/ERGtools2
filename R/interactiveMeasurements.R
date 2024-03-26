@@ -16,17 +16,17 @@
 #' @importFrom stringr str_split
 #' @importFrom ggplot2 aes geom_line geom_text facet_grid labs theme_minimal element_text
 #' @importFrom units set_units deparse_unit
-#' @importFrom tidyr %>%
 #' @importFrom utils txtProgressBar setTxtProgressBar
+#' @importFrom tidyr %>%
 #' @examples
 #' data(ERG)
 #' ERG<-SetStandardFunctions(ERG)
 #' \dontrun{
-#' ERG<-interactiveMeasurements(ERG)
+#' ERG<-interactiveMeasurements(ERG, Channel="OP",Eye="RE")
 #' }
 #' Measurements(ERG)
 #' \dontrun{
-#' ERG<-interactiveMeasurements(ERG)
+#' ERG<-interactiveMeasurements(ERG, Channel="ERG")
 #' }
 #' Measurements(ERG)
 #'
@@ -45,21 +45,22 @@ setMethod("interactiveMeasurements",
             function(X,
                      Channel = "ERG",
                      Eye = Eyes(X)) {
-
               # internal functions
               interact_plot <- function(erg.obj) {
                 trace <- as.data.frame(erg.obj)
                 trace$Value<-set_units(trace$Value, "uV")
-                markers <- Measurements(erg.obj@Measurements)
-                markers$ChannelBinding<-NULL
-                markers <- merge(markers,Metadata(erg.obj),by.x="Recording",by.y = 0)
-                markers <- merge(markers,StimulusTable(erg.obj)[c("Step","Description")], by="Step")
-                trace <- merge(trace, StimulusTable(erg.obj)[c("Step","Description")], by = "Step")
-                units_options(set_units_mode = "standard")
-                markers$Time<-set_units(markers$Time,deparse_unit(trace$Time))
-                markers<-merge(markers,trace, all.x = T, all.y=F)
 
+                markers <- Measurements(erg.obj)
                 markers <- ConvertMeasurementsToAbsolute(markers)
+                colnames(markers)[colnames(markers)=="Voltage"]<-"Value"
+                #markers$ChannelBinding<-NULL
+                #markers <- merge(markers,Metadata(erg.obj),by.x="Recording",by.y = 0)
+                #print(markers)
+                #markers <- merge(markers,Stimulus(erg.obj)[c("Step","Description")], by="Step")
+                trace <- merge(trace, Stimulus(erg.obj)[c("Step","Description")], by = "Step")
+                #units_options(set_units_mode = "standard")
+                #markers$Time<-set_units(markers$Time,deparse_unit(trace$Time))
+                #markers<-merge(markers,trace, all.x = T, all.y=F)
 
                 g <- ggplot(trace,
                             aes(
@@ -68,12 +69,16 @@ setMethod("interactiveMeasurements",
                               color = factor(Result),
                               customdata = key
                             )) +
-                  geom_line() +
-                  geom_text(data = markers,
-                            aes(x = Time,
-                                y = Value,
-                                label = Name),
-                            color = "black") +
+                  geom_line()
+                if (nrow(markers) > 0) {
+                  g <- g +
+                    geom_text(data = markers,
+                              aes(x = Time,
+                                  y = Value,
+                                  label = Name),
+                              color = "black")
+                }
+                g <- g +
                   facet_grid(Description ~ Eye, scales = "free_y") +
                   labs(title = "Trace Plots", x = "Time", y = "Amplitude") +
                   theme_minimal() +
@@ -106,14 +111,10 @@ setMethod("interactiveMeasurements",
 
               stopifnot(CheckAvgFxSet(X))
 
-              #keep the measurements from all Channels/Eyes not (re)measured now
-              Measurements.unchanged <-
-                IndexOf(X)[!(IndexOf(X) %in% IndexOf(X, Eye = Eye, Channel = Channel))]
-
               #Get Relevant subset of the ERGExam and keep avg and filter fx.
 
               curr <- Subset(X,
-                             which = list(
+                             where = list(
                                Channel = Channel,
                                Eye =  Eye
                              ),
@@ -121,19 +122,22 @@ setMethod("interactiveMeasurements",
 
 
               markers <- Markers(curr)
-              if(nrow(markers)==0){
-                curr<-AutoPlaceMarkers(curr)
+              if (nrow(markers) == 0) {
+                curr <- AutoPlaceMarkers(curr)
                 markers <- Markers(curr)
               }
-              for (i in 1:nrow(markers)) {
-                markers$ChannelBinding[i]
-                if (!(markers$ChannelBinding[i] %in% Channel)) {
-                  curr <- DropMarker(curr,
-                                     markers$Name[i],
-                                     markers$ChannelBinding[i],
-                                     drop.dependent = T)
+              if (nrow(markers) > 0) {
+                for (i in nrow(Markers(curr)):1) {
+                  markers$ChannelBinding[i]
+                  if (!(markers$ChannelBinding[i] %in% Channel)) {
+                    curr <- DropMarker(curr,
+                                       markers$Name[i],
+                                       markers$ChannelBinding[i],
+                                       drop.dependent = T)
+                  }
                 }
               }
+
 
               # prepare ERGExam Object
               curr@Stimulus$Description <-
@@ -165,7 +169,7 @@ setMethod("interactiveMeasurements",
                   class = "highlight-row",
                   column(8,
                          plotlyOutput(
-                           "trace_plot", height =  paste0(100 * length(Steps(curr)), "px")
+                           "trace_plot", height =  paste0(200 + (100 * length(Steps(curr))), "px"), width = paste0(100 + (400 * length(Eyes(curr))), "px")
                          )),
                   column(
                     4,
@@ -416,6 +420,7 @@ setMethod("interactiveMeasurements",
               new.measurements <- Measurements(out@Measurements)
               removed.measurements <-
                 old.measurements[!(do.call(paste, old.measurements[, c("Recording", "Name", "ChannelBinding", "Relative")]) %in% do.call(paste, new.measurements[, c("Recording", "Name", "ChannelBinding", "Relative")])), c("Recording", "Name", "ChannelBinding")]
+
               ## update and add
               new.measurements <-
                 merge(
@@ -425,28 +430,30 @@ setMethod("interactiveMeasurements",
                   by.y = 0
                 )
 
-              message("Updating measurements...")
-              pb = txtProgressBar(min = 0,
-                                  max = nrow(new.measurements),
-                                  initial = 0)
-              for (m in 1:nrow(new.measurements)) {
-                curr.m <- new.measurements[m, ]
-                Measurements(
-                  X,
-                  Marker = curr.m$Name,
-                  where = Where(X,where=list(
-                    Step = curr.m$Step,
-                    Eye = curr.m$Eye,
-                    Channel = curr.m$ChannelBinding,
-                    Result = curr.m$Result
-                  )),
-                  create.marker.if.missing = T,
-                  Relative = curr.m$Relative,
-                  ChannelBinding = curr.m$ChannelBinding
-                ) <- curr.m$Time
-                setTxtProgressBar(pb,m)
+              if(nrow(new.measurements)>0){
+                message("Updating measurements...")
+                pb = txtProgressBar(min = 0,
+                                    max = nrow(new.measurements),
+                                    initial = 0)
+                for (m in 1:nrow(new.measurements)) {
+                  curr.m <- new.measurements[m, ]
+                  Measurements(
+                    X,
+                    Marker = curr.m$Name,
+                    where = Where(X,where=list(
+                      Step = curr.m$Step,
+                      Eye = curr.m$Eye,
+                      Channel = curr.m$ChannelBinding,
+                      Result = curr.m$Result
+                    )),
+                    create.marker.if.missing = T,
+                    Relative = curr.m$Relative,
+                    ChannelBinding = curr.m$ChannelBinding
+                  ) <- curr.m$Time
+                  setTxtProgressBar(pb,m)
+                }
+                close(pb)
               }
-              close(pb)
 
               ## drop removed
               if (nrow(removed.measurements)>0){

@@ -13,11 +13,23 @@ AutoPlaceMarkers(
   Stimulus.type.names = pairlist(Flash = "Flash", Flicker = "Flicker")
 )
 
-AutoPlaceAB(X)
+AutoPlaceAB(
+  X,
+  robust.peak.filter.bands = c(5, 75),
+  true.peak.tolerance = as_units(c(7, 12), "ms")
+)
 
-AutoPlaceFlicker(X)
+AutoPlaceFlicker(
+  X,
+  robust.peak.filter.bands = c(5, 75),
+  true.peak.tolerance = as_units(c(7, 12), "ms")
+)
 
-AutoPlaceVEP(X)
+AutoPlaceVEP(
+  X,
+  robust.peak.filter.bands = c(3, 75),
+  true.peak.tolerance = as_units(c(7, 12), "ms")
+)
 }
 \arguments{
 \item{X}{An \linkS4class{ERGExam} object for \code{AutoPlaceMarkers()} or an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object for the lower level methods \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} or \link[=AutoPlaceVEP]{AutoPlaceVEP}.}
@@ -25,6 +37,10 @@ AutoPlaceVEP(X)
 \item{Channel.names}{A \code{pairlist} specifying channel names.}
 
 \item{Stimulus.type.names}{A \link[base:pairlist]{base::pairlist} specifying the names identifying the different stimulus types, e.g., \code{Flash="Flash"} or \code{Flash="Blitz"}.}
+
+\item{robust.peak.filter.bands}{A numeric vector of length 2 specifying the lower and upper bounds of the frequency band used for initial peak idetification n the lowe-level methods}
+
+\item{true.peak.tolerance}{A vector of class units and length 2 specifying the tolerance range around true peaks. Must be time values (i.e. a unit convertibel into 'seconds').}
 }
 \value{
 An updated \code{ERGExam} object with markers placed.
@@ -35,7 +51,8 @@ These methods automatically place markers for ERG/VEP recordings in an \linkS4cl
 \details{
 These methods are used to automatically place markers for ERGs/VEPs.\cr\cr
 \code{AutoPlaceMarkers()} sets markers depending on the channel (E.g. ERG, VEP, OP,...) and stimulus type (Flash, Flicker), defined via the \code{Channel.names} and \code{Stimulus.type.names} arguments. Markers are placed using the lower level methods \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} or \link[=AutoPlaceVEP]{AutoPlaceVEP} function depending on the stimulus type.\cr\cr
-\link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} and \link[=AutoPlaceVEP]{AutoPlaceVEP} are the lower level functions which perform the actual marker placement on the \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} objects contained in the \linkS4class{ERGExam} object. These methods are usually not called directly by a user, unless she/he wants to perform or re-run marker placement only on certain recordings while leaving previously set markers unchanged for the others. \cr\cr
+\link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} and \link[=AutoPlaceVEP]{AutoPlaceVEP} are the lower level functions which perform the actual marker placement on the \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} objects contained in the \linkS4class{ERGExam} object. These methods are usually not called directly by a user, unless she/he wants to perform or re-run marker placement only on certain recordings while leaving previously set markers unchanged for the others.
+There working principle is that they apply robust peak filtering within defined frequency bands (low frequency band by default) to locate the gross position of the most prominent peaks peaks and then look for the peak in data using the normal filter methods (\link{FilterFunction}) to accuratly identify the actual peak position. \cr\cr
 Currently, supported are:
 \itemize{
 \item a and B waves for Flash ERG

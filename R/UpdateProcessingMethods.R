@@ -78,21 +78,25 @@ setMethod(
 #' @importFrom EPhysData Metadata AverageFunction<- Rejected<- FilterFunction<-
 #' @keywords internal
 #' @noMd
-functionupdater<-function(X, where, value, what) {
-  Md <- merge(Metadata(X),StimulusTable(X))
-  sel <- Where(X,where = where)
+functionupdater <- function(X, where, value, what) {
+  Md <- merge(Metadata(X), StimulusTable(X))
+  sel <- Where(X, where = where)
   for (i in sel) {
-    if (what == "FilterFunction<-") {
-      FilterFunction(X@Data[[i]]) <- value
-    }
-    if (what == "Rejected<-") {
-      Rejected(X@Data[[i]]) <- value
-    }
-    if (what == "AverageFunction<-") {
-      AverageFunction(X@Data[[i]]) <- value
-    }
+    tryCatch({
+      if (what == "FilterFunction<-") {
+        FilterFunction(X@Data[[i]]) <- value
+      }
+      if (what == "Rejected<-") {
+        Rejected(X@Data[[i]]) <- value
+      }
+      if (what == "AverageFunction<-") {
+        AverageFunction(X@Data[[i]]) <- value
+      }
+    }, error = function(e){
+      pos<-Metadata(X)[i,c("Step","Channel","Eye","Result")]
+      stop(what, " failed for ", Subject(X), " in Step ", pos$Step, ", Ch. ", pos$Channel, ",  Eye ", pos$Eye, ", Result ", pos$Result, " with error message: ", e)
+    })
+
   }
-  # if (validERGExam(X)) {
-     return(X)
-  # }
+  return(X)
 }

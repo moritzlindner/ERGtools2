@@ -214,7 +214,7 @@ PlotStepSequence<-ggStepSequence
 #' @importFrom ggplot2 geom_hline geom_line facet_grid scale_color_manual theme geom_ribbon scale_fill_manual guides
 #' @importFrom ggpubr theme_pubclean
 #' @importFrom stringr str_detect
-#' @importFrom units drop_units
+#' @importFrom units drop_units as_units
 #' @examples
 #' # Example usage:
 #' data(ERG)
@@ -238,17 +238,7 @@ ggPlotRecordings <- function(List,
     tryCatch({
 
       x<-Subset(x,where=where, Raw = T)
-
-      # downsample
-      x<-lapply(x,function(y){
-        yt<-TimeTrace(y)
-        sample<-yt %in% pretty(yt,250)
-        unitbuffer<-deparse_unit(y@Data)
-        y@Data<-as_units(apply(y@Data,2,y@filter.fx)[sample,1:dim(y)[2]],unitbuffer)
-        y@TimeTrace<-yt[sample]
-        FilterFunction(y)<- function(z){z}
-        return(y)
-      })
+      x<-Downsample(x, n = 250)
 
       # SD
       sdev <- x
@@ -258,14 +248,16 @@ ggPlotRecordings <- function(List,
       df.sdev<-df.sdev[,c(commoncolnames,"Value")]
       colnames(df.sdev)[colnames(df.sdev)=="Value"]<-"sdev"
 
-      # N
-      n <- x
-      AverageFunction(n, where = 1:length(n)) <- length
-      n <- Subset(n, Raw = F)
-      df.n <- as.data.frame(n)
-      df.n<-df.n[,c(commoncolnames,"Value")]
-      colnames(df.n)[colnames(df.n)=="Value"]<-"n"
-      df.n$n<-drop_units(df.n$n)
+      df.sdev$n<-NA
+      for (i in 1:length(x)) {
+        curr.md <- Metadata(x)[i, ]
+        df.sdev[c(
+          df.sdev$Step == curr.md$Step &
+          df.sdev$Channel == curr.md$Channel &
+          df.sdev$Result == curr.md$Result &
+          df.sdev$Eye == curr.md$Eye
+        ),"n"] <- dim(x[[i]])[2]
+      }
 
       # Avg as per set fx
       x <- Subset(x, Raw = F)
@@ -273,8 +265,9 @@ ggPlotRecordings <- function(List,
       df<-df[,c(commoncolnames,"Value")]
 
       df<-merge(df,df.sdev,by=commoncolnames)
-      df<-merge(df,df.n,by=commoncolnames)
-      df$SEM<-df$sdev/df$n
+      df$SEM[df$n>1]<-df$sdev[df$n>1]/df$n[df$n>1]
+      df$SEM[df$n==1]<-NA
+      df$SEM<-as_units(df$SEM,deparse_unit(df$Value))
 
       tab <- StimulusTable(x)
       df$Subject <- Subject(x)
