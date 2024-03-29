@@ -26,11 +26,41 @@ ERGChannel<-setClass(
     Markers = "list"
   ),
   validity = function(object) {
+    markers_valid <- all(sapply(object@Markers, function(m) inherits(m, "ERGMarker")))
+    eye_valid <- object@Eye %in% c("RE", "LE")
+    # marker_warnings <- sapply(object@Markers, function(m) tryCatch({
+    #   validObject(m, test=T)
+    #   NULL
+    # }, warning = function(w) w$message, error = function(e) e$message))
+    # marker_warnings <- marker_warnings[marker_warnings != ""]
+
+    if (!markers_valid || !eye_valid) {
+      msg <- paste("Validity check failed for ERGChannel object with Name:", object@Name)
+      if (!markers_valid) {
+        msg <- paste(msg, "\nMarkers slot should contain only objects of class 'ERGMarker'")
+        # Collect warnings or errors from markers
+      }
+      # if (length(marker_warnings) > 0) {
+      #   msg <- paste(msg, "\nMarker validity issues:", paste(marker_warnings, collapse = "; "))
+      # }
+      if (!eye_valid) {
+        msg <- paste(msg, "\nEye slot should be 'RE' or 'LE' but is ", object@Eye, ".")
+      }
+      warning(msg)
+      return(FALSE)
+    } else {
+      return(TRUE)
+    }
+
+
     if (!all(sapply(object@Markers, function(m) inherits(m, "ERGMarker")))) {
       "Markers slot should contain only objects of class 'ERGMarker'"
     } else {
       TRUE
     }
+
+
+
   },
   prototype = list(
     Name = character(),
@@ -68,10 +98,30 @@ ERGStep<-setClass(
     Channels = "list"  # Slot for a list of 'ERGChannel' objects
   ),
   validity = function(object) {
-    if (!all(sapply(object@Channels, function(c) inherits(c, "ERGChannel")))) {
-      "Channels slot should contain only objects of class 'ERGChannel'"
+    channels_valid <- all(sapply(object@Channels, function(c) inherits(c, "ERGChannel")))
+    description_valid <- nchar(object@Description) > 0
+    # Collect warnings or errors from channels
+    channel_warnings <- sapply(object@Channels, function(c) tryCatch({
+      validObject(c,test=T)
+      ""
+    }, warning = function(w) w$message, error = function(e) e$message))
+    channel_warnings <- channel_warnings[channel_warnings != ""]
+
+    if (!channels_valid || !description_valid || length(channel_warnings) > 0) {
+      msg <- paste("Validity check failed for ERGStep object with Description:", object@Description)
+      if (!channels_valid) {
+        msg <- paste(msg, "\nChannels slot should contain only objects of class 'ERGChannel'")
+      }
+      if (length(channel_warnings) > 0) {
+        msg <- paste(msg, "\nChannel validity issues:", paste(channel_warnings, collapse = "; "))
+      }
+      if (!description_valid) {
+        msg <- paste(msg, "\nDescription slot should not be empty")
+      }
+      warning(msg)
+      return(FALSE)
     } else {
-      TRUE
+      return(TRUE)
     }
   },
   prototype = list(
@@ -116,10 +166,31 @@ ERGProtocol<-setClass(
     Step = "list"  # Slot for a list of 'Channel' objects
   ),
   validity = function(object) {
-    if (!all(sapply(object@Channels, function(c) inherits(c, "ERGStep")))) {
-      "Channels slot should contain only objects of class 'Channel'"
+    steps_valid <- all(sapply(object@Step, function(c) inherits(c, "ERGStep")))
+    name_valid <- nchar(object@Name) > 0
+    # Collect warnings or errors from steps
+    step_warnings <- sapply(object@Step, function(c) tryCatch({
+      validObject(c,test=T)
+      ""
+    }, warning = function(w) w$message, error = function(e) e$message))
+    step_warnings <- step_warnings[step_warnings != ""]
+
+    if (!steps_valid || !name_valid || length(step_warnings) > 0) {
+      msg <- paste("Validity check failed for ERGProtocol object with Name:", object@Name)
+      if (!steps_valid) {
+        msg <- paste(msg, "\nStep slot should contain only objects of class 'ERGStep'")
+      }
+      if (length(step_warnings) > 0) {
+        msg <- paste(msg, "\nStep validity issues:", paste(step_warnings, collapse = "; "))
+        message(step_warnings)
+      }
+      if (!name_valid) {
+        msg <- paste(msg, "\nName slot should not be empty")
+      }
+      warning(msg)
+      return(FALSE)
     } else {
-      TRUE
+      return(TRUE)
     }
   },
   prototype = list(
