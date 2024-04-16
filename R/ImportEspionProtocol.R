@@ -200,7 +200,7 @@ ImportEspionProtocol<-function(filename){
             currChan@Name<-inferred.name
           }
         }
-        warning("No valid Channel name in  '", basename(filename), "', Step '", s, "' Channel '", c, "'. Original channel name '", old, "' was changed to ",  currChan@Name, ".")
+        message("No valid Channel name in  '", basename(filename), "', Step '", s, "' Channel '", c, "'. Original channel name '", old, "' was changed to ",  currChan@Name, ".")
       }
 
       currStep@Channels[[c]]<-currChan

@@ -39,24 +39,29 @@ setMethod(
   signature = "ERGExam",
   definition = function(X, return.as = "grid", show.markers = T) {
 
+    # internal fx
+
+    count_down_results <- function(df) {
+      # Get all column names except "Result" and "Filename"
+      column_names <- setdiff(names(df), c("Result", "Filename","Recording"))
+
+      # Group by these columns, then mutate "Result" within each group
+      df %>%
+        group_by_at(column_names) %>%
+        mutate(Result = row_number()) %>%
+        ungroup()  # Make sure to ungroup at the end
+    }
+
     # ggplot workaround
     Time<-Value<-Eye<-Channel<-colourby<-NULL
 
     stopifnot(CheckAvgFxSet(X))
+    suppressMessages(X <- Downsample(X, n = 250))
+    X <- Subset(X, Raw = F)
 
-    X <- lapply(X, function(x) {
-      t <- TimeTrace(x)
-      interval <- round(length(t) / 300)
-      keep <- t[round(t / interval) == t / interval]
-      suppressMessages(
-        x<-Subset(x, Time = keep, TimeExclusive = T, Raw = F)
-      )
-      return(x)
-    })
+    Metadata(X)<-count_down_results(Metadata(X))
 
     dat <- as.data.frame(X)
-
-
     stimtab <- StimulusTable(X)
     dat <- merge(dat, stimtab, by = "Step")
 
@@ -73,6 +78,8 @@ setMethod(
         rows_to_keep <- which(dat$Background == b & dat$Type == t)
         curr <- dat[rows_to_keep, ]
         if (nrow(curr) > 0) {
+          curr.mes <-mes[mes$Background == b &
+                           mes$Type == t, ]
           if (any(curr$Result != 1)) {
             for (s in unique(curr$Step[curr$Background == b &
                                        curr$Type == t])) {
@@ -110,29 +117,29 @@ setMethod(
             ggtitle((ID))
 
           # add Measurements
-          curr.mes <-mes[mes$Background == b &
-                           mes$Type == t, ]
 
-          if(nrow(curr.mes)>0){
-            for (i in 1:nrow(curr.mes)) {
-              if (!is.na(curr.mes$Relative[i])) {
-                curr.mes$Value[i] <-
-                  curr.mes$Value[i] + curr.mes$Value[curr.mes$Name == curr.mes$Relative[i] &
-                                                       curr.mes$Recording == curr.mes$Recording[i]]
+          if(show.markers){
+            if(nrow(curr.mes)>0){
+              for (i in 1:nrow(curr.mes)) {
+                if (!is.na(curr.mes$Relative[i])) {
+                  curr.mes$Value[i] <-
+                    curr.mes$Value[i] + curr.mes$Value[curr.mes$Name == curr.mes$Relative[i] &
+                                                         curr.mes$Recording == curr.mes$Recording[i]]
+                }
               }
-            }
 
-            # Measurements
-            if (show.markers) {
-              plotrows[[ID]] <- plotrows[[ID]] +
-                geom_line(
-                  data = curr.mes,
-                  aes(group = Name),
-                  color = "black",
-                  linewidth = 1.0675,
-                  alpha = 0.3
-                ) +
-                geom_point(data = curr.mes, aes(group = Name), color = "black")
+              # Measurements
+              if (show.markers) {
+                plotrows[[ID]] <- plotrows[[ID]] +
+                  geom_line(
+                    data = curr.mes,
+                    aes(group = Name),
+                    color = "black",
+                    linewidth = 1.0675,
+                    alpha = 0.3
+                  ) +
+                  geom_point(data = curr.mes, aes(group = Name), color = "black")
+              }
             }
           }
         }
@@ -169,7 +176,15 @@ setMethod(
       }
     }
     if(return.as == "grid"){
-      return(grid.arrange(grobs = plotrows, ncol = 2, top=textGrob(Subject(X))))
+      if (length(plotrows) > 1) {
+        return(grid.arrange(
+          grobs = plotrows,
+          ncol = round(length(plotrows)),
+          top = textGrob(Subject(X))
+        ))
+      } else {
+        return(plotrows[[1]])
+      }
     }
     if(return.as == "list"){
       return(plotrows)

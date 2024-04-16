@@ -16,7 +16,7 @@ AutoPlaceMarkers(
 AutoPlaceAB(
   X,
   robust.peak.filter.bands = c(5, 75),
-  true.peak.tolerance = as_units(c(7, 12), "ms")
+  true.peak.tolerance = as_units(c(70, 30), "ms")
 )
 
 AutoPlaceFlicker(
@@ -28,7 +28,7 @@ AutoPlaceFlicker(
 AutoPlaceVEP(
   X,
   robust.peak.filter.bands = c(3, 75),
-  true.peak.tolerance = as_units(c(7, 12), "ms")
+  true.peak.tolerance = as_units(c(80, 20), "ms")
 )
 }
 \arguments{

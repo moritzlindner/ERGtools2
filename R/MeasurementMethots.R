@@ -159,19 +159,24 @@ setMethod("Measurements",
                     "You need to set an averaging function before performing Marker and Measuremnt operations. E.g. run 'SetStandardFunctions(X)'"
                   )
                 }
-                Voltage <-
-                  GetData(sel, Time = TimeTrace(sel)[which.min(abs(TimeTrace(sel)- measurements$Time[i]))], Raw = F)
-                if(!is.na(measurements$Relative[i])){
-                  rel.marker.time<-measurements$Time[measurements$Recording == measurements$Recording[i] &
-                                                       measurements$Name == measurements$Relative[i]]
-                  Voltage <- Voltage - GetData(sel,
-                                               Time = TimeTrace(sel)[which.min(abs(TimeTrace(sel)- rel.marker.time))],
-                                               Raw = F)
-                }
-                if (all(dim(Voltage) == 1)) {
-                  measurements$Voltage[i] <- set_units(Voltage[1, 1], "uV")
-                } else{
-                  stop("GetData returns multiple values.")
+                if(!is.na(measurements$Time[i])){
+                  Voltage <-
+                    GetData(sel, Time = TimeTrace(sel)[which.min(abs(TimeTrace(sel)- measurements$Time[i]))], Raw = F)
+                  if(!is.na(measurements$Relative[i])){
+                    rel.marker.time<-measurements$Time[measurements$Recording == measurements$Recording[i] &
+                                                         measurements$Name == measurements$Relative[i]]
+                    Voltage <- Voltage - GetData(sel,
+                                                 Time = TimeTrace(sel)[which.min(abs(TimeTrace(sel)- rel.marker.time))],
+                                                 Raw = F)
+                  }
+
+                  if (all(dim(Voltage) == 1)) {
+                    measurements$Voltage[i] <- set_units(Voltage[1, 1], "uV")
+                  } else{
+                    stop("GetData returns multiple values.")
+                  }
+                } else {
+                  Voltage <- set_units(NA, "uV")
                 }
                 setTxtProgressBar(pb,i)
               }

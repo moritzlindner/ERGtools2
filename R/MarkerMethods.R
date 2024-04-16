@@ -21,7 +21,7 @@
 #' data(ERG)
 #' new_erg <- AddMarker(ERG, Marker = "Marker1", Relative = NA, ChannelBinding = "ERG")
 #' # but this would fail:
-#' # new_erg <- DropMarker(ERG, Marker = "Marker1")
+#' # new_erg <- DropMarker(new_erg, Marker = "Marker1")
 #' Markers(new_erg)
 #'
 #' # Drop a Marker from an ERGMeasurements object
@@ -32,6 +32,9 @@
 #' new_erg_measurements <- DropMarker(Measurements.data, Marker = "N1", ChannelBinding = "VEP", drop.dependent = TRUE)
 #' new_erg_measurements
 #' Markers(new_erg_measurements)
+#'
+#' data(Measurements.data)
+#' RenameMarker(Measurements.data,"a","ERG","X")
 #'
 #' @name Marker-Methods
 NULL
@@ -78,13 +81,41 @@ setMethod("AddMarker",
               }
             }
 
-            if (!is.na(Relative) &&
-                !(Relative %in% 1:length(MarkerNames(X)))) {
-              stop("'Relative' must point to an existing marker (by index) in the Marker slot")
-            }
             if (!is.na(Relative)) {
-              if(!is.numeric(Relative))
-                stop("'Relative' must be a numeric pointing to an existing marker in the Marker slot")
+              if (!is.numeric(Relative) &
+                  !is.integer(Relative) & !is.character(Relative)) {
+                stop("'Relative' must point to an existing marker (by index or name) in the Marker slot.")
+              }
+              if (is.character(Relative)) {
+                if (is.na(ChannelBinding)) {
+                  if (length(MarkerNames(X)[MarkerNames(X) == Relative]) != 1) {
+                    stop(
+                      "'Relative' is a character string, but does not unambigously point to a parent marker. Use marker indices instead or specify 'ChannelBinding',"
+                    )
+                  } else {
+                    Relative <- which(MarkerNames(X) == Relative)
+                  }
+                } else {
+                  if (length(MarkerNames(X)[MarkerNames(X) == Relative &
+                                            Markers(X)$ChannelBinding == ChannelBinding]) == 0) {
+                    stop(
+                      "'Relative' is a character string, but does not point to a parent marker present in the channel defined by 'ChannelBinding',"
+                    )
+                  }
+                  if (length(MarkerNames(X)[MarkerNames(X) == Relative &
+                                            Markers(X)$ChannelBinding == ChannelBinding]) != 1) {
+                    stop(
+                      "'Relative' is a character string, but does not unambigously point to a parent marker present in the channel defined by 'ChannelBinding',"
+                    )
+                  } else {
+                    Relative <-
+                      which(MarkerNames(X) == Relative & Markers(X)$ChannelBinding == ChannelBinding)
+                  }
+                }
+              }
+              if (!(Relative %in% 1:length(MarkerNames(X)))) {
+                stop("'Relative' must point to an existing marker in the Marker slot")
+              }
             }
 
             # Check if the new marker is valid
@@ -246,6 +277,97 @@ setMethod("DropMarker",
               stop("Object validation failed after dropping Markers")
             }
           })
+
+#' @describeIn Marker-Methods Renames a marker within an ERGMeasurements object according to the specified channel binding.
+#' @param New.Name The new name to assign to the marker.
+#' @examples
+#' data(Measurements.data)  # Assume Measurements.data is a pre-loaded ERGMeasurements object
+#' updated_measurements <- RenameMarker(Measurements.data, Marker = "a", ChannelBinding = "ERG", New.Name = "NewMarkerName")
+#' updated_measurements
+#' @exportMethod RenameMarker
+setGeneric(
+  name = "RenameMarker",
+  def = function(X,
+                 Marker,
+                 ChannelBinding,
+                 New.Name) {
+    standardGeneric("RenameMarker")
+  }
+)
+
+#' @noMd
+setMethod("RenameMarker",
+          "ERGMeasurements",
+          function(X, Marker, ChannelBinding, New.Name) {
+
+            if(is.null(ChannelBinding)){
+              stop("'ChannelBinding' should be set to any valid channel of the parent object. However, can be set to NA, if not required." )
+            }
+
+            if(!(Marker %in% MarkerNames(X))){
+              stop("'Marker' does not point to any marker present in 'X'.")
+            }
+            if(!is.na(ChannelBinding)){
+              if (!(Marker %in% MarkerNames(X)[Markers(X)$ChannelBinding ==
+                                               ChannelBinding])) {
+                stop("'Marker' does not point to any marker with the indicated 'ChannelBinding' present in 'X'.")
+              }
+              idx <- which(Markers(X)$ChannelBinding ==  ChannelBinding &  MarkerNames(X) == Marker)
+              if(length(idx)!=1){
+                stop("Combination of 'Marker' and 'ChannelBinding' provided does not point to a single marker. ")
+              }
+            } else {
+              idx <- which(MarkerNames(X) == Marker)
+              if(length(idx)!=1){
+                stop("'Marker' does not point to a single marker. Consider setting 'ChannelBinding'.")
+              }
+            }
+            X@Marker$Name[idx]<-New.Name
+            X
+          })
+
+
+#' Rename a Marker in an ERGMeasurements Object
+#'
+#' @describeIn Marker-Methods Renames a marker within an ERGMeasurements object according to the specified channel binding.
+#' @param New.Name The new name to assign to the marker.
+#' @return An updated ERGMeasurements object with the marker renamed.
+#' @exportMethod RenameMarker
+setGeneric(
+  name = "RenameMarker",
+  def = function(X, Marker, ChannelBinding, New.Name)
+  {
+    standardGeneric("RenameMarker")
+  }
+)
+#' @noMd
+setMethod("RenameMarker",
+          "ERGMeasurements",
+          function(X, Marker, ChannelBinding, New.Name) {
+            # Check if the channel binding is provided and valid
+            if(is.null(ChannelBinding) || !(ChannelBinding %in% unique(X@Marker$ChannelBinding))) {
+              stop("'ChannelBinding' should be present in the object. It cannot be NA.")
+            }
+
+            # Locate the marker within the specified channel
+            idx <- which(X@Marker$Name == Marker & X@Marker$ChannelBinding == ChannelBinding)
+
+            # Check if exactly one marker is identified to be renamed
+            if(length(idx) != 1) {
+              stop("The combination of 'Marker' and 'ChannelBinding' provided does not point to a single marker. Please check the values.")
+            }
+
+            # Perform the renaming
+            X@Marker$Name[idx] <- New.Name
+
+            # Validate and return the updated object
+            if(!validObject(X)) {
+              stop("Object validation failed after renaming marker.")
+            }
+
+            return(X)
+          })
+
 
 #' @describeIn Marker-Methods Get Markers.
 #' @exportMethod Markers

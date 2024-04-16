@@ -4,12 +4,17 @@
 \alias{Marker-Methods}
 \alias{AddMarker}
 \alias{DropMarker}
+\alias{RenameMarker}
 \alias{Markers}
 \title{Access and Modify the Markers Stored in an ERGExam or ERGMeasurements Object}
 \usage{
 AddMarker(X, Marker, Relative = NA, ChannelBinding, update.empty.relative = F)
 
 DropMarker(X, Marker, ChannelBinding, drop.dependent = FALSE)
+
+RenameMarker(X, Marker, ChannelBinding, New.Name)
+
+RenameMarker(X, Marker, ChannelBinding, New.Name)
 
 Markers(X)
 }
@@ -25,9 +30,13 @@ Markers(X)
 \item{update.empty.relative}{Logical. If an empty relative value should be overwritten by an otherways matching marker.}
 
 \item{drop.dependent}{For DropMarker and DropMeasurement only. Logical. If TRUE, dependent markers will also be dropped. If FALSE, fails if there are markes dependent on that removed.}
+
+\item{New.Name}{The new name to assign to the marker.}
 }
 \value{
 An updated version of the object, except for Markers, which returns a data.frame representing the Markers stored in the the \linkS4class{ERGExam} or the \linkS4class{ERGMeasurements} object.
+
+An updated ERGMeasurements object with the marker renamed.
 }
 \description{
 These methods enable accession and  modification of the Markers stored in an  \linkS4class{ERGExam} object or the underlying \linkS4class{ERGMeasurements} object directly.
@@ -37,6 +46,10 @@ These methods enable accession and  modification of the Markers stored in an  \l
 \item \code{AddMarker()}: Add a new Marker
 
 \item \code{DropMarker()}: Drop marker by name and channel
+
+\item \code{RenameMarker()}: Renames a marker within an ERGMeasurements object according to the specified channel binding.
+
+\item \code{RenameMarker()}: Renames a marker within an ERGMeasurements object according to the specified channel binding.
 
 \item \code{Markers()}: Get Markers.
 
@@ -52,7 +65,7 @@ Markers(new_erg_measurements)
 data(ERG)
 new_erg <- AddMarker(ERG, Marker = "Marker1", Relative = NA, ChannelBinding = "ERG")
 # but this would fail:
-# new_erg <- DropMarker(ERG, Marker = "Marker1")
+# new_erg <- DropMarker(new_erg, Marker = "Marker1")
 Markers(new_erg)
 
 # Drop a Marker from an ERGMeasurements object
@@ -64,6 +77,12 @@ new_erg_measurements <- DropMarker(Measurements.data, Marker = "N1", ChannelBind
 new_erg_measurements
 Markers(new_erg_measurements)
 
+data(Measurements.data)
+RenameMarker(Measurements.data,"a","ERG","X")
+
+data(Measurements.data)  # Assume Measurements.data is a pre-loaded ERGMeasurements object
+updated_measurements <- RenameMarker(Measurements.data, Marker = "a", ChannelBinding = "ERG", New.Name = "NewMarkerName")
+updated_measurements
 }
 \seealso{
 \link[EPhysData:EPhysSet-class]{EPhysData::EPhysSet-class} \link{Measurements-Methods} \link{Get}

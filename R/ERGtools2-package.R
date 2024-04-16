@@ -64,7 +64,9 @@
 #' TODO ImportEspionInfo, ImportEspionStimTab ImportEspionMetadata
 #' TODO as.std.channelname(channel_str, clear.unmatched = F) is.std.channelname(channel_str) erg_str() op_str() vep_str()
 #' TODO as.std.eyename(eye_str) eye.haystack()od_str() os_str()
-#' TODO Save Loas
+#' TODO Save Load
+#' TODO DropRecordings
+#' TODO RenameMarker
 #'
 #' @examples
 #' # a typical workflow
