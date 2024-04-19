@@ -274,7 +274,7 @@ setMethod(
     }
 
 
-    PEAK FINDIN STILL FAILS
+   # PEAK FINDIN STILL FAILS
 
     peak_interval <- sample.rate / domfreq
     peak_interval <-
