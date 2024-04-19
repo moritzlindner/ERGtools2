@@ -275,6 +275,7 @@ setMethod(
 
 
    # PEAK FINDIN STILL FAILS
+    warning("Placing markers on flicker responses currently not working.")
 
     peak_interval <- sample.rate / domfreq
     peak_interval <-
@@ -303,7 +304,7 @@ setMethod(
     N1_estimate_idx <- which(dat$Time == N1_estimate)
 
 
-    error below w search_left and right ms to interval
+    #error below w search_left and right ms to interval
     search_left <-
       drop_units(true.peak.tolerance[1] / (1 / sample.rate))
     search_right <-
