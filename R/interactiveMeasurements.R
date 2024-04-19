@@ -47,6 +47,7 @@ setMethod("interactiveMeasurements",
                      Eye = Eyes(X)) {
               # internal functions
               interact_plot <- function(erg.obj) {
+
                 trace <- as.data.frame(erg.obj)
                 trace$Value<-set_units(trace$Value, "uV")
 
@@ -72,6 +73,7 @@ setMethod("interactiveMeasurements",
                   geom_line()
                 if (nrow(markers) > 0) {
                   g <- g +
+                    geom_vline(data = markers, aes(xintercept = Time), alpha = 0.1) +
                     geom_text(data = markers,
                               aes(x = Time,
                                   y = Value,
@@ -79,11 +81,11 @@ setMethod("interactiveMeasurements",
                               color = "black")
                 }
                 g <- g +
-                  facet_grid(Description ~ Eye, scales = "free_y") +
+                  facet_grid(Description ~ Eye, scales = "free_y", labeller=label_wrap_gen(25)) +
                   labs(title = "Trace Plots", x = "Time", y = "Amplitude") +
                   theme_minimal() +
                   theme(legend.position = "none",
-                        strip.text.y = element_text(angle = -85))
+                        strip.text.y = element_text(angle = -90)) # Multi-ine labeller https://stackoverflow.com/questions/12673392/how-to-fit-strip-text-x-if-the-heading-string-is-too-long
                 return(g)
               }
 
@@ -169,7 +171,7 @@ setMethod("interactiveMeasurements",
                   class = "highlight-row",
                   column(8,
                          plotlyOutput(
-                           "trace_plot", height =  paste0(200 + (100 * length(Steps(curr))), "px"), width = paste0(100 + (400 * length(Eyes(curr))), "px")
+                           "trace_plot", height =  paste0(200 + (100 * length(Steps(curr))), "px"), width = paste0(120 + (300 * length(Eyes(curr))), "px")
                          )),
                   column(
                     4,
@@ -217,7 +219,10 @@ setMethod("interactiveMeasurements",
 
                 # Render the interactive plot
                 output$trace_plot <- renderPlotly({
-                  ggplotly(interact_plot(CURR$data)) %>%
+                  ggplotly(interact_plot(CURR$data),
+                           width = (80 + (300 * length(Eyes(
+                             curr
+                           ))))) %>%
                     event_register("plotly_click")
                 })
 
@@ -274,9 +279,13 @@ setMethod("interactiveMeasurements",
                                      as_units(click.coord$x, deparse_unit(TimeTrace(curr@Data[[click.idx]])))
 
                                    # update the plot
-                                   output$trace_plot <- renderPlotly({
-                                     ggplotly(interact_plot(CURR$data))
-                                   })
+                                   output$trace_plot <-
+                                     renderPlotly({
+                                       ggplotly(interact_plot(CURR$data),
+                                                width = (80 + (300 * length(Eyes(
+                                                  curr
+                                                )))))
+                                     })
                                    # reselect marker table
                                    output$markerTable <-
                                      renderDataTable({
@@ -352,13 +361,10 @@ setMethod("interactiveMeasurements",
                 observeEvent(input$INP_measurement_delete, {
                   if (!is.null(measurement.sel.idx)) {
                     if (measurement.sel.idx %in% 1:nrow(CURR$data@Measurements@Measurements)) {
-                      warning("not yet implemented")
-                      print (measurement.sel.idx)
-                      print(CURR$data@Measurements@Measurements[measurement.sel.idx, ])
+                      warning("Deleting Measurments interactively is experimental.")
+                      # needs to implement checks to ensure data dropped have no depending or call Measurements()<-NULL
 
-                      # rownames(CURR$data@Measurements@Measurements) <- NULL
-                      # CURR$data@Measurements@Measurements[measurement.sel.idx, ] <- NULL
-                      # rownames(CURR$data@Measurements@Measurements) <- NULL
+                      CURR$data@Measurements@Measurements<- CURR$data@Measurements@Measurements[!(1:nrow(CURR$data@Measurements@Measurements) %in% measurement.sel.idx), ]
                       out <<- reactiveValuesToList(CURR)$data
                     } else {
                       showModal(

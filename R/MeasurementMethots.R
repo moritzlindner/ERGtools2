@@ -245,9 +245,9 @@ setMethod("Measurements<-",
                    value) {            #validity checks and marker Marker conversion
 
             # internal functions
-            get.marker.idx<-function(cb,X){
-              if(!is.null(ChannelBinding)){
-                marker.idx <- which(Markers(X)$Name == Marker & Markers(X)$ChannelBinding == ChannelBinding)
+            get.marker.idx<-function(cb,X,Marker){
+              if(!is.null(cb)){
+                marker.idx <- which(Markers(X)$Name == Marker & Markers(X)$ChannelBinding == cb)
               } else {
                 marker.idx <- which(Markers(X)$Name == Marker)
               }
@@ -258,8 +258,14 @@ setMethod("Measurements<-",
             }
 
             #validity checks
-            if (any(length(Marker) != 1, length(where) != 1, length(value) != 1)) {
-              stop ("'Marker', 'where', and 'value' must contain a single value.")
+            if (length(Marker) != 1) {
+              stop ("'Marker' must contain a single value.")
+            }
+            if (nrow(Measurements(X, where = where, Marker = Marker, quiet = T)) != 1) {
+              stop ("'where' must point to a single recording.")
+            }
+            if (length(value) != 1 && !is.null(value)) {
+              stop ("value' must contain a single value or NULL.")
             }
             if (!is.character(Marker)) {
               stop("'Marker' must be a character string.")
@@ -270,8 +276,8 @@ setMethod("Measurements<-",
 
             if(!is.null(value)){
               # if the aim is not to delete a measurement (value!=NULL)
-              if (!is.numeric(value)) {
-                stop("'value' must be numeric.")
+              if (!is.numeric(value) && !is.null(value)) {
+                stop("'value' must be numeric or NULL.")
               }else{
                 refunit<-X@Measurements$Time[1]
                 refunit<-deparse_unit(refunit)
@@ -290,7 +296,7 @@ setMethod("Measurements<-",
 
               if (nrow.same ==
                   1) {    # Update Measurement
-                marker.idx<-get.marker.idx(ChannelBinding,X)
+                marker.idx<-get.marker.idx(ChannelBinding,X,Marker)
 
                 if (length(X@Measurements$Time[X@Measurements$Recording == where &
                                                X@Measurements$Marker %in% marker.idx]) != 1) {
@@ -315,7 +321,7 @@ setMethod("Measurements<-",
                   }
                 }
 
-                marker.idx<-get.marker.idx(ChannelBinding,X)
+                marker.idx<-get.marker.idx(ChannelBinding,X,Marker)
                 new.measurement <- data.frame(Recording = where,
                                               Marker = marker.idx,
                                               Time = value)
@@ -330,10 +336,17 @@ setMethod("Measurements<-",
               }
             }else{
               # if value is NULL --> delete the selected measurement
-              marker.idx<-get.marker.idx(ChannelBinding,X)
+              marker.idx<-get.marker.idx(ChannelBinding,X,Marker)
+              # are markers dependent on the one to be deleted?
+              marker.dept.idx<-which(X@Marker$Relative==marker.idx)
+              if(any(X@Measurements$Recording == where &
+                   X@Measurements$Marker %in% marker.dept.idx)){
+                stop("Measurement cant be deleted because other measurements depend on it (dependent/relative markers).")
+              }
+
               X@Measurements <-
-                X@Measurements[X@Measurements$Recording == where &
-                                 X@Measurements$Marker %in% marker.idx,]
+                X@Measurements[!(X@Measurements$Recording == where &
+                                 X@Measurements$Marker %in% marker.idx),]
               rownames(X@Measurements)<-NULL
 
             }
@@ -360,7 +373,7 @@ setMethod("Measurements<-",
 
             Measurements(X@Measurements,
                          Marker = Marker,
-                         where = where,
+                         where = Where(X,where = where),
                          create.marker.if.missing = create.marker.if.missing,
                          Relative = Relative,
                          ChannelBinding = ChannelBinding

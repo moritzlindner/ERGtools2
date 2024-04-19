@@ -238,7 +238,7 @@ setMethod(
   "AutoPlaceFlicker",
   signature = "EPhysData",
   definition = function(X,
-                        robust.peak.filter.bands = c(3, 75),
+                        robust.peak.filter.bands = as_units(c(3, 75), "Hz"),
                         true.peak.tolerance = as_units(c(7, 12), "ms")) {
     if (!("units" %in% class(true.peak.tolerance))) {
       stop("'true.peak.tolerance' must be of class units.")
@@ -256,29 +256,36 @@ setMethod(
 
     dat <- as.data.frame(X, Raw = F)
     sample.rate <- mean(diff(TimeTrace(X)))
+    sample.rate <- set_units(sample.rate, "s")
 
     cutoff <-
       freq.to.w(x = robust.peak.filter.bands, time.trace <- TimeTrace(X))
-    dat$Filtered <-
+    dat$Filtered <- dat$Value
       filter.bandpass(dat$Value, cutoff[1], cutoff[2])
-    fft <- fastfourier(dat$Filtered, samp.freq = sample.rate)
-    fft <- fft[fft$freq < 100, ]
+    fft <- fastfourier(dat$Filtered, samp.freq = 1/sample.rate)
+    fft <- fft[fft$freq < robust.peak.filter.bands[2], ]
+    fft <- fft[fft$freq > robust.peak.filter.bands[1], ]
     domfreq <- fft$freq[which.max(Re(fft$fur))]
+    print(domfreq)
     # 50Hz reject
-    if (domfreq > 47 & domfreq < 53) {
+    if (domfreq > as_units(47,"Hz") & domfreq < as_units(53,"Hz")) {
       fft$fur[which.max(Re(fft$fur))] <- 0
       domfreq <- fft$freq[which.max(Re(fft$fur))]
     }
-    peak_interval <- sample.rate / domfreq
 
-    dat$Filtered[peak_interval + i]
+
+    PEAK FINDIN STILL FAILS
+
+    peak_interval <- sample.rate / domfreq
+    peak_interval <-
+      round(drop_units(set_units(1 / domfreq, "s") / sample.rate))
 
     # a matrix for averaging, based on the peak interval calculated from the fourier transform
     start <- which(dat$Time == as_units(0, "ms"))
     end <- start + peak_interval
     posmtx <-
       matrix(nrow = (end - start),
-             ncol = (nrow(dat) / peak_interval))
+             ncol = floor(nrow(dat) / peak_interval))
     for (i in 1:nrow(posmtx)) {
       tmp <- seq(i + start, nrow(dat), peak_interval)
       if (length(tmp) < ncol(posmtx)) {
@@ -288,13 +295,15 @@ setMethod(
     }
 
     peak.avg <- apply(posmtx, 1, function(x) {
-      mean(dat$Filtered[x])
+      mean(dat$Filtered[x], na.rm = F)
     })
     P1_estimate <- dat$Time[which.max(peak.avg) + start]
     P1_estimate_idx <- which(dat$Time == P1_estimate)
     N1_estimate <- dat$Time[which.min(peak.avg) + start]
     N1_estimate_idx <- which(dat$Time == N1_estimate)
 
+
+    error below w search_left and right ms to interval
     search_left <-
       drop_units(true.peak.tolerance[1] / (1 / sample.rate))
     search_right <-
@@ -347,7 +356,6 @@ setMethod(
                         robust.peak.filter.bands = c(1, 75),
                         true.peak.tolerance = as_units(c(80, 20), "ms")) {
     if (!("units" %in% class(true.peak.tolerance))) {
-      print("Local")
       stop("'true.peak.tolerance' must be of class units.")
     }
 
@@ -396,13 +404,6 @@ setMethod(
     }, error = function(e)
       NULL)
 
-    if (!is.null(N1_pos)) {
-      N1_time <- dat$Time[N1_pos]
-      N1_amp <- dat$Value[N1_pos] - dat$Value[P1_pos]
-    } else{
-      N1_time <- as_units(NA, deparse_unit(dat$Time))
-      N1_amp <- as_units(NA, deparse_unit(dat$Value))
-    }
     if (!is.null(P1_pos)) {
       P1_time <- dat$Time[P1_pos]
       P1_amp <- dat$Value[P1_pos]
@@ -410,9 +411,16 @@ setMethod(
       P1_time <- as_units(NA, deparse_unit(dat$Time))
       P1_amp <- as_units(NA, deparse_unit(dat$Value))
     }
+    if (!is.null(N1_pos)) {
+      N1_time <- dat$Time[N1_pos]
+      N1_amp <- dat$Value[N1_pos] - P1_amp
+    } else{
+      N1_time <- as_units(NA, deparse_unit(dat$Time))
+      N1_amp <- as_units(NA, deparse_unit(dat$Value))
+    }
     if (!is.null(P2_pos)) {
       P2_time <- dat$Time[P2_pos]
-      P2_amp <- dat$Value[P2_pos] - dat$Value[P1_pos]
+      P2_amp <- dat$Value[P2_pos] - P1_amp
     } else{
       P2_time <- as_units(NA, deparse_unit(dat$Time))
       P2_amp <- as_units(NA, deparse_unit(dat$Value))
