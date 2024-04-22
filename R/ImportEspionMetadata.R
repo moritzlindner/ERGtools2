@@ -158,6 +158,7 @@ ImportEspionMetadata <- function(filename,
       measurements$Channel_Name[measurements$Channel == c] <-
         inferre.channel.names.from.markers(curr.markers)
     }
+    Metadata$id  <- 1:nrow(Metadata)
     Metadata <-
       merge(
         Metadata,
@@ -165,6 +166,8 @@ ImportEspionMetadata <- function(filename,
         by = c("Step", "Channel", "Result"),
         all.x = T
       )
+    Metadata <- Metadata[order(Metadata$id),]
+    Metadata$id<-NULL
     Metadata$Eye <- as.std.eyename(Metadata$Eye)
   }
 

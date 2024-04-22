@@ -85,6 +85,10 @@ Where.generic <- function(MD,
       }
     }
   }
+  if (length(where) == 0) {
+    # if all should be returned
+    idx <- 1:nrow(MD)
+  }
 
 
   md.sel <- which(names(where) %in% colnames(MD))

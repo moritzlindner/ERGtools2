@@ -49,9 +49,6 @@ ImportEspion <- function(filename,
   }
 
   if (is.null(Protocol)) {
-    warning(
-      "Provision of the protocol is recommended and may be essential if marker table is not provided or does not include markers for each step and channel of the recording."
-    )
   } else{
     if (!inherits(Protocol, "ERGProtocol")) {
       if (is.list(Protocol)) {
@@ -142,6 +139,8 @@ ImportEspion <- function(filename,
   # get Metadata
   Metadata <-
     ImportEspionMetadata(filename, sep = sep, Protocol = Protocol)
+
+  Metadata$Channel_idx<-Metadata$Channel
   Metadata$Channel<-Metadata$Channel_Name
 
   # prepare for loading only requested relevant
@@ -170,9 +169,6 @@ ImportEspion <- function(filename,
     STEPS = vector("list", nrow(Data_Header))
   }
 
-  # does where.idx result in correct indexing?
-  # why does TimeTrace become nV?
-
   if (("Data Table" %in% rownames(toc)) &&
       any(c("Raw", "Averaged") %in% Import)) {
     pb = txtProgressBar(min = 0,
@@ -183,8 +179,8 @@ ImportEspion <- function(filename,
       tryCatch({
         if (as.numeric(Data_Header$Chan[i]) == 1) {
           #if(i==1 || (Data_Header$Step[i]!=Data_Header$Step[i-1])){ # only the first for new step contains a time frame
-            # get time trace
-            TimeTrace <- get_trace(filename, toc, Data_Header, i, "TimeTrace")
+          # get time trace
+          TimeTrace <- get_trace(filename, toc, Data_Header, i, "TimeTrace")
           #}
         }
         if (i %in% where.idx){ # only import, if selected by where
@@ -236,13 +232,17 @@ ImportEspion <- function(filename,
   if ("Measurements" %in% Import) {
     measurements <- get_measurements(filename, toc, sep)
     measurements$Relative <- NA
-
-    Metadata$Recording <- 1:nrow(Metadata)
+    md.tmp<-Metadata
+    md.tmp$Recording <- 1:nrow(md.tmp)
+    md.tmp$Channel<-md.tmp$Channel_idx
     measurements <-
       merge(measurements,
-            Metadata[, c("Step", "Channel", "Result", "Eye", "Recording")],
+            md.tmp[, c("Step", "Channel", "Result", "Eye", "Recording","Channel_Name")],
             by = c("Step", "Channel", "Result", "Eye"))
-    Metadata$Recording <- NULL
+    measurements$Channel<-measurements$Channel_Name
+    measurements$Channel_Name<-NULL
+    measurements$Channel_idx<-NULL
+    rm(md.tmp)
 
     if (all(is.null(unique(measurements$Group)))) {
       measurements$Group <- NULL
@@ -271,6 +271,8 @@ ImportEspion <- function(filename,
   rownames(Metadata)<-NULL
   stim_info<-stim_info[stim_info$Step %in% unique(Metadata$Step),]
   rownames(stim_info)<-NULL
+  Metadata$Channel_Name<-NULL
+  Metadata$Channel_idx<-NULL
 
   # Subject and Exam data
 

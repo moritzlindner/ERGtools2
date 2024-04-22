@@ -261,8 +261,8 @@ setMethod("Measurements<-",
             if (length(Marker) != 1) {
               stop ("'Marker' must contain a single value.")
             }
-            if (nrow(Measurements(X, where = where, Marker = Marker, quiet = T)) != 1) {
-              stop ("'where' must point to a single recording.")
+            if (nrow(Measurements(X, where = where, Marker = Marker, quiet = T)) > 1) {
+              stop ("'where' must point to a single or non existent measurement.")
             }
             if (length(value) != 1 && !is.null(value)) {
               stop ("value' must contain a single value or NULL.")
@@ -340,13 +340,13 @@ setMethod("Measurements<-",
               # are markers dependent on the one to be deleted?
               marker.dept.idx<-which(X@Marker$Relative==marker.idx)
               if(any(X@Measurements$Recording == where &
-                   X@Measurements$Marker %in% marker.dept.idx)){
+                     X@Measurements$Marker %in% marker.dept.idx)){
                 stop("Measurement cant be deleted because other measurements depend on it (dependent/relative markers).")
               }
 
               X@Measurements <-
                 X@Measurements[!(X@Measurements$Recording == where &
-                                 X@Measurements$Marker %in% marker.idx),]
+                                   X@Measurements$Marker %in% marker.idx),]
               rownames(X@Measurements)<-NULL
 
             }
@@ -377,7 +377,7 @@ setMethod("Measurements<-",
                          create.marker.if.missing = create.marker.if.missing,
                          Relative = Relative,
                          ChannelBinding = ChannelBinding
-                         ) <- value
+            ) <- value
 
             if (validObject(X)) {
               return(X)
@@ -417,7 +417,7 @@ newERGMeasurements <- function(data, update.empty.relative = F) {
   # first add independent markers
   for (c in unique(data$Channel[is.na(data$Relative)])) {
     for (m in unique(data$Name[data$Channel == c &
-                                       is.na(data$Relative)])) {
+                               is.na(data$Relative)])) {
       rel <- NA
       # data[data$Channel == c &
       #        data$Name == m, ]
@@ -437,13 +437,13 @@ newERGMeasurements <- function(data, update.empty.relative = F) {
                         data$Name == m &
                         data$Recording == r]
         })
-        }
+      }
     }
   }
   #then dependent markers
   for (c in unique(data$Channel[!is.na(data$Relative)])) {
     for (m in unique(data$Name[data$Channel == c &
-                                       !is.na(data$Relative)])) {
+                               !is.na(data$Relative)])) {
       rel <-
         unique(data$Relative[data$Channel == c &
                                data$Name == m])
@@ -457,7 +457,7 @@ newERGMeasurements <- function(data, update.empty.relative = F) {
       rel.idx<-which(Markers(M)==rel)
       M <- AddMarker(M, m, rel.idx, c,update.empty.relative = update.empty.relative)
       for (r in data$Recording[data$Channel == c &
-                                       data$Name == m]) {
+                               data$Name == m]) {
         Measurements(
           M,
           Marker = m,
@@ -466,8 +466,8 @@ newERGMeasurements <- function(data, update.empty.relative = F) {
           ChannelBinding = c
         ) <-
           data$Time[data$Channel == c &
-                              data$Name == m &
-                              data$Recording == r]
+                      data$Name == m &
+                      data$Recording == r]
       }
     }
   }

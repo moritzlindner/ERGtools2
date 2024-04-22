@@ -153,6 +153,27 @@ get_trace <- function(filename, toc, Data_Header, IDX, what) {
 
   tryCatch({
 
+    UNIT <- fread(
+      filename,
+      select = sel,
+      nrows = 1,
+      skip = toc["Data Table", "Top"] - 2,
+      data.table = F,
+      header = F
+    )
+    UNIT<-unlist(UNIT)
+    if (what == "TrialTrace") {
+      earlyend <- which(UNIT != UNIT[1])
+      if (length(earlyend)!=0){
+        earlyend <- min(earlyend)
+        warning(
+          paste0(ERRORSTRING, " It seems like Trials/Repeats have been rejected in the Espion software and were therefore not included into the export file. It is recommended to export all Trials and reject unwanted Trials inside ERGtools2.")
+        )
+        UNIT<-UNIT[1:earlyend-1]
+        sel<-sel[1:earlyend-1]
+      }
+    }
+
     TRACE <-
       fread(
         filename,
@@ -167,17 +188,14 @@ get_trace <- function(filename, toc, Data_Header, IDX, what) {
     if (what %in% c("TimeTrace", "ResultTrace")) {
       TRACE <- TRACE[, 1]
     }
-    UNIT <- fread(
-      filename,
-      select = sel,
-      nrows = 1,
-      skip = toc["Data Table", "Top"] - 2,
-      data.table = F,
-      header = F
-    )
+
     if (what %in% c("TimeTrace", "ResultTrace")) {
-      UNIT <- UNIT[1, 1]
+      UNIT <- UNIT[1]
     } else {
+      premature.end<-which(UNIT == "Time (ms)")
+      if (length(premature.end)!=0){
+        TRACE<-TRACE[,1:premature.end-1]
+      }
       UNIT <- unique(as.vector(t(UNIT)))
     }
 

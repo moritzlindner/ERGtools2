@@ -13,7 +13,7 @@
 #' @details These methods are used to automatically place markers for ERGs/VEPs.\cr\cr
 #' \code{AutoPlaceMarkers()} sets markers depending on the channel (E.g. ERG, VEP, OP,...) and stimulus type (Flash, Flicker), defined via the \code{Channel.names} and \code{Stimulus.type.names} arguments. Markers are placed using the lower level methods \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} or \link[=AutoPlaceVEP]{AutoPlaceVEP} function depending on the stimulus type.\cr\cr
 #'  \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} and \link[=AutoPlaceVEP]{AutoPlaceVEP} are the lower level functions which perform the actual marker placement on the \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} objects contained in the \linkS4class{ERGExam} object. These methods are usually not called directly by a user, unless she/he wants to perform or re-run marker placement only on certain recordings while leaving previously set markers unchanged for the others.
-#'  There working principle is that they apply robust peak filtering within defined frequency bands (low frequency band by default) to locate the gross position of the most prominent peaks peaks and then look for the peak in data using the normal filter methods (\link{FilterFunction}) to accuratly identify the actual peak position. \cr\cr
+#'  There working principle is that they apply robust peak filtering within defined frequency bands (low frequency band by default) to locate the gross position of the most prominent peaks peaks and then look for the peak in data using the preset filter function (\link{FilterFunction}) to accurately identify the actual peak position. \cr\cr
 #'  Currently, supported are:
 #' * a and B waves for Flash ERG
 #' * N1, P1 (and Frequency) for Flicker ERGs
@@ -60,6 +60,9 @@ setMethod(
                                                  VEP = "VEP"),
                         Stimulus.type.names = pairlist(Flash = "Flash",
                                                        Flicker = "Flicker")) {
+
+    stopifnot(CheckAvgFxSet(X))
+
     markerlist <- list()
     Md <- merge(Metadata(X), StimulusTable(X))
     pb = txtProgressBar(min = 0,
@@ -238,7 +241,7 @@ setMethod(
   "AutoPlaceFlicker",
   signature = "EPhysData",
   definition = function(X,
-                        robust.peak.filter.bands = as_units(c(3, 75), "Hz"),
+                        robust.peak.filter.bands = as_units(c(.5, 300), "Hz"),
                         true.peak.tolerance = as_units(c(7, 12), "ms")) {
     if (!("units" %in% class(true.peak.tolerance))) {
       stop("'true.peak.tolerance' must be of class units.")
@@ -254,35 +257,53 @@ setMethod(
       stop("'true.peak.tolerance' must be of convertible to seconds.")
     }
 
-    dat <- as.data.frame(X, Raw = F)
+    cutoff <-
+      freq.to.w(x = robust.peak.filter.bands, time.trace <-
+                  TimeTrace(X))
     sample.rate <- mean(diff(TimeTrace(X)))
     sample.rate <- set_units(sample.rate, "s")
 
-    cutoff <-
-      freq.to.w(x = robust.peak.filter.bands, time.trace <- TimeTrace(X))
-    dat$Filtered <- dat$Value
-      filter.bandpass(dat$Value, cutoff[1], cutoff[2])
-    fft <- fastfourier(dat$Filtered, samp.freq = 1/sample.rate)
-    fft <- fft[fft$freq < robust.peak.filter.bands[2], ]
-    fft <- fft[fft$freq > robust.peak.filter.bands[1], ]
-    domfreq <- fft$freq[which.max(Re(fft$fur))]
-    print(domfreq)
+
+    dat <- GetData(X, Raw = T)
+    dat <- filter.bandpass(dat, cutoff[1], cutoff[2])
+    fft <- fastfourier(dat, samp.freq = 1 / sample.rate)
+    fft_short <- lapply(fft, function(x) {
+      x <- x[x$freq < robust.peak.filter.bands[2],]
+      x <- x[x$freq > robust.peak.filter.bands[1],]
+      x$freq_rounded <- round(x$freq)
+      x$fur <- Re(x$fur)
+      averaged_data <-
+        aggregate(fur ~ freq_rounded, data = x, FUN = mean)
+      names(averaged_data)[names(averaged_data) == "freq_rounded"] <-
+        "freq"
+      x <- averaged_data
+      x
+    })
+    fur <- lapply(fft_short, function(x) {
+      x$fur
+    })
+
+    fur <- do.call(cbind, fur)
+    fur <- apply(fur, 1, median)
+    domfreq <- fft_short[[1]]$freq[which.max(fur)]
     # 50Hz reject
     if (domfreq > as_units(47,"Hz") & domfreq < as_units(53,"Hz")) {
       fft$fur[which.max(Re(fft$fur))] <- 0
-      domfreq <- fft$freq[which.max(Re(fft$fur))]
+      domfreq <- fft_short[[1]]$freq[which.max(fur)]
     }
+#FIXME reject those, that give less than one period per trace and those that are too fast to resolve
+#FIXME Implement options to chech for loss of power over repeats
 
 
-   # PEAK FINDIN STILL FAILS
-    warning("Placing markers on flicker responses currently not working.")
-
-    peak_interval <- sample.rate / domfreq
+    peak_interval <- 1/sample.rate / domfreq
     peak_interval <-
       round(drop_units(set_units(1 / domfreq, "s") / sample.rate))
 
     # a matrix for averaging, based on the peak interval calculated from the fourier transform
-    start <- which(dat$Time == as_units(0, "ms"))
+    dat<-as.data.frame(X,Raw=F)
+    dat$Filtered <- filter.bandpass(dat$Value, cutoff[1], cutoff[2])
+
+    start <- 0 #which(dat$Time == as_units(0, "ms"))
     end <- start + peak_interval
     posmtx <-
       matrix(nrow = (end - start),
@@ -292,7 +313,7 @@ setMethod(
       if (length(tmp) < ncol(posmtx)) {
         tmp <- c(tmp, rep(NA, ncol(posmtx) - length(tmp)))
       }
-      posmtx[i, ] <- tmp
+      posmtx[i, ] <- tmp[1:2]
     }
 
     peak.avg <- apply(posmtx, 1, function(x) {
@@ -302,7 +323,6 @@ setMethod(
     P1_estimate_idx <- which(dat$Time == P1_estimate)
     N1_estimate <- dat$Time[which.min(peak.avg) + start]
     N1_estimate_idx <- which(dat$Time == N1_estimate)
-
 
     #error below w search_left and right ms to interval
     search_left <-
@@ -332,7 +352,7 @@ setMethod(
         Value = c(N1_amp, P1_amp, as_units(NA, "V")),
         Relative = c(NA, "N1", NA)
       )
-    rownames(out) <- c("N1", "P1", "Period")
+    rownames(out) <- c("N1", "P1", "Period_length")
     return(out)
   }
 )
