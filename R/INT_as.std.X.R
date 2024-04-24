@@ -48,7 +48,7 @@ as.std.eyename <- function(eye_str, exact = T) {
 #' @return A character vector with standardized channel names.
 #' @examples
 #' as.std.channelname(c("ERG_auto", "C-wave", "OPs", "Nonstandard"), clear.unmatched = TRUE)
-#' @export
+#' @keywords internal
 as.std.channelname<-function(channel_str, clear.unmatched=F){
   found<-is.std.channelname(channel_str)
 
@@ -84,7 +84,7 @@ as.std.channelname<-function(channel_str, clear.unmatched=F){
 #' @examples
 #' is.std.channelname(c("ERG_auto", "C-wave", "OPs", "Nonstandard"))
 #' @describeIn as.std.channelname Check if channel name strings are standard channel names
-#' @export
+#' @keywords internal
 is.std.channelname <- function(channel_str) {
   if (!is.character(channel_str)) {
     stop(paste0(channel_str, sep = ", "),
@@ -108,7 +108,7 @@ is.std.channelname <- function(channel_str) {
 #'
 #' @describeIn as.std.eyename Get standard eye identifier strings
 #' @noMd
-#' @export
+#' @keywords internal
 eye.haystack <- function() {
   return(c(od_str(),
            os_str()))
@@ -119,7 +119,7 @@ eye.haystack <- function() {
 #'
 #' @describeIn as.std.eyename Get standard right eye identifier strings
 #' @noMd
-#' @export
+#' @keywords internal
 od_str <- function() {
   c("OD",
     "RE",
@@ -138,7 +138,7 @@ od_str <- function() {
 #'
 #' @describeIn as.std.eyename Get standard left eye identifier strings
 #' @noMd
-#' @export
+#' @keywords internal
 os_str <- function() {
   c("OS",
     "LE",
@@ -157,7 +157,7 @@ os_str <- function() {
 #'
 #' @describeIn as.std.channelname Get standard ERG channel name strings
 #' @noMd
-#' @export
+#' @keywords internal
 erg_str <- function() {
   c("ERG",
     "ERGs",
@@ -171,7 +171,7 @@ erg_str <- function() {
 #'
 #' @describeIn as.std.channelname Get standard oscillatory potentials channel name strings
 #' @noMd
-#' @export
+#' @keywords internal
 op_str <- function() {
   c("OP",
     "OPs")
@@ -182,7 +182,7 @@ op_str <- function() {
 #'
 #' @describeIn as.std.channelname Get standard VEP channel name strings
 #' @noMd
-#' @export
+#' @keywords internal
 vep_str <- function() {
   c("VEP",
     "VEPs")

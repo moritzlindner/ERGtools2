@@ -180,9 +180,13 @@ setMethod(
     a_estimate <- which.min(dat$Filtered[1:B_estimate])
 
     search_left <-
-      round(drop_units(true.peak.tolerance[1] / (1 / sample.rate)))
+      round(drop_units(
+        set_units(true.peak.tolerance[1], deparse_unit(sample.rate)) / (sample.rate)
+      ))
     search_right <-
-      round(drop_units(true.peak.tolerance[2] / (1 / sample.rate)))
+      round(drop_units(
+        set_units(true.peak.tolerance[2], deparse_unit(sample.rate)) / (sample.rate)
+      ))
 
     B_pos <- tryCatch({
       which.max(dat$Value[(B_estimate - search_left):(B_estimate + search_right)]) + B_estimate - search_left
@@ -230,32 +234,25 @@ setMethod(
 setGeneric(
   name = "AutoPlaceFlicker",
   def = function(X,
-                 robust.peak.filter.bands = c(5, 75),
-                 true.peak.tolerance = as_units(c(7, 12), "ms")) {
+                 robust.peak.filter.bands = as_units(c(.5, 300), "Hz"),
+                 true.peak.tolerance = as_units(c(12, 15), "ms")) {
     standardGeneric("AutoPlaceFlicker")
   }
 )
-#' @importFrom EPhysMethods filter.bandpass fastfourier freq.to.w
+#' @importFrom EPhysMethods filter.bandpass fastfourier freq.to.w convert_to_unit
 #' @noMd
 setMethod(
   "AutoPlaceFlicker",
   signature = "EPhysData",
   definition = function(X,
                         robust.peak.filter.bands = as_units(c(.5, 300), "Hz"),
-                        true.peak.tolerance = as_units(c(7, 12), "ms")) {
+                        true.peak.tolerance = as_units(c(12, 15), "ms")) {
     if (!("units" %in% class(true.peak.tolerance))) {
       stop("'true.peak.tolerance' must be of class units.")
     }
 
-    convertibel.to.s <- tryCatch({
-      set_units(true.peak.tolerance, "s")
-      TRUE
-    }, error = function(e) {
-      FALSE
-    })
-    if (!convertibel.to.s) {
-      stop("'true.peak.tolerance' must be of convertible to seconds.")
-    }
+    robust.peak.filter.bands<-convert_to_unit(robust.peak.filter.bands,"Hz")
+    true.peak.tolerance<-convert_to_unit(true.peak.tolerance,"s")
 
     cutoff <-
       freq.to.w(x = robust.peak.filter.bands, time.trace <-
@@ -263,15 +260,15 @@ setMethod(
     sample.rate <- mean(diff(TimeTrace(X)))
     sample.rate <- set_units(sample.rate, "s")
 
-
     dat <- GetData(X, Raw = T)
     dat <- filter.bandpass(dat, cutoff[1], cutoff[2])
     fft <- fastfourier(dat, samp.freq = 1 / sample.rate)
     fft_short <- lapply(fft, function(x) {
-      x <- x[x$freq < robust.peak.filter.bands[2],]
-      x <- x[x$freq > robust.peak.filter.bands[1],]
+      x$freq<-as_units(x$freq,"Hz")
+      x <- x[x$freq < robust.peak.filter.bands[2]/2,] # flicker freq can only be detected if at least half the max bandpass frequency
+      x <- x[x$freq > max(robust.peak.filter.bands[1]*2,set_units(1/max(TimeTrace(X)),"Hz")*2),] # flicker freq can only be detected if at least oble the min beandpass frequnecy and if at least two peaks fit into one trace
       x$freq_rounded <- round(x$freq)
-      x$fur <- Re(x$fur)
+      x$fur <- abs(x$fur)
       averaged_data <-
         aggregate(fur ~ freq_rounded, data = x, FUN = mean)
       names(averaged_data)[names(averaged_data) == "freq_rounded"] <-
@@ -288,14 +285,13 @@ setMethod(
     domfreq <- fft_short[[1]]$freq[which.max(fur)]
     # 50Hz reject
     if (domfreq > as_units(47,"Hz") & domfreq < as_units(53,"Hz")) {
-      fft$fur[which.max(Re(fft$fur))] <- 0
+      fur[which.max(fur)] <- NA
       domfreq <- fft_short[[1]]$freq[which.max(fur)]
     }
-#FIXME reject those, that give less than one period per trace and those that are too fast to resolve
-#FIXME Implement options to chech for loss of power over repeats
 
+    #FIXME Implement options to chech for loss of power over repeats
 
-    peak_interval <- 1/sample.rate / domfreq
+    peak_interval <- 1/sample.rate / set_units(domfreq,"1/s")
     peak_interval <-
       round(drop_units(set_units(1 / domfreq, "s") / sample.rate))
 
@@ -303,7 +299,7 @@ setMethod(
     dat<-as.data.frame(X,Raw=F)
     dat$Filtered <- filter.bandpass(dat$Value, cutoff[1], cutoff[2])
 
-    start <- 0 #which(dat$Time == as_units(0, "ms"))
+    start <- which(dat$Time == as_units(0, "ms"))
     end <- start + peak_interval
     posmtx <-
       matrix(nrow = (end - start),
@@ -313,29 +309,45 @@ setMethod(
       if (length(tmp) < ncol(posmtx)) {
         tmp <- c(tmp, rep(NA, ncol(posmtx) - length(tmp)))
       }
-      posmtx[i, ] <- tmp[1:2]
+      posmtx[i, ] <- tmp[1:ncol(posmtx)]#[1:2]
     }
+
+    posmtx<-posmtx[, apply(posmtx, 2, function(x) {
+      !any(is.na(x))
+    })]
 
     peak.avg <- apply(posmtx, 1, function(x) {
       mean(dat$Filtered[x], na.rm = F)
     })
+
     P1_estimate <- dat$Time[which.max(peak.avg) + start]
     P1_estimate_idx <- which(dat$Time == P1_estimate)
-    N1_estimate <- dat$Time[which.min(peak.avg) + start]
+    N1_estimate <- dat$Time[which.min(peak.avg[1:P1_estimate_idx]) + start]
     N1_estimate_idx <- which(dat$Time == N1_estimate)
 
     #error below w search_left and right ms to interval
-    search_left <-
-      drop_units(true.peak.tolerance[1] / (1 / sample.rate))
-    search_right <-
-      drop_units(true.peak.tolerance[2] / (1 / sample.rate))
 
-    P1_pos <-
-      which.max(dat$Value[(P1_estimate_idx - search_left):(P1_estimate_idx + search_right)]) +
-      P1_estimate_idx - search_left
-    N1_pos <-
-      which.min(dat$Value[(N1_estimate_idx - search_left):(P1_pos)]) + N1_estimate_idx -
-      search_left
+    search_left <-
+      round(drop_units(
+        set_units(true.peak.tolerance[1], deparse_unit(sample.rate)) / (sample.rate)
+      ))
+    search_right <-
+      round(drop_units(
+        set_units(true.peak.tolerance[2], deparse_unit(sample.rate)) / (sample.rate)
+      ))
+
+    P1_pos <- tryCatch({
+      which.max(dat$Value[max((P1_estimate_idx - search_left), 1):min((P1_estimate_idx + search_right), length(dat$Value))]) +
+        max((P1_estimate_idx - search_left), 1)
+    }, error = function(e) {
+      NULL
+    })
+    N1_pos <- tryCatch({
+      which.min(dat$Value[max((N1_estimate_idx - search_left), 1):(P1_pos)]) + max((N1_estimate_idx - search_left), 1)
+    }, error = function(e) {
+      NULL
+    })
+
 
     P1_time <- dat$Time[P1_pos]
     P1_amp <- dat$Value[P1_pos] - dat$Value[N1_pos]

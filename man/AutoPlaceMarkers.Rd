@@ -21,8 +21,8 @@ AutoPlaceAB(
 
 AutoPlaceFlicker(
   X,
-  robust.peak.filter.bands = c(5, 75),
-  true.peak.tolerance = as_units(c(7, 12), "ms")
+  robust.peak.filter.bands = as_units(c(0.5, 300), "Hz"),
+  true.peak.tolerance = as_units(c(12, 15), "ms")
 )
 
 AutoPlaceVEP(
@@ -52,7 +52,7 @@ These methods automatically place markers for ERG/VEP recordings in an \linkS4cl
 These methods are used to automatically place markers for ERGs/VEPs.\cr\cr
 \code{AutoPlaceMarkers()} sets markers depending on the channel (E.g. ERG, VEP, OP,...) and stimulus type (Flash, Flicker), defined via the \code{Channel.names} and \code{Stimulus.type.names} arguments. Markers are placed using the lower level methods \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} or \link[=AutoPlaceVEP]{AutoPlaceVEP} function depending on the stimulus type.\cr\cr
 \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} and \link[=AutoPlaceVEP]{AutoPlaceVEP} are the lower level functions which perform the actual marker placement on the \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} objects contained in the \linkS4class{ERGExam} object. These methods are usually not called directly by a user, unless she/he wants to perform or re-run marker placement only on certain recordings while leaving previously set markers unchanged for the others.
-There working principle is that they apply robust peak filtering within defined frequency bands (low frequency band by default) to locate the gross position of the most prominent peaks peaks and then look for the peak in data using the normal filter methods (\link{FilterFunction}) to accuratly identify the actual peak position. \cr\cr
+There working principle is that they apply robust peak filtering within defined frequency bands (low frequency band by default) to locate the gross position of the most prominent peaks peaks and then look for the peak in data using the preset filter function (\link{FilterFunction}) to accurately identify the actual peak position. \cr\cr
 Currently, supported are:
 \itemize{
 \item a and B waves for Flash ERG
