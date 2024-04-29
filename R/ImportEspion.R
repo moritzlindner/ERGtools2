@@ -38,16 +38,16 @@ ImportEspion <- function(filename,
                          where = NULL) {
   #(NA.EXCLUDE REMOVED!!!! DOES THAT WORK??)
   message(paste("Importing", filename))
-
+  
   # Checks
-
+  
   if (!file.exists(filename)) {
     stop("File ", filename, " does not exist")
   }
   if (sep != "\t") {
     message("Import using fiels separators other than '\t' untested.")
   }
-
+  
   if (is.null(Protocol)) {
   } else{
     if (!inherits(Protocol, "ERGProtocol")) {
@@ -62,7 +62,7 @@ ImportEspion <- function(filename,
       }
     }
   }
-
+  
   contains_raw <- "Raw" %in% Import
   contains_averaged <- "Averaged" %in% Import
   if (!((contains_raw ||
@@ -70,11 +70,11 @@ ImportEspion <- function(filename,
         !(contains_raw && contains_averaged))) {
     stop("Exactly one of 'Raw' and 'Averaged' must be selected for import.")
   }
-
+  
   if (!(all(Import %in% list ("Raw", "Averaged", "Measurements")))) {
     stop("'Import' must be one or several of the following: 'Raw','Averaged','Measurements'")
   }
-
+  
   # load
   if (read.csv(filename,
                header = F,
@@ -84,7 +84,7 @@ ImportEspion <- function(filename,
   }
   # get Table of content
   toc <- get_toc(filename, sep = sep)
-
+  
   if (!all(c("Header Table",
              "Marker Table",
              "Stimulus Table",
@@ -93,8 +93,8 @@ ImportEspion <- function(filename,
       "'Header Table', 'Marker Table', 'Stimulus Table' and 'Data Table' must all be included in the data set (even if they should not be imported). At least one of these is missing."
     )
   }
-
-
+  
+  
   # get protocol info
   recording_info <- ImportEspionInfo(filename)
   if (!all(
@@ -111,7 +111,7 @@ ImportEspion <- function(filename,
       "Table of content incomplete. Have these data been exported as anonymous? This is currently unsupported"
     )
   }
-
+  
   # Get Protocol info
   if (!is.null(Protocol)) {
     tmp1 <- sub(" \\[.*", "", recording_info$Protocol)
@@ -132,17 +132,17 @@ ImportEspion <- function(filename,
       }
     }
   }
-
+  
   # Get stimulus information
   stim_info <- ImportEspionStimTab(filename, sep, Protocol)
-
+  
   # get Metadata
   Metadata <-
     ImportEspionMetadata(filename, sep = sep, Protocol = Protocol)
-
+  
   Metadata$Channel_idx<-Metadata$Channel
   Metadata$Channel<-Metadata$Channel_Name
-
+  
   # prepare for loading only requested relevant
   if(!is.null(where)){
     where.idx <- Where.generic(Metadata,
@@ -155,7 +155,7 @@ ImportEspion <- function(filename,
   }else{
     where.idx<-1:nrow(Metadata)
   }
-
+  
   # Get Data
   if (("Data Table" %in% rownames(toc))) {
     tmp <- toc # modify to only get header of data table
@@ -168,7 +168,7 @@ ImportEspion <- function(filename,
     #Data_Header<-Data_Header[where.idx,]
     STEPS = vector("list", nrow(Data_Header))
   }
-
+  
   if (("Data Table" %in% rownames(toc)) &&
       any(c("Raw", "Averaged") %in% Import)) {
     pb = txtProgressBar(min = 0,
@@ -189,12 +189,12 @@ ImportEspion <- function(filename,
             # get Averages / "Results"
             resulttrace <-
               get_trace(filename, toc, Data_Header, i, "ResultTrace")
-
+            
             STEPS[[i]] <-
               newEPhysData(Data = resulttrace,
                            TimeTrace = TimeTrace)
           }
-
+          
           if ("Trials" %in% colnames(Data_Header) &&
               ("Raw" %in% Import)) {
             trialtraces <- get_trace(filename, toc, Data_Header, i, "TrialTrace")
@@ -222,12 +222,12 @@ ImportEspion <- function(filename,
     close(pb)
   }
   STEPS<-STEPS[where.idx]
-
+  
   #subset Metadata and stim_info to required
   Metadata<-Metadata[where.idx,]
   rownames(Metadata)<-NULL
   stim_info<-stim_info[stim_info$Step %in% Metadata$Step,]
-
+  
   # Get Measurements
   if ("Measurements" %in% Import) {
     measurements <- get_measurements(filename, toc, sep)
@@ -243,29 +243,29 @@ ImportEspion <- function(filename,
     measurements$Channel_Name<-NULL
     measurements$Channel_idx<-NULL
     rm(md.tmp)
-
+    
     if (all(is.null(unique(measurements$Group)))) {
       measurements$Group <- NULL
     }
     if(length(unique(measurements$Group))==1){
       recording_info$Group <- unique(measurements$Group)
     }
-
+    
     colnames(measurements)[colnames(measurements) == "Marker"] <-
       "Name"
-
+    
     M <- newERGMeasurements(measurements, update.empty.relative = T)
-
+    
   } else{
     M <- newERGMeasurements(data.frame(Channel=character(),Name=character(),Recording=numeric(),Time=numeric(),Relative=character()))
   }
-
+  
   # Dump empty traces
-
+  
   EmptyTraces<-unlist((lapply(STEPS, function(x) {
     sum(drop_units(x@Data))
   })))==0
-
+  
   STEPS<-STEPS[!EmptyTraces]
   Metadata<-Metadata[!EmptyTraces,]
   rownames(Metadata)<-NULL
@@ -273,19 +273,19 @@ ImportEspion <- function(filename,
   rownames(stim_info)<-NULL
   Metadata$Channel_Name<-NULL
   Metadata$Channel_idx<-NULL
-
+  
   # Subject and Exam data
-
+  
   DOB <-
     as.Date(as.character(recording_info$DOB), format =    "%d/%m/%Y", origin = "1970-01-01")
-
+  
   ExamDate <-
     as.POSIXct(strptime(recording_info$Dateperformed, format =
                           "%d/%m/%Y %H:%M:%S"))
   ExamDate <-
     as.POSIXct.numeric(as.numeric(ExamDate), origin = "1970-01-01 00:00.00 UTC")
-
-
+  
+  
   # data strangely pooled, every second from other channel.
   # is this in file or import mistake?
   #   how to make fail proof?
@@ -296,8 +296,8 @@ ImportEspion <- function(filename,
   # 2: In ggEPhysData(Subset(STEPS[[5]], Trials = seq(1, 50, 2))) :
   #   No averaging function set.
   # > ggEPhysData(Subset(STEPS[[5]],Trials=seq(2,50,2)))
-
-
+  
+  
   # return the object
   newERGExam(
     Data = STEPS,
@@ -323,4 +323,3 @@ ImportEspion <- function(filename,
     )
   )
 }
-
