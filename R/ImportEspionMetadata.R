@@ -30,14 +30,14 @@ ImportEspionMetadata <- function(filename,
       }
     }
   }
-
+  
   if (!file.exists(filename)) {
     stop("File ", filename, " does not exist")
   }
   if (sep != "\t") {
     message("Import using fiels separators other than '\t' untested.")
   }
-
+  
   # load
   if (read.csv(filename,
                header = F,
@@ -47,11 +47,11 @@ ImportEspionMetadata <- function(filename,
   }
   # get Table of content
   toc <- get_toc(filename, sep = sep)
-
+  
   if (!c("Header Table") %in% (rownames(toc))) {
     stop("'Header Table' must be included in the data set.")
   }
-
+  
   # get protocol info
   recording_info <- ImportEspionInfo(filename)
   if (!("Protocol" %in%  names(recording_info))) {
@@ -59,7 +59,7 @@ ImportEspionMetadata <- function(filename,
       "Table of content incomplete. Have these data been exported as anonymous? This is currently unsupported"
     )
   }
-
+  
   # Get Protocol info
   if (!is.null(Protocol)) {
     tmp1 <- sub(" \\[.*", "", recording_info$Protocol)
@@ -80,7 +80,7 @@ ImportEspionMetadata <- function(filename,
       }
     }
   }
-
+  
   #import Metadata
   if ("Data Table" %in% rownames(toc)) {
     tmp <- toc # modify to only get header of data table
@@ -89,10 +89,10 @@ ImportEspionMetadata <- function(filename,
     Data_Header <-
       na.exclude(get_content(filename, tmp, "Data Table", sep = sep))
   }
-
+  
   Metadata <- Data_Header[, c("Step", "Chan", "Result")]
   colnames(Metadata)[colnames(Metadata) == "Chan"] <- "Channel"
-
+  
   # if Protocol avaliable, get info from there, if not, try Measurements/Marker table
   if (!is.null(Protocol)) {
     Metadata$Eye <- "Unspecified"
@@ -112,7 +112,7 @@ ImportEspionMetadata <- function(filename,
       Metadata$Inverted[i] <-
         Protocol@Step[[Metadata$Step[i]]]@Channels[[Metadata$Channel[i]]]@Inverted
     }
-
+    
     for (c in unique(Metadata$Channel)) {
       new.chname <-
         as.std.channelname(unique(Metadata$Channel_Name[Metadata$Channel == c]), clear.unmatched =
@@ -145,7 +145,7 @@ ImportEspionMetadata <- function(filename,
       }
       Metadata$Channel_Name[Metadata$Channel == c] <- new.chname
     }
-
+    
   } else {
     # if marker table contained in file
     if (!c("Marker Table" %in% (rownames(toc)))) {
@@ -170,6 +170,6 @@ ImportEspionMetadata <- function(filename,
     Metadata$id<-NULL
     Metadata$Eye <- as.std.eyename(Metadata$Eye, warn.only=T)
   }
-
+  
   return(Metadata)
 }
