@@ -2,19 +2,28 @@
 #'
 #' @param eye_str Character vector of eye identifier strings.
 #' @param exact If \code{TRUE}: Require exact match. If \code{FALSE}: Whole word match is sufficient.
+#' @param warn.only Invalid eye identifier strings will only cause a warning, not an error.
 #' @return A character vector with standardized eye identifiers ('RE' for right eye, 'LE' for left eye).
 #' @examples
 #' as.std.eyename(c("RE", "OD", "OS", "Right"))
 #' @export
-as.std.eyename <- function(eye_str, exact = T) {
+as.std.eyename <- function(eye_str, exact = T, warn.only=F) {
   stopifnot(is.logical(exact))
-  stopifnot(is.character(eye_str))
+  if(!warn.only){
+      stopifnot(is.character(eye_str))
+    }
   if (exact){
     if (!any(is.character(eye_str)) ||
         !all(eye_str %in% c(od_str(), os_str()))) {
       eye_str<-eye_str[!(eye_str %in% c(od_str(), os_str()))]
-      stop(paste0(eye_str, sep = ", "),
+      if(warn.only){
+              warning(paste0(eye_str, sep = ", "),
            " is not a / are no valid eye identifier(s).")
+        } else{
+              stop(paste0(eye_str, sep = ", "),
+           " is not a / are no valid eye identifier(s).")
+        }
+
     }
     eye_str <- unlist(lapply(eye_str, function(x) {
       if (x %in% od_str()) {
