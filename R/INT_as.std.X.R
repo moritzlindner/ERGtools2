@@ -10,20 +10,20 @@
 as.std.eyename <- function(eye_str, exact = T, warn.only=F) {
   stopifnot(is.logical(exact))
   if(!warn.only){
-      stopifnot(is.character(eye_str))
-    }
+    stopifnot(is.character(eye_str))
+  }
   if (exact){
     if (!any(is.character(eye_str)) ||
         !all(eye_str %in% c(od_str(), os_str()))) {
-      eye_str<-eye_str[!(eye_str %in% c(od_str(), os_str()))]
+      eye_str_nf<-eye_str[!(eye_str %in% c(od_str(), os_str()))]
       if(warn.only){
-              warning(paste0(eye_str, sep = ", "),
-           " is not a / are no valid eye identifier(s).")
-        } else{
-              stop(paste0(eye_str, sep = ", "),
-           " is not a / are no valid eye identifier(s).")
-        }
-
+        warning(paste0(eye_str_nf, sep = ", "),
+                " is not a / are no valid eye identifier(s).")
+      } else{
+        stop(paste0(eye_str_nf, sep = ", "),
+             " is not a / are no valid eye identifier(s).")
+      }
+      
     }
     eye_str <- unlist(lapply(eye_str, function(x) {
       if (x %in% od_str()) {
@@ -32,6 +32,9 @@ as.std.eyename <- function(eye_str, exact = T, warn.only=F) {
       if (x %in% os_str()) {
         return("LE")
       }
+      if (!(x %in% od_str() || x %in% os_str())) {
+        return(paste0("Unknown_",as.character(x)))
+      }
     }))
   } else {
     pattern <-
@@ -39,7 +42,7 @@ as.std.eyename <- function(eye_str, exact = T, warn.only=F) {
              paste(od_str(), collapse = "|"),
              ")([^A-Za-z]|$)")
     eye_str[grepl(pattern,eye_str)]<-"RE"
-
+    
     pattern <-
       paste0("(^|[^A-Za-z])(",
              paste(os_str(), collapse = "|"),
@@ -60,32 +63,32 @@ as.std.eyename <- function(eye_str, exact = T, warn.only=F) {
 #' @keywords internal
 as.std.channelname<-function(channel_str, clear.unmatched=F){
   found<-is.std.channelname(channel_str)
-
+  
   if(clear.unmatched){
     channel_str[!found]<-as.character(NA)
   }
-
+  
   #ERG
   pattern <-
     paste0("(^|[^A-Za-z])(",
            paste(erg_str(), collapse = "|"),
            ")([^A-Za-z]|$)")
   channel_str[found][grepl(pattern,channel_str[found])]<-"ERG"
-
+  
   #OP
   pattern <-
     paste0("(^|[^A-Za-z])(",
            paste(op_str(), collapse = "|"),
            ")([^A-Za-z]|$)")
   channel_str[found][grepl(pattern,channel_str[found])]<-"OP"
-
+  
   #VEP
   pattern <-
     paste0("(^|[^A-Za-z])(",
            paste(vep_str(), collapse = "|"),
            ")([^A-Za-z]|$)")
   channel_str[found][grepl(pattern,channel_str[found])]<-"VEP"
-
+  
   return(channel_str)
 }
 
@@ -99,14 +102,14 @@ is.std.channelname <- function(channel_str) {
     stop(paste0(channel_str, sep = ", "),
          " is /are no character vectors.")
   }
-
+  
   all_keywords <- c(erg_str(), op_str(), vep_str())
-
+  
   pattern <-
     paste0("(^|[^A-Za-z])(",
            paste(all_keywords, collapse = "|"),
            ")([^A-Za-z]|$)")
-
+  
   # Check if any word in channel_str matches the pattern
   return(grepl(pattern, channel_str))
 }
