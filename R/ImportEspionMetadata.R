@@ -168,7 +168,7 @@ ImportEspionMetadata <- function(filename,
       )
     Metadata <- Metadata[order(Metadata$id),]
     Metadata$id<-NULL
-    Metadata$Eye <- as.std.eyename(Metadata$Eye)
+    Metadata$Eye <- as.std.eyename(Metadata$Eye, warn.only=T)
   }
 
   return(Metadata)
