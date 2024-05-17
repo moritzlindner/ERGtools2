@@ -8,6 +8,7 @@
 #' @param value For Measurements<- only. Plain numeric value or value of class units (\link[units:units]{units::units} with a time unit set. If \code{NULL} it will remove the indicated row.
 #' @param data For newERGMeasurements only. A data Measurementsframe containing measurements data with columns:
 #'   \code{Channel}, \code{Name}, \code{Recording}, \code{Time}, and \code{Relative}.
+#' @param measure.absolute Logical, default: FALSE. If absolute amplitudes should be returned instead of amplitudes relative to the reference marker (where given).
 #' @param create.marker.if.missing Logical. If TRUE and the marker does not exist, it will be created.
 #' @param update.empty.relative Logical. If an empty relative value should be overwritten by an otherways matching marker.
 #' @param quiet For Measurements only. Logical. If TRUE, suppresses warnings.
@@ -38,7 +39,8 @@ setGeneric(
   def = function(X,
                  where = NULL,
                  Marker =  NULL,
-                 quiet = F)
+                 quiet = F,
+                 ...)
   {
     standardGeneric("Measurements")
   }
@@ -114,7 +116,8 @@ setMethod("Measurements",
           function(X,
                    where = NULL,
                    Marker =  NULL,
-                   quiet = F) {
+                   quiet = F,
+                   measure.absolute = F) {
 
             if(!is.null(where)){
               where = Where(X, where)
@@ -162,7 +165,7 @@ setMethod("Measurements",
                 if(!is.na(measurements$Time[i])){
                   Voltage <-
                     GetData(sel, Time = TimeTrace(sel)[which.min(abs(TimeTrace(sel)- measurements$Time[i]))], Raw = F)
-                  if(!is.na(measurements$Relative[i])){
+                  if(!is.na(measurements$Relative[i]) && !measure.absolute){
                     rel.marker.time<-measurements$Time[measurements$Recording == measurements$Recording[i] &
                                                          measurements$Name == measurements$Relative[i]]
                     Voltage <- Voltage - GetData(sel,

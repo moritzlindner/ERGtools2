@@ -12,11 +12,11 @@
 \alias{ClearMeasurements}
 \title{Access and Modify the Marker Measurements Stored in an ERGExam or ERGMeasurements Object}
 \usage{
-Measurements(X, where = NULL, Marker = NULL, quiet = F)
+Measurements(X, where = NULL, Marker = NULL, quiet = F, ...)
 
 \S4method{Measurements}{ERGMeasurements}(X, where = NULL, Marker = NULL, quiet = F)
 
-\S4method{Measurements}{ERGExam}(X, where = NULL, Marker = NULL, quiet = F)
+\S4method{Measurements}{ERGExam}(X, where = NULL, Marker = NULL, quiet = F, measure.absolute = F)
 
 Measurements(
   X,
@@ -57,6 +57,8 @@ ClearMeasurements(X)
 \item{Marker}{Name of the marker.}
 
 \item{quiet}{For Measurements only. Logical. If TRUE, suppresses warnings.}
+
+\item{measure.absolute}{Logical, default: FALSE. If absolute amplitudes should be returned instead of amplitudes relative to the reference marker (where given).}
 
 \item{create.marker.if.missing}{Logical. If TRUE and the marker does not exist, it will be created.}
 

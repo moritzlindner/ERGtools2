@@ -7,7 +7,7 @@
 \alias{os_str}
 \title{Convert eye identifier strings to standard notation}
 \usage{
-as.std.eyename(eye_str, exact = T)
+as.std.eyename(eye_str, exact = T, warn.only = F)
 
 eye.haystack()
 
@@ -19,6 +19,8 @@ os_str()
 \item{eye_str}{Character vector of eye identifier strings.}
 
 \item{exact}{If \code{TRUE}: Require exact match. If \code{FALSE}: Whole word match is sufficient.}
+
+\item{warn.only}{Invalid eye identifier strings will only cause a warning, not an error.}
 }
 \value{
 A character vector with standardized eye identifiers ('RE' for right eye, 'LE' for left eye).

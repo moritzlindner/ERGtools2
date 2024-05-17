@@ -24,6 +24,7 @@
 #' @importFrom EPhysData as.data.frame lapply
 #' @importFrom stringr str_detect
 #' @importFrom units set_units
+#' @import dplyr
 #' @seealso \linkS4class{ERGExam} \link[ggplot2:ggplot]{ggplot2:ggplot}
 #'
 #' @exportMethod ggERGExam
@@ -67,7 +68,7 @@ setMethod(
 
     # Measurements
     if(show.markers){
-      mes<-Measurements(X)
+      mes<-Measurements(X, measure.absolute = T)
       colnames(mes)[colnames(mes)=="Voltage"]<-"Value"
       mes<-merge(mes,Stimulus(X))
     }
@@ -120,13 +121,13 @@ setMethod(
 
           if(show.markers){
             if(nrow(curr.mes)>0){
-              for (i in 1:nrow(curr.mes)) {
-                if (!is.na(curr.mes$Relative[i])) {
-                  curr.mes$Value[i] <-
-                    curr.mes$Value[i] + curr.mes$Value[curr.mes$Name == curr.mes$Relative[i] &
-                                                         curr.mes$Recording == curr.mes$Recording[i]]
-                }
-              }
+              # for (i in 1:nrow(curr.mes)) {
+              #   if (!is.na(curr.mes$Relative[i])) {
+              #     curr.mes$Value[i] <-
+              #       curr.mes$Value[i] + curr.mes$Value[curr.mes$Name == curr.mes$Relative[i] &
+              #                                            curr.mes$Recording == curr.mes$Recording[i]]
+              #   }
+              # }
 
               # Measurements
               if (show.markers) {
