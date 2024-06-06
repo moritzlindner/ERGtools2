@@ -4,7 +4,7 @@
 \alias{ggERGTrace}
 \title{Generate a ggplot2 plot for a single item/trace from an ERGExam objects}
 \usage{
-ggERGTrace(X, where, Interactive = F)
+ggERGTrace(X, where, Interactive = F, SetSIPrefix = "auto")
 }
 \arguments{
 \item{X}{An \linkS4class{ERGExam}}
@@ -12,6 +12,8 @@ ggERGTrace(X, where, Interactive = F)
 \item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
 
 \item{Interactive}{Whether to return an interactive \link[plotly:ggplotly]{plotly::ggplotly}  graph}
+
+\item{SetSIPrefix}{Change the SI prefix. Set to \code{keep}, for not to change anything, to \code{auto} (default) for using the \link[EPhysData:BestSIPrefix-methods]{EPhysData:BestSIPrefix-methods} to minimize the number of relevant digits or to any SI prefix to use that. Calls the \link[EPhysData:SetSIPrefix-methods]{EPhysData:SetSIPrefix-methods}.}
 }
 \value{
 A \link[ggplot2:ggplot]{ggplot2::ggplot} plot visualizing the data from a single trace from an \linkS4class{ERGExam} object

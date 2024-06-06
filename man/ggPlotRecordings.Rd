@@ -4,7 +4,13 @@
 \alias{ggPlotRecordings}
 \title{Uses ggplot2 to plot ERG traces from multiple ERGExam objects}
 \usage{
-ggPlotRecordings(List, where = list(), wrap_by = "Channel", scales = "free_y")
+ggPlotRecordings(
+  List,
+  where = list(),
+  wrap_by = "Channel",
+  scales = "free_y",
+  downsample = 250
+)
 }
 \arguments{
 \item{List}{A list of ERG exams.}
@@ -14,6 +20,8 @@ ggPlotRecordings(List, where = list(), wrap_by = "Channel", scales = "free_y")
 \item{wrap_by}{Wrapping parameter for facetting ("Channel" or NULL).}
 
 \item{scales}{Passed on to \link[ggplot2:facet_grid]{ggplot2:facet_grid}.}
+
+\item{downsample}{Integer giving the desired number of intervals for downsampling. Non-integer values are rounded down. Defaults to 250.}
 }
 \value{
 A ggplot2 plot object.

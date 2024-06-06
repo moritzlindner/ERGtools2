@@ -9,7 +9,9 @@ ggIntensitySequence(
   where = list(Background = "DA", Type = "Flash"),
   Markers = c("a", "B", "N1", "P1"),
   Parameter = "Amplitude",
-  wrap_by = "Channel"
+  wrap_by = "Channel",
+  point.size = 1,
+  theme.base.size = 8
 )
 }
 \arguments{

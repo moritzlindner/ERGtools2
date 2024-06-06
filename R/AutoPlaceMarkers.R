@@ -1,5 +1,3 @@
-
-
 #' AutoPlaceMarkers for ERG/VEP Recordings
 #'
 #' These methods automatically place markers for ERG/VEP recordings in an \linkS4class{ERGExam} object.
@@ -100,7 +98,17 @@ setMethod(
         if (update) {
           Markers$Name <- rownames(Markers)
           if (nrow(Markers[is.na(Markers$Relative),]) > 0) {
-            for (m in 1:nrow(Markers[is.na(Markers$Relative), ])) {
+            for (m in (1:nrow(Markers))[is.na(Markers$Relative)]) {
+              Measurements(
+                X,
+                Marker = Markers$Name[m],
+                where = i,
+                create.marker.if.missing = T,
+                Relative = Markers$Relative[m],
+                ChannelBinding = Md$Channel[i]
+              ) <- Markers$Time[m]
+            }
+            for (m in (1:nrow(Markers))[!is.na(Markers$Relative)]) {
               Measurements(
                 X,
                 Marker = Markers$Name[m],
@@ -172,6 +180,8 @@ setMethod(
 
     dat <- as.data.frame(X, Raw = F)
     sample.rate <- mean(diff(TimeTrace(X)))
+    sample.rate <- set_units(sample.rate,"s")
+    true.peak.tolerance <- set_units(true.peak.tolerance,"s")
 
     cutoff <-
       freq.to.w(x = robust.peak.filter.bands, time.trace = TimeTrace(X))
@@ -180,13 +190,9 @@ setMethod(
     a_estimate <- which.min(dat$Filtered[1:B_estimate])
 
     search_left <-
-      round(drop_units(
-        set_units(true.peak.tolerance[1], deparse_unit(sample.rate)) / (sample.rate)
-      ))
+      round(drop_units(true.peak.tolerance[1] / (sample.rate)))
     search_right <-
-      round(drop_units(
-        set_units(true.peak.tolerance[2], deparse_unit(sample.rate)) / (sample.rate)
-      ))
+      round(drop_units(true.peak.tolerance[2] / (sample.rate)))
 
     B_pos <- tryCatch({
       which.max(dat$Value[(B_estimate - search_left):(B_estimate + search_right)]) + B_estimate - search_left
@@ -195,7 +201,7 @@ setMethod(
     })
 
     a_pos <- tryCatch({
-      which.min(dat$Value[(a_estimate - search_left):(a_estimate + search_right)]) + a_estimate - search_left
+      which.min(dat$Value[max((a_estimate - search_left),0):min((a_estimate + search_right),length(dat$Value))]) + max((a_estimate - search_left),0)
     }, error = function(e) {
       NULL
     })

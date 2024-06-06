@@ -6,6 +6,8 @@
 #' @param X An ERGExam object.
 #' @param return.as Whether to return as a \link[gridExtra:grid.arrange]{gridExtra::grid.arrange} grid (the default: 'return.as = "grid"') or as a list of \link[ggplot2:ggplot]{ggplot2:ggplot}s ('return.as = "list"').
 #' @param show.markers Whether to return Marker Postitions as stored in the Measurements slot.
+#' @param SetSIPrefix Change the SI prefix. Set to \code{keep}, for not to change anything, to \code{auto} (default) for using the \link[EPhysData:BestSIPrefix-methods]{EPhysData:BestSIPrefix-methods} to minimize the number of relevant digits or to any SI prefix to use that. Calls the \link[EPhysData:SetSIPrefix-methods]{EPhysData:SetSIPrefix-methods}.
+#' @param downsample 	Integer giving the desired number of intervals for downsampling. Non-integer values are rounded down. Defaults to 250.
 #'
 #' @return A \link[ggplot2:ggplot]{ggplot2:ggplot} plot of the ERGExam data.
 #'
@@ -16,6 +18,8 @@
 #' ERG<-SetStandardFunctions(ERG)
 #' exam_plot <- ggERGExam(ERG)
 #' print(exam_plot)
+#' ggERGExam(ERG,SetSIPrefix="auto")
+#' ggERGExam(ERG,SetSIPrefix="k")
 #'
 #' @importFrom ggplot2 ggplot aes geom_line facet_grid vars ggtitle facet_wrap element_line
 #' @importFrom ggpubr theme_pubr
@@ -30,7 +34,7 @@
 #' @exportMethod ggERGExam
 setGeneric(
   name = "ggERGExam",
-  def = function(X, return.as = "grid", show.markers = T) {
+  def = function(X, return.as = "grid", show.markers = T, SetSIPrefix="auto", downsample = 250) {
     standardGeneric("ggERGExam")
   }
 )
@@ -38,10 +42,9 @@ setGeneric(
 setMethod(
   "ggERGExam",
   signature = "ERGExam",
-  definition = function(X, return.as = "grid", show.markers = T) {
+  definition = function(X, return.as = "grid", show.markers = T, SetSIPrefix="auto", downsample = 250) {
 
     # internal fx
-
     count_down_results <- function(df) {
       # Get all column names except "Result" and "Filename"
       column_names <- setdiff(names(df), c("Result", "Filename","Recording"))
@@ -59,6 +62,7 @@ setMethod(
     stopifnot(CheckAvgFxSet(X))
     suppressMessages(X <- Downsample(X, n = 250))
     X <- Subset(X, Raw = F)
+    X<-SetSIPrefix(X,SetSIPrefix)
 
     Metadata(X)<-count_down_results(Metadata(X))
 
@@ -121,14 +125,6 @@ setMethod(
 
           if(show.markers){
             if(nrow(curr.mes)>0){
-              # for (i in 1:nrow(curr.mes)) {
-              #   if (!is.na(curr.mes$Relative[i])) {
-              #     curr.mes$Value[i] <-
-              #       curr.mes$Value[i] + curr.mes$Value[curr.mes$Name == curr.mes$Relative[i] &
-              #                                            curr.mes$Recording == curr.mes$Recording[i]]
-              #   }
-              # }
-
               # Measurements
               if (show.markers) {
                 plotrows[[ID]] <- plotrows[[ID]] +

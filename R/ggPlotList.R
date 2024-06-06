@@ -34,13 +34,15 @@ ggIntensitySequence <-
                         Type = "Flash"),
            Markers = c("a", "B", "N1", "P1"),
            Parameter =  "Amplitude",
-           wrap_by = "Channel") {
+           wrap_by = "Channel",
+           point.size = 1,
+           theme.base.size = 8) {
 
     # dplyr workaround
     Group<-Name<-Intensity<-Voltage<-sd<-Time<-Amplitude<-sem<-ImplicitTime<-NULL
 
     # Extract Measurements and related info
-    results <- Collect_Measurements(
+    results <- CollectMeasurements(
       List = List,
       where = where,
       Markers = Markers
@@ -86,7 +88,7 @@ ggIntensitySequence <-
                         shape = Name
                       )) +
           geom_line() +
-          geom_point(size = 2) +
+          geom_point(size = point.size) +
           geom_errorbar(aes(ymin = Amplitude - sem, ymax = Amplitude + sem), width = 0.2)
 
       }
@@ -99,7 +101,7 @@ ggIntensitySequence <-
                         shape = Name
                       )) +
           geom_line() +
-          geom_point(size = 2) +
+          geom_point(size = point.size) +
           geom_errorbar(aes(ymin = ImplicitTime - sem, ymax = ImplicitTime + sem), width = 0.2)
 
       }
@@ -107,7 +109,7 @@ ggIntensitySequence <-
       plt<-plt+
         facet_wrap( ~ Channel,
                     scales = "free") +
-        theme_pubr(base_size = 8) +
+        theme_pubr(base_size = theme.base.size) +
         scale_x_log10() +
         labs(x = "Intensity [cd*s/m^2]", shape = "Marker")
     }
@@ -157,7 +159,7 @@ ggStepSequence <-
 
 
     # Extract Measurements and related info
-    results <- Collect_Measurements(
+    results <- CollectMeasurements(
       List = List,
       where = where,
       Markers = Markers
@@ -206,6 +208,7 @@ PlotStepSequence<-ggStepSequence
 #'
 #' @param List A list of ERG exams.
 #' @inheritParams Where
+#' @inheritParams ggERGExam
 #' @param wrap_by Wrapping parameter for facetting ("Channel" or NULL).
 #' @param scales Passed on to \link[ggplot2:facet_grid]{ggplot2:facet_grid}.
 #'
@@ -227,7 +230,8 @@ PlotStepSequence<-ggStepSequence
 ggPlotRecordings <- function(List,
                              where = list(),
                              wrap_by = "Channel",
-                             scales = "free_y"){
+                             scales = "free_y",
+                             downsample = 250){
 
   # ggplot workaround
   Time<-Value<-Eye<-Result<-NULL
@@ -238,7 +242,8 @@ ggPlotRecordings <- function(List,
     tryCatch({
 
       x<-Subset(x,where=where, Raw = T)
-      x<-Downsample(x, n = 250)
+      x<-Downsample(x, n = downsample)
+      x<-SetSIPrefix(x,"u")
 
       # SD
       sdev <- x
@@ -319,86 +324,3 @@ ggPlotRecordings <- function(List,
 #' @export
 #' @noRd
 PlotRecordings<-ggPlotRecordings
-
-
-#' Get measurements for plotting
-#'
-#' This function extracts measurements and related information, e.g. for plotting or statistics.
-#'
-#' @param List A list of ERG exams.
-#' @inheritParams Where
-#' @param Markers Vector of markers to include in the plot.
-#'
-#' @return A data frame with measurements for plotting.#'
-#' @import dplyr
-#' @importFrom EPhysData AverageFunction `AverageFunction<-` Rejected `Rejected<-` FilterFunction `FilterFunction<-`
-#' @examples
-#' data(ERG)
-#' ERG<-SetStandardFunctions(ERG)
-#' ERG <- AutoPlaceMarkers(ERG)
-#' Collect_Measurements(list(ERG,ERG), list(Background = "DA", Type = "Flash"))
-#' @export
-Collect_Measurements <- function(List,
-                                      where = list(),
-                                      Markers = c("a", "B", "N1", "P1")) {
-  # could add compatibility w single Exam
-  if (!all(unlist((lapply(List, function(x) {
-    inherits(x, "ERGExam")
-  }))))) {
-    stop("'List' is not a list of ERGExams.")
-  }
-  # subset object
-  List <- lapply(List, function(x) {
-    if(!CheckAvgFxSet(x)){
-      stop("Average functions must be set for all objects in the list, but is missing for: ", Subject(x)," recorded on ", as.character(ExamDate(x)), ". ")
-    }
-    tryCatch({
-      x <- Subset(x, where = where, Raw = T)
-      return(x)
-    }, error = function(e){
-      stop("Fetching Metadata and Stimulus values failed for ", Subject(x)," recorded on ", as.character(ExamDate(x)), " with error message: ", e)
-    })
-  })
-
-  results <- lapply(List, function(x) {
-    tryCatch({
-      df <- Measurements(x)
-      df<-df[,!(colnames(df) %in% ExtraMetaColumns(x))]
-      if(nrow(df)==0){
-        message("No measurements found for, " ,Subject(x),". Consider running 'AutoPlaceMarkers()' first.")
-      }
-
-      if(nrow(df)>0){
-        if (length(x@SubjectInfo$Group)==0) {
-          x@SubjectInfo$Group<-"DEFAULT"
-        }
-        df$Subject <- Subject(x)
-        df$Group <- GroupName(x)
-        df$ExamDate <- min(x@ExamInfo$ExamDate)
-      }else{
-        df$Subject <- character()
-        df$Group <- character()
-        df$ExamDate <- as.Date(x = integer(0), origin = "1970-01-01")
-      }
-
-      df <-
-        merge(df,
-              StimulusTable(x),
-              by.x = c("Step","Description"),
-              by.y = c("Step","Description"))
-      return(df)
-    }, error = function(e){
-      stop("Fetching Measurements failed for ", Subject(x)," recorded on ", as.character(ExamDate(x)), " with error message: ", e)
-    })
-  })
-  results <- do.call(rbind.data.frame, results)
-  # type conversion and column names
-  colnames(results)[colnames(results) == "cd.s.m"] <- "Intensity"
-  results$Step.y <- NULL
-  results$Step <- iconv(results$Step, "ASCII//TRANSLIT", sub = '')
-
-  # subsetting list
-  results <-
-    results[results$Name %in% Markers, ]
-  return(results)
-}

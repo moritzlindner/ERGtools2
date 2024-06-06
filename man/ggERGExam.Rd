@@ -4,7 +4,13 @@
 \alias{ggERGExam}
 \title{Generates a ggplot2 plot from an ERGExam object.}
 \usage{
-ggERGExam(X, return.as = "grid", show.markers = T)
+ggERGExam(
+  X,
+  return.as = "grid",
+  show.markers = T,
+  SetSIPrefix = "auto",
+  downsample = 250
+)
 }
 \arguments{
 \item{X}{An ERGExam object.}
@@ -12,6 +18,10 @@ ggERGExam(X, return.as = "grid", show.markers = T)
 \item{return.as}{Whether to return as a \link[gridExtra:grid.arrange]{gridExtra::grid.arrange} grid (the default: 'return.as = "grid"') or as a list of \link[ggplot2:ggplot]{ggplot2:ggplot}s ('return.as = "list"').}
 
 \item{show.markers}{Whether to return Marker Postitions as stored in the Measurements slot.}
+
+\item{SetSIPrefix}{Change the SI prefix. Set to \code{keep}, for not to change anything, to \code{auto} (default) for using the \link[EPhysData:BestSIPrefix-methods]{EPhysData:BestSIPrefix-methods} to minimize the number of relevant digits or to any SI prefix to use that. Calls the \link[EPhysData:SetSIPrefix-methods]{EPhysData:SetSIPrefix-methods}.}
+
+\item{downsample}{Integer giving the desired number of intervals for downsampling. Non-integer values are rounded down. Defaults to 250.}
 }
 \value{
 A \link[ggplot2:ggplot]{ggplot2:ggplot} plot of the ERGExam data.
@@ -26,6 +36,8 @@ data(ERG)
 ERG<-SetStandardFunctions(ERG)
 exam_plot <- ggERGExam(ERG)
 print(exam_plot)
+ggERGExam(ERG,SetSIPrefix="auto")
+ggERGExam(ERG,SetSIPrefix="k")
 
 }
 \seealso{

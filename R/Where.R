@@ -74,7 +74,7 @@ Where.generic <- function(MD,
     } else {
       if (is.numeric(where) ||
           is.integer(where)) {
-        # allow pass thorugh of Recording indices
+        # allow pass through of Recording indices
         if (all(where %in% 1:LENGTH.X)) {
           return(where)
         } else {
@@ -106,18 +106,28 @@ Where.generic <- function(MD,
     stim.steps <- !logical(nrow(STIMTAB))
     for (n in names(where)[stim.sel]) {
       if (class(where[[n]]) != class(stim[, n])) {
-        # check if has correct class
-        stop(
-          paste0(
-            "Entry for '",
-            n,
-            "' in 'where' is of type '",
-            class(where[[n]]),
-            "' while content of the corresponding coulumn in the stimulus table is of type '",
-            class(stim[, n]),
-            "'."
+        if (all( c("numeric","integer") %in% c(class(where[[n]]), class(stim[, n])))){
+          if (inherits(stim[, n],"numeric")) {
+            where[[n]]<-as.numeric(where[[n]])
+          }
+          if (inherits(stim[, n],"integer")) {
+            where[[n]]<-as.integer(where[[n]])
+          }
+        } else {
+          stop (
+            paste0(
+              "Entry for '",
+              n,
+              "' in 'where' is of type '",
+              class(where[[n]]),
+              "' while content of the corresponding coulumn in the stimulus table is of type '",
+              class(stim[, n]),
+              "'."
+            )
           )
-        )
+        }
+        # check if has correct class
+
       }
       stim.steps <- stim.steps & stim[, n] %in% where[[n]]
     }
@@ -137,18 +147,27 @@ Where.generic <- function(MD,
     md.logidx <- !logical(nrow(MD))
     for (n in names(where)[md.sel]) {
       if (class(where[[n]]) != class(md[, n])) {
-        # check if has correct class
-        stop(
-          paste0(
-            "Entry for '",
-            n,
-            "' in 'where' is of type '",
-            class(where[[n]]),
-            "' while content of the corresponding coulumn in the meatadta is of type '",
-            class(md[, n]),
-            "'."
+        if (all(c("numeric", "integer") %in% c(class(where[[n]]), class(md[, n])))) {
+          if (inherits(md[, n], "numeric")) {
+            where[[n]] <- as.numeric(where[[n]])
+          }
+          if (inherits(md, "integer")) {
+            where[[n]] <- as.integer(where[[n]])
+          }
+        } else {
+          # check if has correct class
+          stop(
+            paste0(
+              "Entry for '",
+              n,
+              "' in 'where' is of type '",
+              class(where[[n]]),
+              "' while content of the corresponding coulumn in the meatadta is of type '",
+              class(md[, n]),
+              "'."
+            )
           )
-        )
+        }
       }
       md.logidx <- md.logidx & md[, n] %in% where[[n]]
     }

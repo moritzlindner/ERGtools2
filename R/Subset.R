@@ -34,6 +34,9 @@ setMethod("Subset",
             where = Where(X, where)
 
             if (is.numeric(where)) {
+              if(length(where)==0){
+               stop("No recordings in the object are found for parameters provided to 'where'")
+              }
               if (!all(where %in% 1:nrow(Metadata(X)))) {
                 stop("Not all values in 'where' ar valid indices for data in 'X'.")
               }

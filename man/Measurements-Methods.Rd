@@ -8,6 +8,8 @@
 \alias{Measurements<-}
 \alias{Measurements<-,ERGMeasurements-method}
 \alias{Measurements<-,ERGExam-method}
+\alias{DropMeasurement}
+\alias{DropMeasurement,ERGExam-method}
 \alias{newERGMeasurements}
 \alias{ClearMeasurements}
 \title{Access and Modify the Marker Measurements Stored in an ERGExam or ERGMeasurements Object}
@@ -16,7 +18,14 @@ Measurements(X, where = NULL, Marker = NULL, quiet = F, ...)
 
 \S4method{Measurements}{ERGMeasurements}(X, where = NULL, Marker = NULL, quiet = F)
 
-\S4method{Measurements}{ERGExam}(X, where = NULL, Marker = NULL, quiet = F, measure.absolute = F)
+\S4method{Measurements}{ERGExam}(
+  X,
+  where = NULL,
+  Marker = NULL,
+  quiet = F,
+  measure.absolute = F,
+  TimesOnly = F
+)
 
 Measurements(
   X,
@@ -45,6 +54,10 @@ Measurements(
   ChannelBinding = NULL
 ) <- value
 
+DropMeasurement(X, Marker, where, ChannelBinding = NULL)
+
+\S4method{DropMeasurement}{ERGExam}(X, Marker, where = NULL, ChannelBinding = NULL)
+
 newERGMeasurements(data, update.empty.relative = F)
 
 ClearMeasurements(X)
@@ -56,11 +69,13 @@ ClearMeasurements(X)
 
 \item{Marker}{Name of the marker.}
 
-\item{quiet}{For Measurements only. Logical. If TRUE, suppresses warnings.}
+\item{quiet}{For Measurements only. Logical. If TRUE, suppresses warnings and progress bars.}
 
 \item{measure.absolute}{Logical, default: FALSE. If absolute amplitudes should be returned instead of amplitudes relative to the reference marker (where given).}
 
-\item{create.marker.if.missing}{Logical. If TRUE and the marker does not exist, it will be created.}
+\item{TimesOnly}{For Measurements only. Logical. If TRUE, only fetches times, not amplitudes}
+
+\item{create.marker.if.missing}{Logical. If TRUE and the marker does not exist, it will be created. Dies nothing if value is set to \code{NULL}}
 
 \item{Relative}{For AddMarker and Measurements<- only. Index of the marker the new marker is relative to.}
 
@@ -101,6 +116,10 @@ These methods enable modification of the marker measurements (hereafter short: m
 
 \item \code{Measurements(ERGExam) <- value}: Update, add, or remove a measurement from the Measurements slot of an  \linkS4class{ERGExam} object
 
+\item \code{DropMeasurement()}: Remove a measurement from the Measurements slot of an \linkS4class{ERGExam} object
+
+\item \code{DropMeasurement(ERGExam)}: Remove a measurement from the Measurements slot of an \linkS4class{ERGExam} object
+
 \item \code{newERGMeasurements()}: #' Create an ERGMeasurements object from data
 
 \item \code{ClearMeasurements()}: Clears the Measurements slots in an  link[=ERGExam]{ERGExam} object (both, markers and measurements.
@@ -118,6 +137,8 @@ Measurements(X = Measurements.data, where = 1, Marker = "a", quiet = TRUE)
 data(ERG)
 ERG<-SetStandardFunctions(ERG)
 Measurements(ERG)
+Measurements(ERG, measure.absolute = T)
+Measurements(ERG, TimesOnly = T)
 
 # Set Measurements for specific recording and marker in ERGMeasurements object
 Markers(Measurements.data)

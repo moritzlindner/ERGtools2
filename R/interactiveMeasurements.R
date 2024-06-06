@@ -51,8 +51,8 @@ setMethod("interactiveMeasurements",
                 trace <- as.data.frame(erg.obj)
                 trace$Value<-set_units(trace$Value, "uV")
 
-                markers <- Measurements(erg.obj)
-                markers <- ConvertMeasurementsToAbsolute(markers)
+                markers <- Measurements(erg.obj, measure.absolute = T)
+                #markers <- ConvertMeasurementsToAbsolute(markers)
                 colnames(markers)[colnames(markers)=="Voltage"]<-"Value"
                 #markers$ChannelBinding<-NULL
                 #markers <- merge(markers,Metadata(erg.obj),by.x="Recording",by.y = 0)

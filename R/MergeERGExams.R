@@ -202,6 +202,9 @@ merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
 
     ## Merge Data
     mergedData <- c(exam1@Data, data2)
+    if (nrow(md1)!=nrow(md2)){
+      stop("Metadata contain different number of columns.")
+    }
     mergedMetadata <- rbind(md1, md2)
     mergedMeasurements <-
       merge2ERGMeasurements(

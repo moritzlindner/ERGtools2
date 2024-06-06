@@ -9,9 +9,10 @@
 #' @param data For newERGMeasurements only. A data Measurementsframe containing measurements data with columns:
 #'   \code{Channel}, \code{Name}, \code{Recording}, \code{Time}, and \code{Relative}.
 #' @param measure.absolute Logical, default: FALSE. If absolute amplitudes should be returned instead of amplitudes relative to the reference marker (where given).
-#' @param create.marker.if.missing Logical. If TRUE and the marker does not exist, it will be created.
+#' @param create.marker.if.missing Logical. If TRUE and the marker does not exist, it will be created. Dies nothing if value is set to \code{NULL}
 #' @param update.empty.relative Logical. If an empty relative value should be overwritten by an otherways matching marker.
-#' @param quiet For Measurements only. Logical. If TRUE, suppresses warnings.
+#' @param quiet For Measurements only. Logical. If TRUE, suppresses warnings and progress bars.
+#' @param TimesOnly For Measurements only. Logical. If TRUE, only fetches times, not amplitudes
 #' @return An updated version of the object, except for Measurements, which returns a data.frame representing the Measurements stored in the Measurements slot of the \linkS4class{ERGExam} object or the \linkS4class{ERGMeasurements} object-
 #' @seealso \link[EPhysData:EPhysSet-class]{EPhysData::EPhysSet-class} \link{Measurements-Methods} \link{Get}
 #' @examples
@@ -26,6 +27,8 @@
 #' data(ERG)
 #' ERG<-SetStandardFunctions(ERG)
 #' Measurements(ERG)
+#' Measurements(ERG, measure.absolute = T)
+#' Measurements(ERG, TimesOnly = T)
 #'
 #' @name Measurements-Methods
 NULL
@@ -117,13 +120,31 @@ setMethod("Measurements",
                    where = NULL,
                    Marker =  NULL,
                    quiet = F,
-                   measure.absolute = F) {
+                   measure.absolute = F,
+                   TimesOnly = F) {
 
             if(!is.null(where)){
               where = Where(X, where)
             }
 
-            measurements <- Measurements(X@Measurements, where, Marker, quiet)
+            # make sure also parent of relative markers are retrieved
+            marker.info <- Markers(X)
+            marker.info.full<-marker.info
+            marker.info <- marker.info[marker.info$Name %in% Marker, ]
+            Fetch<-Marker
+            if(!TimesOnly){
+              if (any(!is.na(marker.info$Relative))) {
+                rel.marker.rows<-marker.info[!is.na(marker.info$Relative),]
+                for (i in 1:nrow(rel.marker.rows)){
+                  Fetch <-
+                    c(Fetch, marker.info.full$Name[marker.info.full$Name == rel.marker.rows$Relative[i] &
+                                                     marker.info.full$ChannelBinding == rel.marker.rows$ChannelBinding[i]])
+                }
+
+              }
+            }
+
+            measurements <- Measurements(X@Measurements, where, Fetch, quiet)
             if (nrow(measurements) != 0) {
               extracols<-ExtraMetaColumns(X)
               measurements <-
@@ -153,38 +174,55 @@ setMethod("Measurements",
                                           F)), ]
               measurements$Voltage <- as_units(NA, "uV")
 
-              message("Retrieving record values for the given time points.")
-              pb = txtProgressBar(min = 0, max = nrow(measurements), initial = 0)
-              for (i in 1:nrow(measurements)) {
-                sel <- X[[measurements$Recording[i]]]
-                if (length(AverageFunction(sel)(1:3))!=1 && dim(sel)[2]!=1){
-                  stop(
-                    "You need to set an averaging function before performing Marker and Measuremnt operations. E.g. run 'SetStandardFunctions(X)'"
-                  )
+              if (!TimesOnly) {
+                if (!quiet) {
+                  message("Retrieving record values for the given time points.")
+                  pb = txtProgressBar(min = 0,
+                                      max = nrow(measurements),
+                                      initial = 0)
                 }
-                if(!is.na(measurements$Time[i])){
-                  Voltage <-
-                    GetData(sel, Time = TimeTrace(sel)[which.min(abs(TimeTrace(sel)- measurements$Time[i]))], Raw = F)
-                  if(!is.na(measurements$Relative[i]) && !measure.absolute){
-                    rel.marker.time<-measurements$Time[measurements$Recording == measurements$Recording[i] &
-                                                         measurements$Name == measurements$Relative[i]]
-                    Voltage <- Voltage - GetData(sel,
-                                                 Time = TimeTrace(sel)[which.min(abs(TimeTrace(sel)- rel.marker.time))],
-                                                 Raw = F)
+                for (i in 1:nrow(measurements)) {
+                  sel <- X[[measurements$Recording[i]]]
+                  if (length(AverageFunction(sel)(1:3)) != 1 &&
+                      dim(sel)[2] != 1) {
+                    stop(
+                      "You need to set an averaging function before performing Marker and Measuremnt operations. E.g. run 'SetStandardFunctions(X)'"
+                    )
                   }
+                  if (!is.na(measurements$Time[i])) {
+                    Voltage <-
+                      GetData(sel, Time = TimeTrace(sel)[which.min(abs(TimeTrace(sel) - measurements$Time[i]))], Raw = F)
+                    if (!is.na(measurements$Relative[i]) &&
+                        !measure.absolute) {
+                      rel.marker.time <-
+                        measurements$Time[measurements$Recording == measurements$Recording[i] &
+                                            measurements$Name == measurements$Relative[i]]
+                      Voltage <- Voltage - GetData(sel,
+                                                   Time = TimeTrace(sel)[which.min(abs(TimeTrace(sel) - rel.marker.time))],
+                                                   Raw = F)
+                    }
 
-                  if (all(dim(Voltage) == 1)) {
-                    measurements$Voltage[i] <- set_units(Voltage[1, 1], "uV")
-                  } else{
-                    stop("GetData returns multiple values.")
+                    if (all(dim(Voltage) == 1)) {
+                      measurements$Voltage[i] <- set_units(Voltage[1, 1], "uV")
+                    } else{
+                      stop("GetData returns multiple values.")
+                    }
+                  } else {
+                    Voltage <- set_units(NA, "uV")
                   }
-                } else {
-                  Voltage <- set_units(NA, "uV")
+                  if (!quiet) {
+                    setTxtProgressBar(pb, i)
+                  }
                 }
-                setTxtProgressBar(pb,i)
+                if (!quiet) {
+                  close(pb)
+                }
               }
-              close(pb)
               measurements<-merge(measurements,Metadata(X)[,c(extracols),drop=F],by.x = "Recording", by.y = 0)
+
+              if(!TimesOnly){
+                measurements<-measurements[measurements$Name %in% Marker,]
+              }
 
 
             } else {
@@ -337,7 +375,7 @@ setMethod("Measurements<-",
                   "Malformed ERGMeasurements object. Multiple entries found for the given combination of 'where' and 'Marker'"
                 )
               }
-            }else{
+            } else {
               # if value is NULL --> delete the selected measurement
               marker.idx<-get.marker.idx(ChannelBinding,X,Marker)
               # are markers dependent on the one to be deleted?
@@ -389,6 +427,30 @@ setMethod("Measurements<-",
             }
 
           })
+#' @describeIn Measurements-Methods Remove a measurement from the Measurements slot of an \linkS4class{ERGExam} object
+#' @noMd
+#' @exportMethod DropMeasurement
+setGeneric(
+  name = "DropMeasurement",
+  def = function(X,
+                 Marker,
+                 where,
+                 ChannelBinding = NULL)
+  {
+    standardGeneric("DropMeasurement")
+  }
+)
+#' @describeIn Measurements-Methods Remove a measurement from the Measurements slot of an \linkS4class{ERGExam} object
+#' @noMd
+setMethod("DropMeasurement",
+          signature = "ERGExam",
+          function(X,
+                   Marker,
+                   where = NULL,
+                   ChannelBinding = NULL){
+            Measurements(X = X, Marker = Marker, where = where, create.marker.if.missing = T, Relative = NULL, ChannelBinding = ChannelBinding)<-NULL
+          })
+
 
 #' Create an ERGMeasurements object from data
 #'
@@ -502,6 +564,7 @@ setMethod("ClearMeasurements",
 #' Measurements-Methods Converts the output of the Measurements method from relative to absolute amplitudes
 #' @keywords Internal
 #' @noMd
+#' @noRd
 ConvertMeasurementsToAbsolute <- function(data) {
   for (i in seq_along(data$Voltage)) {
     if (!is.na(data$Relative[i])) {

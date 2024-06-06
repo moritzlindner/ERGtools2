@@ -4,6 +4,7 @@
 #'
 #' @inheritParams Subset-method
 #' @param Interactive Whether to return an interactive \link[plotly:ggplotly]{plotly::ggplotly}  graph
+#' @param SetSIPrefix Change the SI prefix. Set to \code{keep}, for not to change anything, to \code{auto} (default) for using the \link[EPhysData:BestSIPrefix-methods]{EPhysData:BestSIPrefix-methods} to minimize the number of relevant digits or to any SI prefix to use that. Calls the \link[EPhysData:SetSIPrefix-methods]{EPhysData:SetSIPrefix-methods}.
 #' @return A \link[ggplot2:ggplot]{ggplot2::ggplot} plot visualizing the data from a single trace from an \linkS4class{ERGExam} object
 #' @importFrom ggplot2 geom_label aes
 #' @importFrom plotly ggplotly
@@ -20,7 +21,8 @@ setGeneric(
   name = "ggERGTrace",
   def = function(X,
                  where,
-                 Interactive = F) {
+                 Interactive = F,
+                 SetSIPrefix="auto") {
     standardGeneric("ggERGTrace")
   }
 )
@@ -30,7 +32,8 @@ setMethod("ggERGTrace",
           "ERGExam",
           function(X,
                    where,
-                   Interactive = F) {
+                   Interactive = F,
+                   SetSIPrefix="auto") {
             which <-
               Where(X, where = where, expected.length = 1)
 
@@ -48,7 +51,7 @@ setMethod("ggERGTrace",
                                where = which)$Voltage[1]
             sel@Data <-
               set_units(sel@Data, deparse_unit(un), mode = "standard")
-            out <- ggEPhysData(sel)
+            out <- ggEPhysData(sel, SetSIPrefix = SetSIPrefix)
             mes<-Measurements(X,
                               where = which)
             if (any(mes$Recording == which)) {
