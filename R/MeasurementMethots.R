@@ -128,7 +128,7 @@ setMethod("Measurements",
             }
 
             if(is.null(Marker)){
-              Marker<-MarkerNames(ERG)
+              Marker<-MarkerNames(X)
             }
 
             # make sure also parent of relative markers are retrieved
