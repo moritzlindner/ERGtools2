@@ -3,7 +3,7 @@
 #' Merges two or more ERGExam objects into a single ERGExam object.
 #'
 #' @param ERGExam_list A list of ERGExam objects to be merged with \code{X}.
-#' @param mergemethod will allow to specify how exactly the objects should be merged in future versions. currently only "Append" (the default) is supported.
+#' @param mergemethod . Depreciated.
 #' @return An ERGExam object representing the merged data. the file names, protocol names and dates from the individual files merged are stored as additional columns in the Stimulus table. Use \code{Metadata()} to see those.
 #' @noMd
 #' @examples
@@ -44,6 +44,192 @@ MergeERGExams <- function(ERGExam_list, mergemethod = "Append") {
 
 #' @noMd
 #' @keywords internal
+# merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
+#   if ((exam1@Averaged != exam2@Averaged)) {
+#     stop("Objects to merge contain averaged and unaveraged data.")
+#   }
+#
+#   # Validity checks
+#   if (!identical(exam1@SubjectInfo, exam2@SubjectInfo)) {
+#     stop("SubjectInfo must be identical in both exams.")
+#   }
+#
+#   exam1Date <- as.POSIXct(exam1@ExamInfo$ExamDate)
+#   exam2Date <- as.POSIXct(exam2@ExamInfo$ExamDate)
+#   if (max(abs(difftime(exam1Date, exam2Date, units = "hours"))) > 3) {
+#     stop("ExamInfo$ExamDate should differ by a maximum of 3 hours.")
+#   }
+#   if(mergemethod=="Append"){
+#     # Get the maximum Step value from both objects
+#     maxStep <- max(Steps(exam1))
+#     # Combine data, metadata and stimulus
+#     mergedData <- c(exam1@Data, exam2@Data)
+#     md2 <- Metadata(exam2)
+#     md2$Step <- md2$Step + maxStep
+#
+#     # add possible extra columns in Metadata
+#     if (!isTRUE(all.equal(colnames(Metadata(exam1)), colnames(Metadata(exam2))))) {
+#       extra.in.exam1 <- colnames(Metadata(exam1))[!(colnames(Metadata(exam1)) %in% colnames(Metadata(exam2)))]
+#       extra.in.exam2 <- colnames(Metadata(exam2))[!(colnames(Metadata(exam2)) %in% colnames(Metadata(exam1)))]
+#       if (length(extra.in.exam1) > 0) {
+#         for (e in extra.in.exam1) {
+#           exam2@Metadata[, e] <- as.numeric(NULL)
+#           class(exam2@Metadata[, e]) <- class(exam1@Metadata[, e])
+#         }
+#       }
+#       if (length(extra.in.exam2) > 0) {
+#         for (e in extra.in.exam2) {
+#           exam1@Metadata[, e] <- as.numeric(NULL)
+#           class(exam1@Metadata[, e]) <- class(exam2@Metadata[, e])
+#         }
+#       }
+#     }
+#     md1 <- Metadata(exam1)
+#     if (is.null(md1$ExamDate)){
+#       md1$ExamDate <- ExamDate(exam1)
+#       md1$Filename <- exam1@ExamInfo$Filename
+#     }
+#     if (is.null(md2$ExamDate)){
+#       md2$ExamDate <- ExamDate(exam2)
+#       md2$Filename <- exam2@ExamInfo$Filename
+#     }
+#     mergedMetadata <- rbind(md1, md2)
+#
+#     stimtab1 <- StimulusTable(exam1)
+#     if (is.null(stimtab1$ProtocolName)) {
+#       stimtab1$ProtocolName <- ProtocolName(exam1)
+#     }
+#     stimtab2 <- StimulusTable(exam2)
+#     if (is.null(stimtab2$ProtocolName)) {
+#       stimtab2$ProtocolName <- ProtocolName(exam2)
+#     }
+#     stimtab2$Step <- stimtab2$Step + maxStep
+#     mergedStimulus <- rbind(stimtab1, stimtab2)
+#
+#     # merge measurements
+#     mergedMeasurements <-
+#       merge2ERGMeasurements(
+#         exam1@Measurements,
+#         exam2@Measurements,
+#         increment.obj2.recording.index.by = length(exam1)
+#       )
+#
+#     examinfo <- exam1@ExamInfo
+#     examinfo$ProtocolName<-paste(exam1@ExamInfo$ProtocolName,exam2@ExamInfo$ProtocolName,sep=" and ")
+#     examinfo$Filename <- "Merged Exam"
+#
+#     # Create a new ERGExam instance with merged data and metadata
+#     mergedExam <- newERGExam(
+#       Data = c(exam1@Data, exam2@Data),
+#       Metadata = mergedMetadata,
+#       Stimulus = mergedStimulus,
+#       Averaged = exam1@Averaged,
+#       Measurements = mergedMeasurements,
+#       ExamInfo = examinfo,
+#       SubjectInfo = exam1@SubjectInfo
+#     )
+#
+#     if (nrow(mergedStimulus) != nrow(unique(mergedStimulus))) {
+#       stop("Rows of Stimulus must be unique in the merged object.")
+#     }
+#
+#     return(mergedExam)
+#   }
+#   if (mergemethod == "ByStimulusAndChannel") {
+#     stop("This is currently unsupported")
+#
+#     # identify matching recordings (same stimulus, channel and eye)
+#     md1<-Metadata(exam1)
+#     rownames(md1)<-NULL
+#     md1$Recording<-1:nrow(md1)
+#     md2<-Metadata(exam2)
+#     rownames(md2)<-NULL
+#     md2$Recording<-1:nrow(md2)
+#     widemd1 <-merge(md1,StimulusTable(exam1),by = "Step")
+#     widemd1 <-widemd1[,c("Recording","Step","Description","Channel","Eye","Result")]
+#     colnames(widemd1)[colnames(widemd1)=="Recording"]<-"obj1.idx"
+#     colnames(widemd1)[colnames(widemd1)=="Step"]<-"obj1.step.idx"
+#     widemd2 <-merge(md2,StimulusTable(exam2),by = "Step")
+#     widemd2 <-widemd2[,c("Recording","Description","Step","Channel","Eye","Result")]
+#     colnames(widemd2)[colnames(widemd2)=="Recording"]<-"obj2.idx"
+#     colnames(widemd2)[colnames(widemd2)=="Step"]<-"obj2.step.idx"
+#     pointer.updates.for.obj2<-merge(widemd1,widemd2)
+#
+#     # identify recordings unique in exam2
+#     pointer.appending.from.obj2 <-
+#       which(!(widemd2$obj2.idx %in% pointer.updates.for.obj2$obj2.idx))
+#
+#     ## add possible extra columns in Metadata
+#     if (!isTRUE(all.equal(colnames(Metadata(exam1)), colnames(Metadata(exam2))))) {
+#       extra.in.exam1 <- colnames(Metadata(exam1))[!(colnames(Metadata(exam1)) %in% colnames(Metadata(exam2)))]
+#       extra.in.exam2 <- colnames(Metadata(exam2))[!(colnames(Metadata(exam2)) %in% colnames(Metadata(exam1)))]
+#       if (length(extra.in.exam1) > 0) {
+#         for (e in extra.in.exam1) {
+#           exam2@Metadata[, e] <- as.numeric(NULL)
+#           class(exam2@Metadata[, e]) <- class(exam1@Metadata[, e])
+#         }
+#       }
+#       if (length(extra.in.exam2) > 0) {
+#         for (e in extra.in.exam2) {
+#           exam1@Metadata[, e] <- as.numeric(NULL)
+#           class(exam1@Metadata[, e]) <- class(exam2@Metadata[, e])
+#         }
+#       }
+#     }
+#     md1 <- Metadata(exam1)
+#     if (is.null(md1$ExamDate)){
+#       md1$ExamDate <- ExamDate(exam1)
+#       md1$Filename <- exam1@ExamInfo$Filename
+#     }
+#     if (is.null(md2$ExamDate)){
+#       md2$ExamDate <- ExamDate(exam2)
+#       md2$Filename <- exam2@ExamInfo$Filename
+#     }
+#
+#     ## for those recordings in 2 that have a match  in 1, 1) update step pointer, 2) count up result, 3) add columns exam date and filename, append md2 and data
+#     md2<-Metadata(exam2)
+#     sel<-md2$Step %in% pointer.updates.for.obj2$obj2.step.idx
+#     data2<-exam2@Data[sel]
+#     measurements2<-Measurements(exam2@Measurements,where=which(sel))
+#     colnames(measurements2)[colnames(measurements2)=="ChannelBinding"]<-"Channel"
+#     measurements2<-newERGMeasurements(measurements2)
+#     md2<-md2[sel,]
+#     md2<-merge(md2,pointer.updates.for.obj2,by.x = c("Step","Channel","Eye","Result"),by.y = c("obj2.step.idx","Channel","Eye","Result"))
+#     md2$Step<-md2$obj1.step.idx
+#     md2$Result<-md2$Result+1
+#     md2<-md2[,c("Step","Channel","Result","Eye","ExamDate","Filename")]
+#     warning("Extra Metadata columns will be lost")
+#
+#     ## Merge Data
+#     mergedData <- c(exam1@Data, data2)
+#     if (nrow(md1)!=nrow(md2)){
+#       stop("Metadata contain different number of columns.")
+#     }
+#     mergedMetadata <- rbind(md1, md2)
+#     mergedMeasurements <-
+#       merge2ERGMeasurements(
+#         exam1@Measurements,
+#         measurements2,
+#         increment.obj2.recording.index.by = length(exam1))
+#
+#     examinfo <- exam1@ExamInfo
+#     examinfo$Filename <- "Merged Exam"
+#
+#     # Create a new ERGExam instance with merged data and metadata
+#     mergedExam <- newERGExam(
+#       Data = mergedData,
+#       Metadata = mergedMetadata,
+#       Stimulus = exam1@Stimulus,
+#       Averaged = exam1@Averaged,
+#       Measurements = mergedMeasurements,
+#       ExamInfo = examinfo,
+#       SubjectInfo = exam1@SubjectInfo
+#     )
+#
+#   #  ??????? does matching by result make sense?
+#   }
+# }
+
 merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
   if ((exam1@Averaged != exam2@Averaged)) {
     stop("Objects to merge contain averaged and unaveraged data.")
@@ -59,177 +245,190 @@ merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
   if (max(abs(difftime(exam1Date, exam2Date, units = "hours"))) > 3) {
     stop("ExamInfo$ExamDate should differ by a maximum of 3 hours.")
   }
-  if(mergemethod=="Append"){
-    # Get the maximum Step value from both objects
-    maxStep <- max(Steps(exam1))
-    # Combine data, metadata and stimulus
-    mergedData <- c(exam1@Data, exam2@Data)
-    md2 <- Metadata(exam2)
-    md2$Step <- md2$Step + maxStep
 
-    # add possible extra columns in Metadata
-    if (!isTRUE(all.equal(colnames(Metadata(exam1)), colnames(Metadata(exam2))))) {
-      extra.in.exam1 <- colnames(Metadata(exam1))[!(colnames(Metadata(exam1)) %in% colnames(Metadata(exam2)))]
-      extra.in.exam2 <- colnames(Metadata(exam2))[!(colnames(Metadata(exam2)) %in% colnames(Metadata(exam1)))]
-      if (length(extra.in.exam1) > 0) {
-        for (e in extra.in.exam1) {
-          exam2@Metadata[, e] <- as.numeric(NULL)
-          class(exam2@Metadata[, e]) <- class(exam1@Metadata[, e])
-        }
+  #
+  # make joint stimulus table
+  #
+
+  stimtab1 <- StimulusTable(exam1)
+  if (is.null(stimtab1$ProtocolName)) {
+    stimtab1$ProtocolName <- ProtocolName(exam1)
+  }
+  stimtab2 <- StimulusTable(exam2)
+  if (is.null(stimtab2$ProtocolName)) {
+    stimtab2$ProtocolName <- ProtocolName(exam2)
+  }
+
+  stimtab1$OrigStep1 <- stimtab1$Step
+  stimtab2$OrigStep2 <- stimtab2$Step
+
+  stimtab.merged <-
+    merge(
+      stimtab2,
+      stimtab1,
+      by = c(
+        "Description",
+        "Intensity",
+        "Background",
+        "Type",
+        "ProtocolName"
+      ),
+      all = TRUE
+    )
+  stimtab.merged$Step.x <- NULL
+  stimtab.merged$Step.y <- NULL
+  stimtab.merged$Step <- 1:nrow(stimtab.merged)
+
+  #
+  # make joint metadata table
+  #
+
+  md1 <- Metadata(exam1)
+  md2 <- Metadata(exam2)
+
+  # add possible extra columns in Metadata
+  if (!isTRUE(all.equal(colnames(md1), colnames(md2)))) {
+    extra.in.exam1 <- colnames(md1)[!(colnames(md1) %in% colnames(md2))]
+    extra.in.exam2 <-
+      colnames(md2)[!(colnames(md2) %in% colnames(md1))]
+    if (length(extra.in.exam1) > 0) {
+      for (e in extra.in.exam1) {
+        exam2@Metadata[, e] <- as.numeric(NULL)
+        class(exam2@Metadata[, e]) <- class(exam1@Metadata[, e])
       }
-      if (length(extra.in.exam2) > 0) {
-        for (e in extra.in.exam2) {
-          exam1@Metadata[, e] <- as.numeric(NULL)
-          class(exam1@Metadata[, e]) <- class(exam2@Metadata[, e])
-        }
+    }
+    if (length(extra.in.exam2) > 0) {
+      for (e in extra.in.exam2) {
+        exam1@Metadata[, e] <- as.numeric(NULL)
+        class(exam1@Metadata[, e]) <- class(exam2@Metadata[, e])
       }
     }
-    md1 <- Metadata(exam1)
-    if (is.null(md1$ExamDate)){
-      md1$ExamDate <- ExamDate(exam1)
-      md1$Filename <- exam1@ExamInfo$Filename
-    }
-    if (is.null(md2$ExamDate)){
-      md2$ExamDate <- ExamDate(exam2)
-      md2$Filename <- exam2@ExamInfo$Filename
-    }
-    mergedMetadata <- rbind(md1, md2)
+  }
 
-    stimtab1 <- StimulusTable(exam1)
-    if (is.null(stimtab1$ProtocolName)) {
-      stimtab1$ProtocolName <- ProtocolName(exam1)
+  # add source info
+  if (is.null(md1$ExamDate)) {
+    md1$ExamDate <- ExamDate(exam1)
+    md1$Filename <- exam1@ExamInfo$Filename
+    md1$ProtocolName <- ProtocolName(exam1)
+    md1$Version <- exam1@ExamInfo$Version
+    md1$Investigator <- exam1@ExamInfo$Investigator
+  }
+
+  if (is.null(md2$ExamDate)) {
+    md2$ExamDate <- ExamDate(exam2)
+    md2$Filename <- exam2@ExamInfo$Filename
+    md2$ProtocolName <- ProtocolName(exam2)
+    md2$Version <- exam2@ExamInfo$Version
+    md2$Investigator <- exam2@ExamInfo$Investigator
+  }
+
+  md1$OrigRecording <- 1:nrow(md1)
+  md2$OrigRecording <- 1:nrow(md2)
+
+  md1$SRC <- 1
+  md2$SRC <- 2
+
+  # update Step
+  for (i in 1:nrow(stimtab.merged)) {
+    if (!is.na(stimtab.merged$OrigStep1[i])) {
+      md1$Step[md1$Step == stimtab.merged$OrigStep1[i]] <-
+        stimtab.merged$Step[i]
     }
-    stimtab2 <- StimulusTable(exam2)
-    if (is.null(stimtab2$ProtocolName)) {
-      stimtab2$ProtocolName <- ProtocolName(exam2)
+  }
+  for (i in 1:nrow(stimtab.merged)) {
+    if (!is.na(stimtab.merged$OrigStep1[i])) {
+      md2$Step[md2$Step == stimtab.merged$OrigStep1[i]] <-
+        stimtab.merged$Step[i]
     }
-    stimtab2$Step <- stimtab2$Step + maxStep
-    mergedStimulus <- rbind(stimtab1, stimtab2)
+  }
 
-    # merge measurements
-    mergedMeasurements <-
-      merge2ERGMeasurements(
-        exam1@Measurements,
-        exam2@Measurements,
-        increment.obj2.recording.index.by = length(exam1)
-      )
-
-    examinfo <- exam1@ExamInfo
-    examinfo$ProtocolName<-paste(exam1@ExamInfo$ProtocolName,exam2@ExamInfo$ProtocolName,sep=" and ")
-    examinfo$Filename <- "Merged Exam"
-
-    # Create a new ERGExam instance with merged data and metadata
-    mergedExam <- newERGExam(
-      Data = c(exam1@Data, exam2@Data),
-      Metadata = mergedMetadata,
-      Stimulus = mergedStimulus,
-      Averaged = exam1@Averaged,
-      Measurements = mergedMeasurements,
-      ExamInfo = examinfo,
-      SubjectInfo = exam1@SubjectInfo
+  combined <- rbind(md1, md2)
+  md.merged <- data.frame()
+  # Process each row of the combined data frame
+  for (i in 1:nrow(combined)) {
+    row <- combined[i,]
+    existing_row_index <- which(
+      md.merged$Step == row$Step &
+        md.merged$Channel == row$Channel &
+        md.merged$Eye == row$Eye &
+        md.merged$Recording == row$Recording
     )
 
-    if (nrow(mergedStimulus) != nrow(unique(mergedStimulus))) {
-      stop("Rows of Stimulus must be unique in the merged object.")
+    if (length(existing_row_index) > 0) {
+      row$Result <-
+        row$Result  + max(md.merged$Result[existing_row_index])
+      md.merged <- rbind(md.merged, row)
+    } else {
+      md.merged <- rbind(md.merged, row)
     }
-
-    return(mergedExam)
   }
-  if (mergemethod == "ByStimulusAndChannel") {
-    stop("This is currently unsupported")
 
-    # identify matching recordings (same stimulus, channel and eye)
-    md1<-Metadata(exam1)
-    rownames(md1)<-NULL
-    md1$Recording<-1:nrow(md1)
-    md2<-Metadata(exam2)
-    rownames(md2)<-NULL
-    md2$Recording<-1:nrow(md2)
-    widemd1 <-merge(md1,StimulusTable(exam1),by = "Step")
-    widemd1 <-widemd1[,c("Recording","Step","Description","Channel","Eye","Result")]
-    colnames(widemd1)[colnames(widemd1)=="Recording"]<-"obj1.idx"
-    colnames(widemd1)[colnames(widemd1)=="Step"]<-"obj1.step.idx"
-    widemd2 <-merge(md2,StimulusTable(exam2),by = "Step")
-    widemd2 <-widemd2[,c("Recording","Description","Step","Channel","Eye","Result")]
-    colnames(widemd2)[colnames(widemd2)=="Recording"]<-"obj2.idx"
-    colnames(widemd2)[colnames(widemd2)=="Step"]<-"obj2.step.idx"
-    pointer.updates.for.obj2<-merge(widemd1,widemd2)
+  #
+  # merge data
+  #
 
-    # identify recordings unique in exam2
-    pointer.appending.from.obj2 <-
-      which(!(widemd2$obj2.idx %in% pointer.updates.for.obj2$obj2.idx))
-
-    ## add possible extra columns in Metadata
-    if (!isTRUE(all.equal(colnames(Metadata(exam1)), colnames(Metadata(exam2))))) {
-      extra.in.exam1 <- colnames(Metadata(exam1))[!(colnames(Metadata(exam1)) %in% colnames(Metadata(exam2)))]
-      extra.in.exam2 <- colnames(Metadata(exam2))[!(colnames(Metadata(exam2)) %in% colnames(Metadata(exam1)))]
-      if (length(extra.in.exam1) > 0) {
-        for (e in extra.in.exam1) {
-          exam2@Metadata[, e] <- as.numeric(NULL)
-          class(exam2@Metadata[, e]) <- class(exam1@Metadata[, e])
-        }
-      }
-      if (length(extra.in.exam2) > 0) {
-        for (e in extra.in.exam2) {
-          exam1@Metadata[, e] <- as.numeric(NULL)
-          class(exam1@Metadata[, e]) <- class(exam2@Metadata[, e])
-        }
-      }
+  data.merged <- list()
+  for (i in 1:nrow(md.merged)) {
+    if (md.merged$SRC[i] == 1) {
+      data.merged[[i]] <- exam1@Data[[md.merged$OrigRecording[i]]]
     }
-    md1 <- Metadata(exam1)
-    if (is.null(md1$ExamDate)){
-      md1$ExamDate <- ExamDate(exam1)
-      md1$Filename <- exam1@ExamInfo$Filename
+    if (md.merged$SRC[i] == 2) {
+      data.merged[[i]] <- exam2@Data[[md.merged$OrigRecording[i]]]
     }
-    if (is.null(md2$ExamDate)){
-      md2$ExamDate <- ExamDate(exam2)
-      md2$Filename <- exam2@ExamInfo$Filename
-    }
+  }
 
-    ## for those recordings in 2 that have a match  in 1, 1) update step pointer, 2) count up result, 3) add columns exam date and filename, append md2 and data
-    md2<-Metadata(exam2)
-    sel<-md2$Step %in% pointer.updates.for.obj2$obj2.step.idx
-    data2<-exam2@Data[sel]
-    measurements2<-Measurements(exam2@Measurements,where=which(sel))
-    colnames(measurements2)[colnames(measurements2)=="ChannelBinding"]<-"Channel"
-    measurements2<-newERGMeasurements(measurements2)
-    md2<-md2[sel,]
-    md2<-merge(md2,pointer.updates.for.obj2,by.x = c("Step","Channel","Eye","Result"),by.y = c("obj2.step.idx","Channel","Eye","Result"))
-    md2$Step<-md2$obj1.step.idx
-    md2$Result<-md2$Result+1
-    md2<-md2[,c("Step","Channel","Result","Eye","ExamDate","Filename")]
-    warning("Extra Metadata columns will be lost")
+  #
+  # merge measurements
+  #
 
-    ## Merge Data
-    mergedData <- c(exam1@Data, data2)
-    if (nrow(md1)!=nrow(md2)){
-      stop("Metadata contain different number of columns.")
-    }
-    mergedMetadata <- rbind(md1, md2)
-    mergedMeasurements <-
-      merge2ERGMeasurements(
-        exam1@Measurements,
-        measurements2,
-        increment.obj2.recording.index.by = length(exam1))
+  idx.updater <-
+    data.frame(cbind(
+      new = 1:nrow(md.merged),
+      orig = md.merged$OrigRecording,
+      src = md.merged$SRC
+    ))
+  idx.updater <- idx.updater[idx.updater$src == 2, c("new", "orig")]
 
-    examinfo <- exam1@ExamInfo
-    examinfo$Filename <- "Merged Exam"
-
-    # Create a new ERGExam instance with merged data and metadata
-    mergedExam <- newERGExam(
-      Data = mergedData,
-      Metadata = mergedMetadata,
-      Stimulus = exam1@Stimulus,
-      Averaged = exam1@Averaged,
-      Measurements = mergedMeasurements,
-      ExamInfo = examinfo,
-      SubjectInfo = exam1@SubjectInfo
+  mergedMeasurements <-
+    merge2ERGMeasurements(
+      exam1@Measurements,
+      exam2@Measurements,
+      obj2.recording.index.old = idx.updater$orig,
+      obj2.recording.index.new = idx.updater$new
     )
 
-  #  ??????? does matching by result make sense?
-  }
+  #
+  # Cleanup
+  #
+
+  rm(combined)
+  stimtab.merged$OrigStep1 <- NULL
+  stimtab.merged$OrigStep2 <- NULL
+  md.merged$OrigRecording <- NULL
+  md.merged$SRC <- NULL
+
+  #
+  # Create a new ERGExam instance with merged data and metadata
+  #
+
+  examinfo <- exam1@ExamInfo
+  examinfo$ProtocolName <-
+    paste(exam1@ExamInfo$ProtocolName,
+          exam2@ExamInfo$ProtocolName,
+          sep = " and ")
+  examinfo$Filename <- "Merged Exam"
+  mergedExam <- newERGExam(
+    Data = data.merged,
+    Metadata = md.merged,
+    Stimulus = stimtab.merged,
+    Averaged = exam1@Averaged,
+    Measurements = mergedMeasurements,
+    ExamInfo = examinfo,
+    SubjectInfo = exam1@SubjectInfo
+  )
+
+  return(mergedExam)
 }
-
 
 #' Merge two ERGMeasurements objects
 #'
@@ -238,7 +437,8 @@ merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
 #'
 #' @param obj1 An object of class ERGMeasurements.
 #' @param obj2 Another object of class ERGMeasurements.
-#' @param increment.obj2.recording.index.by Numeric indicating by what number to increment the recording indices by. Could be e.g. the number of recordings in object 1.
+#' @param increment.obj2.recording.index.by Depreciated. Numeric indicating by what number to increment the recording indices by. Could be e.g. the number of recordings in object 1.
+#' @param obj2.recording.index.old,obj2.recording.index.old Two vectors of the same length indicating how the obj2 recording indices hould be updated.
 #' @noMd
 #' @return An object of class ERGMeasurements, representing the merged data.
 #' @keywords internal
@@ -293,7 +493,9 @@ merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
 merge2ERGMeasurements <-
   function(obj1,
            obj2,
-           increment.obj2.recording.index.by) {
+           increment.obj2.recording.index.by,
+           obj2.recording.index.old,
+           obj2.recording.index.new) {
     if (!validObject(obj1) || !validObject(obj2)) {
       stop("One or both of the objects are not valid ERGMeasurements objects.")
     }
@@ -394,9 +596,18 @@ merge2ERGMeasurements <-
       obj2.measurements$obj1.idx.y[!is.na(obj2.measurements$obj1.idx.y)]
 
     # update recording indices.
-    if (!is.null(increment.obj2.recording.index.by)) {
-      obj2.measurements$Recording <-
-        obj2.measurements$Recording + increment.obj2.recording.index.by
+    if(!is.null(obj2.recording.index.old)){
+      if(length(obj2.recording.index.old)!=length(obj2.recording.index.new)){
+        stop("'obj2.recording.index.old' and 'obj2.recording.index.new' must have the same length.")
+      }
+      if(!all(obj2.measurements$Recording) %in% obj2.recording.index.old){
+        stop("All recording indices present in 'obj2' must be matched by 'obj2.recording.index.old'.")
+      }
+
+      for (i in 1:nrow(obj2.measurements)) {
+        obj2.measurements$Recording[i] <-
+          obj2.recording.index.new[obj2.recording.index.old == obj2.measurements$Recording[i]]
+      }
 
       obj2.measurements <-
         obj2.measurements[, c("Recording", "Marker", "Time")]
@@ -404,7 +615,22 @@ merge2ERGMeasurements <-
       out <- new("ERGMeasurements")
       out@Marker <- obj1.m
       out@Measurements <- rbind(obj1@Measurements, obj2.measurements)
+
+    } else {
+      if (!is.null(increment.obj2.recording.index.by)) {
+        obj2.measurements$Recording <-
+          obj2.measurements$Recording + increment.obj2.recording.index.by
+
+        obj2.measurements <-
+          obj2.measurements[, c("Recording", "Marker", "Time")]
+
+        out <- new("ERGMeasurements")
+        out@Marker <- obj1.m
+        out@Measurements <- rbind(obj1@Measurements, obj2.measurements)
+      }
     }
+
+
     if (validObject(out)) {
       return(out)
     } else {

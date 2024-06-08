@@ -127,6 +127,10 @@ setMethod("Measurements",
               where = Where(X, where)
             }
 
+            if(is.null(Marker)){
+              Marker<-MarkerNames(ERG)
+            }
+
             # make sure also parent of relative markers are retrieved
             marker.info <- Markers(X)
             marker.info.full<-marker.info

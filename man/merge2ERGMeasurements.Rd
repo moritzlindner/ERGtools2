@@ -4,14 +4,22 @@
 \alias{merge2ERGMeasurements}
 \title{Merge two ERGMeasurements objects}
 \usage{
-merge2ERGMeasurements(obj1, obj2, increment.obj2.recording.index.by)
+merge2ERGMeasurements(
+  obj1,
+  obj2,
+  increment.obj2.recording.index.by,
+  obj2.recording.index.old,
+  obj2.recording.index.new
+)
 }
 \arguments{
 \item{obj1}{An object of class ERGMeasurements.}
 
 \item{obj2}{Another object of class ERGMeasurements.}
 
-\item{increment.obj2.recording.index.by}{Numeric indicating by what number to increment the recording indices by. Could be e.g. the number of recordings in object 1.}
+\item{increment.obj2.recording.index.by}{Depreciated. Numeric indicating by what number to increment the recording indices by. Could be e.g. the number of recordings in object 1.}
+
+\item{obj2.recording.index.old, obj2.recording.index.old}{Two vectors of the same length indicating how the obj2 recording indices hould be updated.}
 }
 \value{
 An object of class ERGMeasurements, representing the merged data.

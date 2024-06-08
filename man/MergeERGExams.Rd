@@ -9,7 +9,7 @@ MergeERGExams(ERGExam_list, mergemethod = "Append")
 \arguments{
 \item{ERGExam_list}{A list of ERGExam objects to be merged with \code{X}.}
 
-\item{mergemethod}{will allow to specify how exactly the objects should be merged in future versions. currently only "Append" (the default) is supported.}
+\item{mergemethod}{. Depreciated.}
 }
 \value{
 An ERGExam object representing the merged data. the file names, protocol names and dates from the individual files merged are stored as additional columns in the Stimulus table. Use \code{Metadata()} to see those.
