@@ -4,7 +4,7 @@
 #'
 #' @param X An ERGExam object.
 #' @return A Shiny app to interactively explore ERGExam metadata and measurements.
-#' @importFrom shiny fluidPage titlePanel sidebarLayout sidebarPanel selectInput mainPanel h3 req observeEvent reactive stopApp onSessionEnded shinyApp runApp
+#' @importFrom shiny fluidPage titlePanel sidebarLayout sidebarPanel selectInput mainPanel h4 req observeEvent reactive stopApp onSessionEnded shinyApp runApp
 #' @importFrom DT dataTableOutput renderDataTable datatable
 #' @export
 #' @examples
@@ -27,6 +27,7 @@ setMethod(
       titlePanel("Explore ERGExam Metadata"),
       sidebarLayout(
         sidebarPanel(
+          h4("Filter recordings"),
           selectInput("eye", "Eye:", choices = c("All", unique(X@Metadata$Eye))),
           selectInput("channel", "Channel:", choices = c("All", unique(X@Metadata$Channel))),
           selectInput("description", "Description:", choices = c("All", unique(X@Stimulus$Description))),
@@ -35,9 +36,9 @@ setMethod(
           selectInput("type", "Type:", choices = c("All", unique(X@Stimulus$Type)))
         ),
         mainPanel(
-          h3("Filtered Metadata"),
+          h4("Recordings stored in object"),
           dataTableOutput("filteredData"),
-          h3("Measurements for Selected Metadata"),
+          h4("Measurements for selected recording"),
           dataTableOutput("measurementsData")
         )
       )
