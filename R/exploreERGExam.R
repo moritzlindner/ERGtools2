@@ -4,9 +4,8 @@
 #'
 #' @param X An ERGExam object.
 #' @return A Shiny app to interactively explore ERGExam metadata and measurements.
-#' @importFrom shiny fluidPage titlePanel sidebarLayout sidebarPanel selectInput mainPanel dataTableOutput renderDataTable req observeEvent stopApp onSessionEnded shinyApp runApp
+#' @importFrom shiny fluidPage titlePanel sidebarLayout sidebarPanel selectInput mainPanel h3 req observeEvent reactive stopApp onSessionEnded shinyApp runApp
 #' @importFrom DT dataTableOutput renderDataTable datatable
-#' @import methods
 #' @export
 #' @examples
 #' data(ERG)
