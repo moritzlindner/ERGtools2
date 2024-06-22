@@ -4,8 +4,9 @@
 #'
 #' @param X An ERGExam object.
 #' @return A Shiny app to interactively explore ERGExam metadata and measurements.
-#' @importFrom shiny fluidPage titlePanel sidebarLayout sidebarPanel conditionalPanel selectInput checkboxInput mainPanel h4 hr req observeEvent reactive stopApp onSessionEnded shinyApp runApp
+#' @importFrom shiny fluidPage titlePanel sidebarLayout sidebarPanel conditionalPanel selectInput checkboxInput mainPanel h4 hr br req observeEvent reactive stopApp onSessionEnded shinyApp runApp plotOutput
 #' @importFrom DT dataTableOutput renderDataTable datatable
+#' @importFrom shinyjs useShinyjs extendShinyjs js
 #' @export
 #' @examples
 #' \dontrun{
@@ -35,8 +36,13 @@ setMethod("exploreERGExam",
                                  "
             )
 
+            jscode <- "shinyjs.closeWindow = function() { window.close(); }"
+
+
             ui <- fluidPage(
               tags$head(tags$style(shiny.style)),
+              useShinyjs(),
+              extendShinyjs(text = jscode, functions = c("closeWindow")),
               titlePanel("Explore ERGExam Metadata"),
               sidebarLayout(
                 sidebarPanel(
@@ -56,6 +62,19 @@ setMethod("exploreERGExam",
                   ))),
                   selectInput("type", "Type:", choices = c("All", unique(X@Stimulus$Type))),
                   hr(),
+                  h4("Remove Recording"),
+                  actionButton("removeRecBtn", "Selected only"),
+                  br(),
+                  "All of same...",
+                  br(),
+                  actionButton("removeEyeBtn", "Eye"),
+                  actionButton("removeChBtn", "Channel"),
+                  actionButton("removeStimBtn", "Stimulus Description"),
+                  br(),
+                  "...as the Selected.",
+                  h4("Close"),
+                  actionButton("CloseSaveBtn", "Close & Save"),
+                  actionButton("CloseBtn", "Discard changes "),
                   h4("Settings"),
                   checkboxInput("showGraph", "Show Graph", value = FALSE),
                   width = 2
@@ -90,12 +109,22 @@ setMethod("exploreERGExam",
             metadata$IDX <- 1:nrow(metadata)
 
             server <- function(input, output, session) {
-              filteredData <- reactive({
+              filteredData <- reactiveVal(metadata)
+
+              observeEvent({
+                input$eye
+                input$channel
+                input$description
+                input$intensity
+                input$background
+                input$type
+              }, {
+                data <- metadata
                 if (input$eye != "All") {
-                  metadata <- metadata[metadata$Eye == input$eye,]
+                  data <- data[data$Eye == input$eye,]
                 }
                 if (input$channel != "All") {
-                  metadata <- metadata[metadata$Channel == input$channel,]
+                  data <- data[data$Channel == input$channel,]
                 }
 
                 filteredStimulus <- stimulus
@@ -117,7 +146,7 @@ setMethod("exploreERGExam",
                 }
 
                 filteredMetadata <-
-                  metadata[metadata$Step %in% filteredStimulus$Step,]
+                  data[data$Step %in% filteredStimulus$Step,]
 
                 mergedData <-
                   merge(filteredMetadata,
@@ -150,7 +179,8 @@ setMethod("exploreERGExam",
                 mergedData$MeasurementsCount[is.na(mergedData$MeasurementsCount)] <-
                   0
 
-                return(mergedData)
+                out<<-mergedData$IDX
+                filteredData(mergedData)
               })
 
               output$filteredData <- renderDataTable({
@@ -178,13 +208,113 @@ setMethod("exploreERGExam",
                 ggERGTrace(X, where = list(Recording = selectedRow))
               })
 
+              observeEvent(input$removeRecBtn, {
+                if(!is.null(input$filteredData_rows_selected)){
+                  selectedRow <- input$filteredData_rows_selected
+                  updatedData <- filteredData()[-selectedRow, ]
+                  filteredData(updatedData)
+                } else {
+                  showModal(
+                    modalDialog(
+                      title = "Nothing selected.",
+                      "No Recording has been selected.",
+                      easyClose = TRUE,
+                      footer = NULL
+                    )
+                  )
+                }
+              })
+
+              observeEvent(input$removeChBtn, {
+                if(!is.null(input$filteredData_rows_selected)){
+                  selectedRow <- input$filteredData_rows_selected
+                  selectedCh <- filteredData()[selectedRow, "Channel"]
+                  selectedRow <- filteredData()[filteredData()$Channel == selectedCh, "IDX"]
+                  updatedData <- filteredData()[!(filteredData()$IDX %in% selectedRow), ]
+                  filteredData(updatedData)
+                } else {
+                  showModal(
+                    modalDialog(
+                      title = "Nothing selected.",
+                      "No Recording has been selected.",
+                      easyClose = TRUE,
+                      footer = NULL
+                    )
+                  )
+                }
+              })
+
+              observeEvent(input$removeEyeBtn, {
+                if(!is.null(input$filteredData_rows_selected)){
+                  selectedRow <- input$filteredData_rows_selected
+                  selectedEye <- filteredData()[selectedRow, "Eye"]
+                  selectedRow <- filteredData()[filteredData()$Eye == selectedEye, "IDX"]
+                  updatedData <- filteredData()[!(filteredData()$IDX %in% selectedRow), ]
+                  filteredData(updatedData)
+                } else {
+                  showModal(
+                    modalDialog(
+                      title = "Nothing selected.",
+                      "No Recording has been selected.",
+                      easyClose = TRUE,
+                      footer = NULL
+                    )
+                  )
+                }
+              })
+
+              observeEvent(input$removeStimBtn, {
+                if(!is.null(input$filteredData_rows_selected)){
+                  selectedRow <- input$filteredData_rows_selected
+                  selectedStim <- filteredData()[selectedRow, "Description"]
+                  selectedRow <- filteredData()[filteredData()$Description == selectedStim, "IDX"]
+                  updatedData <- filteredData()[!(filteredData()$IDX %in% selectedRow), ]
+                  filteredData(updatedData)
+                } else {
+                  showModal(
+                    modalDialog(
+                      title = "Nothing selected.",
+                      "No Recording has been selected.",
+                      easyClose = TRUE,
+                      footer = NULL
+                    )
+                  )
+                }
+              })
               # Observe the finish button
-              observeEvent(input$finishBtn, {
-                stopApp()
+              observeEvent(input$CloseBtn, {
+                showModal(modalDialog(
+                  title = "Close",
+                  "Do you want to close without saveing?",
+                  footer = tagList(
+                    actionButton("confirmClose", "Close"),
+                    modalButton("Cancel")
+                  )
+                ))
+              })
+              observeEvent(input$confirmClose, {
+                js$closeWindow()
+                stopApp(out)
+              })
+              observeEvent(input$CloseSaveBtn, {
+                showModal(modalDialog(
+                  title = "Close & Save",
+                  "You will now close the dialog and return an updated ERGExam object",
+                  footer = tagList(
+                    actionButton("confirmSaveClose", "Close & Save"),
+                    modalButton("Cancel")
+                  )
+                ))
+              })
+              observeEvent(input$confirmSaveClose, {
+                out<-filteredData()$IDX
+                js$closeWindow()
+                stopApp(out)
               })
 
               onSessionEnded(function() {
-                stopApp()
+                js$closeWindow()
+                stopApp(out)
               })
 
             }
@@ -193,4 +323,5 @@ setMethod("exploreERGExam",
 
             # run)
             out <- runApp(SetMarkersApp, launch.browser = T)
+            Subset(X,where=out)
           })

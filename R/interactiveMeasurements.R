@@ -6,13 +6,10 @@
 #' @return An object of class 'ERGExam' with the new measurements added.
 #' @export
 #' @importFrom plotly ggplotly event_data plotlyOutput renderPlotly event_register
-#' @importFrom shiny fluidPage titlePanel fluidRow column verticalLayout
-#' @importFrom shiny tags validate HTML h4
-#' @importFrom shiny actionButton selectInput textInput
+#' @importFrom shiny fluidPage titlePanel fluidRow column verticalLayout tags validate HTML h4 actionButton selectInput textInput
 #' @importFrom DT dataTableOutput renderDataTable datatable
-#' @importFrom shiny modalDialog modalButton showModal removeModal
-#' @importFrom shiny observeEvent reactive
-#' @importFrom shiny stopApp runApp onSessionEnded shinyApp
+#' @importFrom shiny modalDialog modalButton showModal removeModal observeEvent reactive stopApp runApp onSessionEnded shinyApp
+#' @importFrom shinyjs useShinyjs extendShinyjs
 #' @importFrom stringr str_split
 #' @importFrom ggplot2 aes geom_line geom_text facet_grid labs theme_minimal element_text geom_vline label_wrap_gen
 #' @importFrom units set_units deparse_unit
@@ -154,8 +151,12 @@ setMethod("interactiveMeasurements",
               curr <- AddMetadata(curr, "key", key)
 
 
+
+              jscode <- "shinyjs.closeWindow = function() { window.close(); }"
               # Define the UI for the application
               ui <- fluidPage(
+                useShinyjs(),
+                extendShinyjs(text = jscode, functions = c("closeWindow")),
                 tags$head(tags$style(shiny.style)),
                 titlePanel(
                   paste0(
@@ -464,10 +465,26 @@ setMethod("interactiveMeasurements",
 
                 # Observe the finish button
                 observeEvent(input$finishBtn, {
+                  showModal(modalDialog(
+                    title = "Close & Save",
+                    "You will now close the dialog and return an updated ERGExam object",
+                    footer = tagList(
+                      actionButton("confirmSaveClose", "Close & Save"),
+                      actionButton("confirmDiscard", "Close & DISCARD changes"),
+                    )
+                  ))
+                })
+                observeEvent(input$confirmSaveClose, {
+                  js$closeWindow()
                   stopApp(out)
                 })
 
+                observeEvent(input$confirmDiscard, {
+                  js$closeWindow()
+                  stopApp(curr)
+                })
                 onSessionEnded(function() {
+                  js$closeWindow()
                   stopApp(out)
                 })
 

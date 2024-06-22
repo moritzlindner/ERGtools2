@@ -12,61 +12,66 @@
 #' After setting the functions, the accession methods inherited from \link[EPhysData:EPhysSet-class]{EPhysData::EPhysSet-class} like \link[EPhysData:as.data.frame-method]{EPhysData::as.data.frame-method} and \link[EPhysData:GetData]{EPhysData::GetData} with the argument \code{Raw=F} can be used to return the processed data.\cr\cr
 #'
 #' @section Object creation:
-#' * \link[=newERGExam]{newERGExam} and \link[=ImportEspion]{ImportEspion} for \link[=ERGExam]{ERGExam} objects. \cr
-#' * \link[methods:new]{methods:new} and \link[=ImportEspionProtocol]{ImportEspionProtocol} for \link[=ERGProtocol]{ERGProtocol} objects. Experimental. \cr
-#' * \link[methods:new]{methods:new} for \link[=ERGMeasurements-class]{ERGMeasurements-class} objects. \cr
-#' * data(ERG) (\link[=ERGExam-data]{.SampleERGExam}) Load example ERG recording \cr\cr
-#' * data(Measurements.data) (\link[=ERGMeasurements-data]{.SampleERGMeasurements}) Load example Measurements data \cr\cr
+#' \tabular{lll}{
+#'   \strong{Function/Method} \tab \strong{Classes} \tab \strong{Description} \cr
+#'   \link[=newERGExam]{newERGExam}  \tab \linkS4class{ERGExam}  \tab Create a new ERGExam object.\cr
+#'   \link[=ImportEspion]{ImportEspion}, \link[=ImportEspionInfo]{ImportEspionInfo}, \link[=ImportEspionStimTab]{ImportEspionStimTab}, and \link[=ImportEspionMetadata]{ImportEspionMetadata} \tab \linkS4class{ERGExam}  \tab Import an ERG exam from a CSV file exported from the Diagnosys Espion software \cr
+#'   \link[methods:new]{methods:new} and \link[=ImportEspionProtocol]{ImportEspionProtocol} \tab \link[=ERGProtocol]{ERGProtocol} \tab Experimental. Creates a container for ERG recording protocols as exported from exported the Diagnosys Espion software \cr
+#'   \link[methods:new]{methods:new} \tab \linkS4class{ERGMeasurements} \tab Creates a container for ERG Markers and their positions on an ERG trace. Usually not necessary to be called by the user directly. \cr
+#'   \link[=Save]{Save}, \link[=Load]{Load}  \tab \linkS4class{ERGExam} \tab Saves and loads the ERGExam object. \cr
+#' }
 #'
 #' @section Accession methods:
-#' * \link[=Where]{Where} Returns the recording index for those recordings matching the given criteria. \cr\cr
-#' * \link[=Subset]{Subset} This method subsets an (for \link[=ERGExam]{ERGExam} object into a new object of the same class.
-#' * \link[=as.data.frame]{as.data.frame} Returns data frame representing the \link[=ERGExam]{ERGExam} or \link{ERGProtocol} object in long format. When used with the argument \code{Raw = F} on an\link[=ERGExam]{ERGExam} process (i.e. filtered, averaged) data is returned. See also: \link[EPhysData:as.data.frame-method]{EPhysData::as.data.frame-method}. \cr\cr
-#'
-#' * \link[=DOB]{DOB}, \link[=ExamDate]{ExamDate}, \link[=GroupName]{GroupName}, \link[=ProtocolName]{ProtocolName}: Returning information on the exam and the examined subject.
-#' * \link[=Eyes]{Eyes}, \link[=Steps]{Steps}, \link[=Channels]{Channels}, \link[=Results]{Results}: Returning information on the Recordings contained in the dataset.
-#' * \link[=StimulusTableMethods]{StimulusTableMethods} Stimulus(): Returns selected rows of a stimulus table.
-#' * \link[=StimulusTableMethods]{StimulusTableMethods} StimulusDescription(), StimulusIntensity(), StimulusBackground(), StimulusType(). \cr\cr
-#'
-#' * \link[=MarkerNames]{MarkerNames}
-#' * \link[=Markers]{Markers}
-#' * \link[=Measurements]{Measurements} Returns the Measurements table.
+#' \tabular{lll}{
+#'   \strong{Function/Method} \tab \strong{Classes} \tab \strong{Description} \cr
+#'   \link[=Where]{Where} \tab \linkS4class{ERGExam}  \tab Returns the recording index for those recordings matching the given criteria. \cr
+#'   \link[=Subset]{Subset} \tab \linkS4class{ERGExam}  \tab Subsets an ERGExam object into a new object of the same class. \cr
+#'   \link[=as.data.frame]{as.data.frame} \tab \linkS4class{ERGExam} , \link[=ERGProtocol]{ERGProtocol} \tab Returns data frame representing the ERGExam or ERGProtocol object in long format. \cr
+#'   \link[=DOB]{DOB}, \link[=ExamDate]{ExamDate}, \link[=GroupName]{GroupName}, \link[=ProtocolName]{ProtocolName} \tab \linkS4class{ERGExam}  \tab Returns information on the exam and the examined subject. \cr
+#'   \link[=Eyes]{Eyes}, \link[=Steps]{Steps}, \link[=Channels]{Channels}, \link[=Results]{Results} \tab \linkS4class{ERGExam}  \tab Returns information on the Recordings contained in the dataset. \cr
+#'   \link[=Stimulus]{Stimulus} \tab \linkS4class{ERGExam}  \tab Returns selected rows of a stimulus table. \cr
+#'   \link[=StimulusDescription]{StimulusDescription}, \link[=StimulusIntensity]{StimulusIntensity}, \link[=StimulusBackground]{StimulusBackground}, \link[=StimulusType]{StimulusType} \tab \linkS4class{ERGExam}  \tab Returns details of stimulus description, intensity, background, and type. \cr
+#'   \link[=MarkerNames]{MarkerNames} \tab \linkS4class{ERGExam} , \linkS4class{ERGMeasurements} \tab Returns the names of markers in the dataset. \cr
+#'   \link[=Markers]{Markers} \tab \linkS4class{ERGExam} , \linkS4class{ERGMeasurements} \tab Returns marker information from the dataset. \cr
+#'   \link[=Measurements]{Measurements} \tab \linkS4class{ERGExam} , \linkS4class{ERGMeasurements} \tab Returns the Measurements table. \cr
+#' }
 #'
 #' @section Processing:
-#' * \link[=FilterFunction<-]{FilterFunction<-} Update the FilterFunction for all Recordings in an \linkS4class{ERGExam}, or only those slected using \code{where}.
-#' * \link[=Rejected<-]{Rejected<-} Update the Rejected for all Recordings in an \linkS4class{ERGExam}, or only those slected using \code{where}.
-#' * \link[=AverageFunction<-]{AverageFunction<-} Update the AverageFunction for all Recordings in an \linkS4class{ERGExam}, or only those slected using \code{where}.
-#' * \link[=SetStandardFunctions]{SetStandardFunctions} This method is used to set standard functions for processing \linkS4class{ERGExam} data. It defines default functions for averaging, filtering, and signal rejection based on the stimulus type.
-#' * \link[=AutoPlaceMarkers]{AutoPlaceVEP} Automatically sets markers depending on the channel (E.g. ERG, VEP, OP,...) and stimulus type (Flash, FLicker).
-#' * \link[=AutoPlaceAB]{AutoPlaceAB} Place the a and B waves on Flash ERG data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object.
-#' * \link[=AutoPlaceFlicker]{AutoPlaceFlicker} Place the N1 and P1 markers and determines 1/frequency (period) for Flicker ERG data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object.
-#' * \link[=AutoPlaceVEP]{AutoPlaceVEP} Place the P1, N1 and P2 markers for Flash VEP data stored in an an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object.
-#' * \link[=CheckAvgFxSet]{CheckAvgFxSet}
-#' * \link[=interactiveMeasurements]{interactiveMeasurements}: Interactive visual placement of markers.
+#' \tabular{lll}{
+#'   \strong{Function/Method} \tab \strong{Classes} \tab \strong{Description} \cr
+#'   \link[=SetStandardFunctions]{SetStandardFunctions} \tab \linkS4class{ERGExam} \tab Sets standard functions for processing ERGExam data, defining default functions for averaging, filtering, and signal rejection based on the stimulus type. \cr
+#'   \link[=FilterFunction<-]{FilterFunction<-}, \link[=Rejected<-]{Rejected<-}, \link[=AverageFunction<-]{AverageFunction<-} \tab \linkS4class{ERGExam} \tab Updates the FilterFunction, Rejected function or AverageFunction for all Recordings in an ERGExam, or only those selected using \code{where}. \cr
+#'   \link[=AutoPlaceMarkers]{AutoPlaceVEP} \tab \linkS4class{ERGExam} \tab Automatically sets markers depending on the channel (e.g., ERG, VEP, OP) and stimulus type (Flash, Flicker). \cr
+#'   \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker}, \link[=AutoPlaceVEP]{AutoPlaceVEP}  \tab \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} \tab Automatically sets markers for the respective type of channel (e.g., ERG, VEP, OP) and stimulus (Flash, Flicker). \cr
+#'   \link[=CheckAvgFxSet]{CheckAvgFxSet} \tab \linkS4class{ERGExam} \tab Checks if the average function is set correctly for the dataset. \cr
+#'   \link[=interactiveMeasurements]{interactiveMeasurements} \tab \linkS4class{ERGExam} \tab Allows for interactive visual placement of markers. \cr
+#' }
 #'
 #' @section Merging and other object manipulation:
-#' * \link[=MergeERGExams]{MergeERGExams} (for \link[=ERGExam]{ERGExam} objects) \cr\cr
-#' * \link[=Measurements<-]{Measurements<-} Add, update or remove Measurements from an \link[=ERGExam]{ERGExam} or \link[=ERGMeasurements]{ERGMeasurements-class} object.
-#' * \link[=DropMarker]{DropMarker}
-#' * \link[=AddMarker]{DropMarker} \cr\cr
-#' * \link[=StimulusTableMethods]{StimulusTableMethods} StimulusDescription()<-, StimulusIntensity()<-, StimulusBackground()<-, StimulusType()<-\cr\cr
-#' * \link[=UpdateChannelNames]{UpdateChannelNames} Update or replace channel names.
-#' * \link[=ClearMeasurements]{ClearMeasurements}  Clear the Measurements slots in an \link[=ERGExam]{ERGExam} object.
+#' \tabular{lll}{
+#'   \strong{Function/Method} \tab \strong{Classes} \tab \strong{Description} \cr
+#'   \link[=MergeERGExams]{MergeERGExams} \tab \linkS4class{ERGExam}  \tab Merges multiple ERGExam objects into one. \cr
+#'   \link[=Measurements<-]{Measurements<-} \tab \linkS4class{ERGExam} , \link[=ERGMeasurements]{ERGMeasurements-class} \tab Adds, updates, or removes Measurements from an ERGExam or ERGMeasurements object. \cr
+#'   \link[=ClearMeasurements]{ClearMeasurements} \tab \linkS4class{ERGExam}  \tab Clears the Measurements slots in an ERGExam object. \cr
+#'   \link[=DropMarker]{DropMarker}, \link[=AddMarker]{AddMarker}, \link[=RenameMarker]{RenameMarker} \tab \linkS4class{ERGExam} \tab Methods for marker modification. \cr
+#'   \link[=StimulusTableMethods]{StimulusTableMethods} StimulusDescription()<-, StimulusIntensity()<-, StimulusBackground()<-, StimulusType()<- \tab \linkS4class{ERGExam} \tab Updates stimulus description, intensity, background, and type in the stimulus table. \cr
+#'   \link[=UpdateChannelNames]{UpdateChannelNames} \tab \linkS4class{ERGExam} \tab Updates or replaces channel names in the dataset. \cr
+#'   \link[=DropRecordings]{DropRecordings} \tab \linkS4class{ERGExam}  \tab Drops specified recordings from the ERGExam object. \cr
+#'   \link[=as.std.channelname]{as.std.channelname},  \link[=is.std.channelname]{is.std.channelname}, \link[=erg_str]{erg_str}, \link[=op_str]{op_str}, \link[=vep_str]{vep_str} \tab Function \tab Standardizes channel names, checks if the channel name is standardized, returns standardized strings for ERG, OP, and VEP. \cr
+#'   \link[=as.std.eyename]{as.std.eyename}, \link[=eye.haystack]{eye.haystack}, \link[=od_str]{od_str}, \link[=os_str]{os_str} \tab Function \tab Standardizes eye names, processes eye data, returns standardized strings for the right eye (OD) and left eye (OS). \cr
+#' }
 #'
-#' @section Plot methods:
-#' * \link[=ggERGTrace]{ggERGTrace} Generate a \link[ggplot2:ggplot]{ggplot2::ggplot} plot for a single trace from an \linkS4class{ERGExam} objects.
-#' * \link[=ggERGExam]{ggERGExam}	Plot a complete \linkS4class{ERGExam} object.
-#' * \link[=ggIntensitySequence]{ggIntensitySequence}	Uses \link[ggplot2:ggplot]{ggplot2::ggplot} to plot intensity sequence for ERG exams
-#' * \link[=ggStepSequence]{ggStepSequence}	Uses \link[ggplot2:ggplot]{ggplot2::ggplot}  to plot step sequence (i.e. sequential recordings within a single protocol) for ERG exams
-#' * \link[=ggPlotRecordings]{ggPlotRecordings}	Uses ggplot2 to plot ERG traces from multiple ERGExam objects
-#' * \link[=interactiveMeasurements]{interactiveMeasurements}: Interactive visual placement of markers.#'
-#'
-#' TODO ImportEspionInfo, ImportEspionStimTab ImportEspionMetadata
-#' TODO as.std.channelname(channel_str, clear.unmatched = F) is.std.channelname(channel_str) erg_str() op_str() vep_str()
-#' TODO as.std.eyename(eye_str) eye.haystack()od_str() os_str()
-#' TODO Save Load
-#' TODO DropRecordings
-#' TODO RenameMarker
+#' @section Plot methods and interactive methods:
+#' \tabular{lll}{
+#'   \strong{Function/Method} \tab \strong{Classes} \tab \strong{Description} \cr
+#'   \link[=ggERGTrace]{ggERGTrace} \tab \linkS4class{ERGExam} \tab Generates a ggplot plot for a single trace from an ERGExam object. \cr
+#'   \link[=ggERGExam]{ggERGExam} \tab \linkS4class{ERGExam} \tab Plots a complete ERGExam object. \cr
+#'   \link[=ggIntensitySequence]{ggIntensitySequence} \tab \linkS4class{ERGExam} \tab Uses ggplot2 to plot intensity sequence for ERG exams. \cr
+#'   \link[=ggStepSequence]{ggStepSequence} \tab \linkS4class{ERGExam} \tab Uses ggplot2 to plot step sequence (i.e., sequential recordings within a single protocol) for ERG exams. \cr
+#'   \link[=ggPlotRecordings]{ggPlotRecordings} \tab \linkS4class{ERGExam} \tab Uses ggplot2 to plot ERG traces from multiple ERGExam objects. \cr
+#'   \link[=interactiveMeasurements]{interactiveMeasurements} \tab \linkS4class{ERGExam} \tab Interactive visual placement of markers using a Shiny app. \cr
+#'   \link[=exploreERGExam]{exploreERGExam} \tab \linkS4class{ERGExam} \tab Explores the ERGExam object interactively. \cr
+#' }
 #'
 #' @examples
 #' # a typical workflow
