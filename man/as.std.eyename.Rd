@@ -39,11 +39,14 @@ Convert eye identifier strings to standard notation
 }}
 \examples{
 as.std.eyename(c("RE", "OD", "OS", "Right"))
+\dontrun{
 eye.haystack()
-
+}#'
+\dontrun{
 od_str()
-
+}
+\dontrun{
 os_str()
-
+}
 }
 \keyword{internal}

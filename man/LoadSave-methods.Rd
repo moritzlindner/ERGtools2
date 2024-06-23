@@ -32,3 +32,12 @@ These functions load and save \linkS4class{ERGExam} objects from or into HDF5 fi
 \item \code{Load.ERGExam()}: Load \linkS4class{EPhysData:EPhysData} or \linkS4class{EPhysData:EPhysSet} objects from an HDF5 file
 
 }}
+\examples{
+data(ERG)
+fn <- tempfile()
+Save(ERG, fn, overwrite=T)
+data(ERG)
+fn <- tempfile()
+Save(ERG, fn, overwrite=T)
+Load.ERGExam(fn)
+}

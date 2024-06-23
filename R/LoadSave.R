@@ -17,6 +17,10 @@ NULL
 #' @importFrom units deparse_unit
 #' @importFrom hdf5r H5File
 #' @importFrom EPhysData Save
+#' @examples
+#' data(ERG)
+#' fn <- tempfile()
+#' Save(ERG, fn, overwrite=T)
 #' @rdname LoadSave-methods
 setMethod("Save",
           "ERGExam",
@@ -71,6 +75,11 @@ setMethod("Save",
 #' @importFrom hdf5r H5File
 #' @importFrom utils packageVersion compareVersion getFromNamespace
 #' @describeIn LoadSave-methods Load \linkS4class{EPhysData:EPhysData} or \linkS4class{EPhysData:EPhysSet} objects from an HDF5 file
+#' @examples
+#' data(ERG)
+#' fn <- tempfile()
+#' Save(ERG, fn, overwrite=T)
+#' Load.ERGExam(fn)
 #' @export
 Load.ERGExam <- function(filename) {
   Load.EPhysData_imp<-getFromNamespace("Load.EPhysData","EPhysData")

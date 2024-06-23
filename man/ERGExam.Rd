@@ -6,16 +6,16 @@
 \alias{ERGExam-class}
 \title{ERGExam Class}
 \description{
-A class representing an ERG (Electroretinogram) exam with associated data and attributes. This class extends the \link[EPhysData:EPhysSet]{EPhysData::EPhysSet} object and all methods valid for \link[EPhysData:EphysSet]{EPhysData::EphysSet} can also be applied to \code{ERGExam} objects.
+A class representing an ERG (Electroretinogram) exam. This class extends the \link[EPhysData:EPhysSet]{EPhysData::EPhysSet} object and all methods valid for \link[EPhysData:EPhysSet]{EPhysData::EPhysSet} can also be applied to \linkS4class{ERGExam} objects.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{Data}}{Data A list of \link{EPhysData} objects. Each item containing a recording in respsonse to a particular Stimulus ("Step"), from a particular eye and data Channel (e.g. ERG or OP)-}
+\item{\code{Data}}{Data A list of \link[EPhysData:EPhysData]{EPhysData::EPhysData} objects. Each item containing a recording in response to a particular Stimulus ("Step"), from a particular eye and data Channel (e.g. ERG or OP), as defined in the corresponding Metadata.}
 
-\item{\code{Metadata}}{A data frame containing metadata information associated with the data, each row corresponds to one item in \code{data}.
+\item{\code{Metadata}}{A data frame containing metadata information associated with the data in the Data slot, each row corresponds to one item in \code{data}.
 \describe{
-\item{Step}{A character vector containing the step name. A step describes data recorded in response to the same type of stimulus.}
+\item{Step}{An integer vector containing the step index. A step describes data recorded in response to the same type of stimulus. This column links the Stimulus slot to the metadata}
 \item{Eye}{A character vector. Possible values "RE" (right eye) and "LE" (left eye).}
 \item{Channel}{A character vector containing the channel name. This can be "ERG", "VEP" or "OP" for instance.}
 \item{Result}{A numeric vector containing the indices of individual results contained in an ERG exam. E.g., if a recording to one identical stimulus is performed twice, these would be distinguished by different indices in the Result column. Warning: This is currently experimental}
@@ -23,9 +23,9 @@ A class representing an ERG (Electroretinogram) exam with associated data and at
 
 \item{\code{Stimulus}}{A data frame containing stimulus information.
 \describe{
-\item{Step}{A character vector containing the step the given stimulus is associated with.}
-\item{Description}{A character vector describing the stimulus.}
-\item{Intensity}{An integer vector representing the intensity of the stimulus.}
+\item{Step}{An integer vector row index. Will be removed in future versions.}
+\item{Description}{A character vector describing the stimulus in a human-readable way.}
+\item{Intensity}{A numeric vector representing the intensity of the stimulus.}
 \item{Background}{A character vector describing the adaptation state of the retina for that stimulus (DA or LA).}
 \item{Type}{A character vector describing the type of the stimulus (e.g. Flash or Flicker).}
 }}

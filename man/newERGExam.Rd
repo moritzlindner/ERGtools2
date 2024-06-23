@@ -19,19 +19,16 @@ newERGExam(
 
 \item{Metadata}{A data frame containing metadata information associated with the data, each row corresponds to one list item.
 \describe{
-\item{Step}{A character vector containing the steps associated with the data.}
+\item{Step}{An integer vector pointing to a row index of the Stimulus table.}
 \item{Eye}{A character vector containing the possible values "RE" (right eye) and "LE" (left eye).}
 \item{Channel}{A character vector containing the unique names of the third level of \code{Data}.}
 }}
 
 \item{Stimulus}{A data frame containing stimulus information associated with the data.
 \describe{
-\item{Step}{A character vector specifying the steps associated with the stimulus.}
-\item{Name}{A character vector specifying the names of the stimuli.}
 \item{Description}{A character vector describing the stimuli.}
-\item{Adaptation}{A character vector describing the adaptation state of the stimulus.}
 \item{Background}{An integer vector representing the background intensity of the stimulus (unitless).}
-\item{Intensity}{An integer vector representing the intensity of the stimulus (unitless).}
+\item{Intensity}{An numeric vector representing the intensity of the stimulus (unitless).}
 }}
 
 \item{Averaged}{A list of averaged data.}
@@ -50,8 +47,8 @@ newERGExam(
 
 \item{SubjectInfo}{A list containing subject-related information.
 \describe{
-\item{Subject}{A character vector indicating the name of the patient.}
-\item{DOB}{A \code{Date} object indicating the date of birth of the patient.}
+\item{Subject}{A character vector (required) indicating the name of the patient.}
+\item{DOB}{A \code{Date} object  (required) indicating the date of birth of the patient.}
 \item{Gender}{Optional: A character vector indicating the gender of the patient.}
 \item{Group}{Optional: A character vector indicating the group to which the patient belongs.}
 }}
@@ -60,8 +57,7 @@ newERGExam(
 An object of class \code{ERGExam}.
 }
 \description{
-This function creates an instance of the \code{ERGExam} class
-with the specified data and attributes.
+This function creates an instance of the \linkS4class{ERGExam} class.
 }
 \examples{
 # Create example data and metadata
@@ -80,8 +76,7 @@ Metadata <-
     Result = as.integer(c(1,1,1,1))
   )
 Stimulus <-
-  data.frame(Step = as.integer(c(1, 2)),
-             Description = c("Stim1", "Stim2"),
+  data.frame(Description = c("Stim1", "Stim2"),
              Intensity = as.numeric(c(1,10)),
              Background = c("DA","DA"),
              Type = c("Flash","Flash"))  # Example stimulus data

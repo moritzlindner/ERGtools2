@@ -43,13 +43,22 @@ Convert non-standard channel names to standard channel names
 
 }}
 \examples{
+\dontrun{
 as.std.channelname(c("ERG_auto", "C-wave", "OPs", "Nonstandard"), clear.unmatched = TRUE)
+}
+\dontrun{
 is.std.channelname(c("ERG_auto", "C-wave", "OPs", "Nonstandard"))
+}
+\dontrun{
 erg_str()
-
+}
+\dontrun{
 op_str()
+}
 
+\dontrun{
 vep_str()
+}
 
 }
 \keyword{internal}

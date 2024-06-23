@@ -7,9 +7,9 @@
 merge2ERGMeasurements(
   obj1,
   obj2,
-  increment.obj2.recording.index.by,
-  obj2.recording.index.old,
-  obj2.recording.index.new
+  increment.obj2.recording.index.by = NULL,
+  obj2.recording.index.old = NULL,
+  obj2.recording.index.new = NULL
 )
 }
 \arguments{

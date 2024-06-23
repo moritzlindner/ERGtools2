@@ -493,9 +493,9 @@ merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
 merge2ERGMeasurements <-
   function(obj1,
            obj2,
-           increment.obj2.recording.index.by,
-           obj2.recording.index.old,
-           obj2.recording.index.new) {
+           increment.obj2.recording.index.by = NULL,
+           obj2.recording.index.old = NULL,
+           obj2.recording.index.new = NULL) {
     if (!validObject(obj1) || !validObject(obj2)) {
       stop("One or both of the objects are not valid ERGMeasurements objects.")
     }

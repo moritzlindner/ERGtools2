@@ -283,12 +283,12 @@ validERGExam <- function(object) {
 
 #' ERGExam Class
 #'
-#' A class representing an ERG (Electroretinogram) exam with associated data and attributes. This class extends the \link[EPhysData:EPhysSet]{EPhysData::EPhysSet} object and all methods valid for \link[EPhysData:EphysSet]{EPhysData::EphysSet} can also be applied to \code{ERGExam} objects.
+#' A class representing an ERG (Electroretinogram) exam. This class extends the \link[EPhysData:EPhysSet]{EPhysData::EPhysSet} object and all methods valid for \link[EPhysData:EPhysSet]{EPhysData::EPhysSet} can also be applied to \linkS4class{ERGExam} objects.
 #'
-#' @slot Data Data A list of \link{EPhysData} objects. Each item containing a recording in respsonse to a particular Stimulus ("Step"), from a particular eye and data Channel (e.g. ERG or OP)-
-#' @slot Metadata  A data frame containing metadata information associated with the data, each row corresponds to one item in \code{data}.
+#' @slot Data Data A list of \link[EPhysData:EPhysData]{EPhysData::EPhysData} objects. Each item containing a recording in response to a particular Stimulus ("Step"), from a particular eye and data Channel (e.g. ERG or OP), as defined in the corresponding Metadata.
+#' @slot Metadata  A data frame containing metadata information associated with the data in the Data slot, each row corresponds to one item in \code{data}.
 #' \describe{
-#'   \item{Step}{A character vector containing the step name. A step describes data recorded in response to the same type of stimulus.}
+#'   \item{Step}{An integer vector containing the step index. A step describes data recorded in response to the same type of stimulus. This column links the Stimulus slot to the metadata}
 #'   \item{Eye}{A character vector. Possible values "RE" (right eye) and "LE" (left eye).}
 #'   \item{Channel}{A character vector containing the channel name. This can be "ERG", "VEP" or "OP" for instance.}
 #'   \item{Result}{A numeric vector containing the indices of individual results contained in an ERG exam. E.g., if a recording to one identical stimulus is performed twice, these would be distinguished by different indices in the Result column. Warning: This is currently experimental}
@@ -297,9 +297,9 @@ validERGExam <- function(object) {
 #' @slot Stimulus
 #' A data frame containing stimulus information.
 #' \describe{
-#'   \item{Step}{A character vector containing the step the given stimulus is associated with.}
-#'   \item{Description}{A character vector describing the stimulus.}
-#'   \item{Intensity}{An integer vector representing the intensity of the stimulus.}
+#'   \item{Step}{An integer vector row index. Will be removed in future versions.}
+#'   \item{Description}{A character vector describing the stimulus in a human-readable way.}
+#'   \item{Intensity}{A numeric vector representing the intensity of the stimulus.}
 #'   \item{Background}{A character vector describing the adaptation state of the retina for that stimulus (DA or LA).}
 #'   \item{Type}{A character vector describing the type of the stimulus (e.g. Flash or Flicker).}
 #' }
@@ -362,13 +362,13 @@ ERGExam <- setClass(
   prototype = list(
     Data = list(NULL),
     Metadata = data.frame(
-      Step = character(),
+      Step = integer(),
       Eye = character(),
       Channel = character(),
       stringsAsFactors = FALSE
     ),
     Stimulus = data.frame(
-      Step = character(),
+      Step = integer(),
       Description = character(),
       Intensity = as_units(numeric(), unitless),
       Background = character(),
@@ -397,24 +397,20 @@ ERGExam <- setClass(
 
 #' Create an instance of the ERGExam class
 #'
-#' @description This function creates an instance of the \code{ERGExam} class
-#' with the specified data and attributes.
+#' @description This function creates an instance of the \linkS4class{ERGExam} class.
 #'
 #' @param Data A list of \linkS4class{EPhysData::EPhysData} objects.
 #' @param Metadata A data frame containing metadata information associated with the data, each row corresponds to one list item.
 #' \describe{
-#'   \item{Step}{A character vector containing the steps associated with the data.}
+#'   \item{Step}{An integer vector pointing to a row index of the Stimulus table.}
 #'   \item{Eye}{A character vector containing the possible values "RE" (right eye) and "LE" (left eye).}
 #'   \item{Channel}{A character vector containing the unique names of the third level of \code{Data}.}
 #' }
 #' @param Stimulus A data frame containing stimulus information associated with the data.
 #' \describe{
-#'   \item{Step}{A character vector specifying the steps associated with the stimulus.}
-#'   \item{Name}{A character vector specifying the names of the stimuli.}
 #'   \item{Description}{A character vector describing the stimuli.}
-#'   \item{Adaptation}{A character vector describing the adaptation state of the stimulus.}
 #'   \item{Background}{An integer vector representing the background intensity of the stimulus (unitless).}
-#'   \item{Intensity}{An integer vector representing the intensity of the stimulus (unitless).}
+#'   \item{Intensity}{An numeric vector representing the intensity of the stimulus (unitless).}
 #' }
 #' @param Averaged A list of averaged data.
 #' @param Measurements An object of class \linkS4class{ERGMeasurements}.
@@ -429,8 +425,8 @@ ERGExam <- setClass(
 #' }
 #' @param SubjectInfo A list containing subject-related information.
 #' \describe{
-#'   \item{Subject}{A character vector indicating the name of the patient.}
-#'   \item{DOB}{A \code{Date} object indicating the date of birth of the patient.}
+#'   \item{Subject}{A character vector (required) indicating the name of the patient.}
+#'   \item{DOB}{A \code{Date} object  (required) indicating the date of birth of the patient.}
 #'   \item{Gender}{Optional: A character vector indicating the gender of the patient.}
 #'   \item{Group}{Optional: A character vector indicating the group to which the patient belongs.}
 #' }
@@ -451,8 +447,7 @@ ERGExam <- setClass(
 #'     Result = as.integer(c(1,1,1,1))
 #'   )
 #' Stimulus <-
-#'   data.frame(Step = as.integer(c(1, 2)),
-#'              Description = c("Stim1", "Stim2"),
+#'   data.frame(Description = c("Stim1", "Stim2"),
 #'              Intensity = as.numeric(c(1,10)),
 #'              Background = c("DA","DA"),
 #'              Type = c("Flash","Flash"))  # Example stimulus data
@@ -494,6 +489,11 @@ newERGExam <-
            SubjectInfo) {
     # Call the default constructor
     obj <- new("ERGExam")
+
+    if("Step" %in% colnames(Stimulus)){
+      warning("Reserved column name 'Step' encountered. Will be overwritten.")
+    }
+    Stimulus$Step<-as.integer(1:nrow(Stimulus))
 
     # Set the values for the slots
     obj@Data <- Data
