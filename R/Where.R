@@ -88,91 +88,91 @@ Where.generic <- function(MD,
   if (length(where) == 0) {
     # if all should be returned
     idx <- 1:nrow(MD)
-  }
+  } else {
+    md.sel <- which(names(where) %in% colnames(MD))
+    stim.sel <-
+      which(names(where) %in% colnames(STIMTAB))
 
-
-  md.sel <- which(names(where) %in% colnames(MD))
-  stim.sel <-
-    which(names(where) %in% colnames(STIMTAB))
-
-  if (all(length(md.sel) == 0, length(stim.sel) == 0)) {
-    stop(
-      "Names of 'where' must be valid column names from the object's metadata or stimulus table."
-    )
-  }
-  if (length(stim.sel) != 0) {
-    # for the entries regarding the stimulus table, convert to step
-    stim <- STIMTAB
-    stim.steps <- !logical(nrow(STIMTAB))
-    for (n in names(where)[stim.sel]) {
-      if (class(where[[n]]) != class(stim[, n])) {
-        if (all( c("numeric","integer") %in% c(class(where[[n]]), class(stim[, n])))){
-          if (inherits(stim[, n],"numeric")) {
-            where[[n]]<-as.numeric(where[[n]])
-          }
-          if (inherits(stim[, n],"integer")) {
-            where[[n]]<-as.integer(where[[n]])
-          }
-        } else {
-          stop (
-            paste0(
-              "Entry for '",
-              n,
-              "' in 'where' is of type '",
-              class(where[[n]]),
-              "' while content of the corresponding coulumn in the stimulus table is of type '",
-              class(stim[, n]),
-              "'."
+    if (all(length(md.sel) == 0, length(stim.sel) == 0)) {
+      stop(
+        "Names of 'where' must be valid column names from the object's metadata or stimulus table."
+      )
+    }
+    if (length(stim.sel) != 0) {
+      # for the entries regarding the stimulus table, convert to step
+      stim <- STIMTAB
+      stim.steps <- !logical(nrow(STIMTAB))
+      for (n in names(where)[stim.sel]) {
+        if (class(where[[n]]) != class(stim[, n])) {
+          if (all( c("numeric","integer") %in% c(class(where[[n]]), class(stim[, n])))){
+            if (inherits(stim[, n],"numeric")) {
+              where[[n]]<-as.numeric(where[[n]])
+            }
+            if (inherits(stim[, n],"integer")) {
+              where[[n]]<-as.integer(where[[n]])
+            }
+          } else {
+            stop (
+              paste0(
+                "Entry for '",
+                n,
+                "' in 'where' is of type '",
+                class(where[[n]]),
+                "' while content of the corresponding coulumn in the stimulus table is of type '",
+                class(stim[, n]),
+                "'."
+              )
             )
-          )
-        }
-        # check if has correct class
-
-      }
-      stim.steps <- stim.steps & stim[, n] %in% where[[n]]
-    }
-    stim.steps <- STIMTAB$Step[stim.steps]
-    if ("Step" %in% names(where)) {
-      stim.steps <- stim.steps[stim.steps %in% where$Step]
-    } else{
-      where$Step <- stim.steps
-    }
-    md.sel <-
-      which(names(where) %in% colnames(MD)) # update md.sel
-  }
-
-  if (length(md.sel) != 0) {
-    # now for the entries in metadata column
-    md <- MD
-    md.logidx <- !logical(nrow(MD))
-    for (n in names(where)[md.sel]) {
-      if (class(where[[n]]) != class(md[, n])) {
-        if (all(c("numeric", "integer") %in% c(class(where[[n]]), class(md[, n])))) {
-          if (inherits(md[, n], "numeric")) {
-            where[[n]] <- as.numeric(where[[n]])
           }
-          if (inherits(md, "integer")) {
-            where[[n]] <- as.integer(where[[n]])
-          }
-        } else {
           # check if has correct class
-          stop(
-            paste0(
-              "Entry for '",
-              n,
-              "' in 'where' is of type '",
-              class(where[[n]]),
-              "' while content of the corresponding coulumn in the meatadta is of type '",
-              class(md[, n]),
-              "'."
-            )
-          )
+
         }
+        stim.steps <- stim.steps & stim[, n] %in% where[[n]]
       }
-      md.logidx <- md.logidx & md[, n] %in% where[[n]]
+      stim.steps <- STIMTAB$Step[stim.steps]
+      if ("Step" %in% names(where)) {
+        stim.steps <- stim.steps[stim.steps %in% where$Step]
+      } else{
+        where$Step <- stim.steps
+      }
+      md.sel <-
+        which(names(where) %in% colnames(MD)) # update md.sel
     }
-    idx <- which(md.logidx)
+
+    if (length(md.sel) != 0) {
+      # now for the entries in metadata column
+      md <- MD
+      md.logidx <- !logical(nrow(MD))
+      for (n in names(where)[md.sel]) {
+        if (class(where[[n]]) != class(md[, n])) {
+          if (all(c("numeric", "integer") %in% c(class(where[[n]]), class(md[, n])))) {
+            if (inherits(md[, n], "numeric")) {
+              where[[n]] <- as.numeric(where[[n]])
+            }
+            if (inherits(md, "integer")) {
+              where[[n]] <- as.integer(where[[n]])
+            }
+          } else {
+            # check if has correct class
+            stop(
+              paste0(
+                "Entry for '",
+                n,
+                "' in 'where' is of type '",
+                class(where[[n]]),
+                "' while content of the corresponding coulumn in the meatadta is of type '",
+                class(md[, n]),
+                "'."
+              )
+            )
+          }
+        }
+        md.logidx <- md.logidx & md[, n] %in% where[[n]]
+      }
+      idx <- which(md.logidx)
+    }
   }
+
   if (!is.null(expected.length)) {
     if (length(idx) != expected.length) {
       stop(

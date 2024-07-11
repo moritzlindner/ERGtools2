@@ -21,13 +21,20 @@ CollectMeasurements <- function(List,
                                 where = list(),
                                 Markers = c("a", "B", "N1", "P1"),
                                 measure.absolute = F) {
-  # could add compatibility w single Exam
+  # compatibility f single Exam
   quiet=F
   if (!all(unlist((lapply(List, function(x) {
     inherits(x, "ERGExam")
   }))))) {
-    if(inherits(List, "ERGExam")){
-      Measurements(List, where = where, Marker = Markers, measure.absolute = measure.absolute)
+    if (inherits(List, "ERGExam")) {
+      return(
+        Measurements(
+          List,
+          where = where,
+          Marker = Markers,
+          measure.absolute = measure.absolute
+        )
+      )
     }
     stop("'List' is not a list of ERGExams.")
   }
@@ -54,7 +61,12 @@ CollectMeasurements <- function(List,
       markers<-unique(df$Name)
       for(m in markers){
         if(length(df$Recording[df$Name==m])!=length(unique(df$Recording))){
-          warning(paste0("Marker ",m," missing for at least one of the recordings."))
+
+          unique_recordings <- unique(df$Recording)
+          filtered_recordings <- unique(df$Recording[df$Name == m])
+          missing_recordings <- setdiff(unique_recordings, filtered_recordings)
+
+          warning(paste0("Marker ",m," missing for at least one of the recordings. Subj: ", Subject(x), "(", df$Group,"), Recording #", missing_recordings))
         }
       }
 

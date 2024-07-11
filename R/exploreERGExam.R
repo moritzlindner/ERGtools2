@@ -106,8 +106,8 @@ setMethod("exploreERGExam",
             stimulus <- Stimulus(X)
             measurements <-
               Measurements(X, TimesOnly = F, quiet = T)
+            AnyMeasuremnts<-nrow(measurements)>0
             metadata$IDX <- 1:nrow(metadata)
-
             server <- function(input, output, session) {
               filteredData <- reactiveVal(metadata)
 
@@ -162,19 +162,23 @@ setMethod("exploreERGExam",
                           "Description",
                           "Result"
                         )]
-                measurementsCount <-
-                  as.data.frame(table(measurements$Recording))
-                colnames(measurementsCount) <-
-                  c("IDX", "MeasurementsCount")
-                # Merge the measurements count data frame with the mergedData data frame
-                mergedData <-
-                  merge(
-                    mergedData,
-                    measurementsCount,
-                    by.x = "IDX",
-                    by.y = "IDX",
-                    all.x = TRUE
-                  )
+                if (AnyMeasuremnts) {
+                  measurementsCount <-
+                    as.data.frame(table(measurements$Recording))
+                  colnames(measurementsCount) <-
+                    c("IDX", "MeasurementsCount")
+                  # Merge the measurements count data frame with the mergedData data frame
+                  mergedData <-
+                    merge(
+                      mergedData,
+                      measurementsCount,
+                      by.x = "IDX",
+                      by.y = "IDX",
+                      all.x = TRUE
+                    )
+                } else{
+                  mergedData$MeasurementsCount <- 0
+                }
                 # Replace NA values in the Count column with 0
                 mergedData$MeasurementsCount[is.na(mergedData$MeasurementsCount)] <-
                   0
@@ -187,17 +191,19 @@ setMethod("exploreERGExam",
                 filteredData()
               }, selection = "single",
               options = list(dom = 't'))
+              if (AnyMeasuremnts) {
+                output$measurementsData <- renderDataTable({
+                  req(input$filteredData_rows_selected)
 
-              output$measurementsData <- renderDataTable({
-                req(input$filteredData_rows_selected)
+                  selectedRow <-
+                    as.numeric(filteredData()[input$filteredData_rows_selected, "IDX"])
+                  selectedMeasurements <-
+                    measurements[measurements$Recording == selectedRow, c("Name", "Relative", "Time", "Voltage")]
 
-                selectedRow <-
-                  as.numeric(filteredData()[input$filteredData_rows_selected, "IDX"])
-                selectedMeasurements <-
-                  measurements[measurements$Recording == selectedRow, c("Name", "Relative", "Time", "Voltage")]
-
-                datatable(selectedMeasurements)
-              })
+                  datatable(selectedMeasurements)
+                }, selection = "single",
+                options = list(dom = 't'))
+              }
 
               output$graphOutput <- renderPlot({
                 req(input$filteredData_rows_selected)
@@ -205,8 +211,10 @@ setMethod("exploreERGExam",
 
                 selectedRow <-
                   as.numeric(filteredData()[input$filteredData_rows_selected, "IDX"])
-                ggERGTrace(X, where = list(Recording = selectedRow))
+                print(selectedRow)
+                ggERGTrace(X, where = selectedRow) #where = list(Recording = selectedRow))
               })
+              # observe the remove buttons
 
               observeEvent(input$removeRecBtn, {
                 if(!is.null(input$filteredData_rows_selected)){
@@ -281,6 +289,7 @@ setMethod("exploreERGExam",
                   )
                 }
               })
+
               # Observe the finish button
               observeEvent(input$CloseBtn, {
                 showModal(modalDialog(
@@ -314,7 +323,7 @@ setMethod("exploreERGExam",
 
               onSessionEnded(function() {
                 js$closeWindow()
-                stopApp(out)
+                stopApp(NULL)
               })
 
             }
@@ -323,5 +332,10 @@ setMethod("exploreERGExam",
 
             # run)
             out <- runApp(SetMarkersApp, launch.browser = T)
-            Subset(X,where=out)
+            if(!is.null(out)){
+              Subset(X,where=out)
+            } else {
+              warning("exploreERGExam seems to have crashed or Browser Tab was closed. Returning original object.")
+              X
+            }
           })

@@ -128,13 +128,13 @@ setMethod(
               # Measurements
               if (show.markers) {
                 plotrows[[ID]] <- plotrows[[ID]] +
-                  geom_line(
-                    data = curr.mes,
-                    aes(group = Name),
-                    color = "black",
-                    linewidth = 1.0675,
-                    alpha = 0.3
-                  ) +
+                  # geom_line(
+                  #   data = curr.mes,
+                  #   aes(group = Name),
+                  #   color = "black",
+                  #   linewidth = 1.0675,
+                  #   alpha = 0.3
+                  # ) +
                   geom_point(data = curr.mes, aes(group = Name), color = "black")
               }
             }

@@ -13,7 +13,7 @@
 #' @return A ggplot2 plot object.
 #'
 #' @importFrom units as_units deparse_unit
-#' @importFrom ggplot2 ggplot aes geom_line geom_point geom_errorbar scale_x_log10 facet_wrap labs
+#' @importFrom ggplot2 ggplot aes geom_line geom_point geom_errorbar scale_x_log10 facet_wrap labs guides
 #' @importFrom ggpubr theme_pubr
 #' @importFrom tidyr %>%
 #' @importFrom dplyr summarise
@@ -106,12 +106,24 @@ ggIntensitySequence <-
 
       }
 
+      if (length(unique(results$Channel))!=1) {
+        plt <- plt +
+          facet_wrap(~ Channel,
+                     scales = "free")
+      }
       plt<-plt+
-        facet_wrap( ~ Channel,
-                    scales = "free") +
         theme_pubr(base_size = theme.base.size) +
         scale_x_log10() +
         labs(x = "Intensity [cd*s/m^2]", shape = "Marker")
+
+      if(length(unique(results$Group))==1){
+        plt<-plt+
+          guides( color = "none")
+      }
+      if(length(unique(results$Name))==1){
+        plt<-plt+
+          guides( shape = "none")
+      }
     }
     return(plt)
   }
