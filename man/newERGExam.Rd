@@ -76,7 +76,9 @@ Metadata <-
     Result = as.integer(c(1,1,1,1))
   )
 Stimulus <-
-  data.frame(Description = c("Stim1", "Stim2"),
+  data.frame(
+             Step = as.integer(c(1,1,2,2)),
+             Description = c("Stim1", "Stim2"),
              Intensity = as.numeric(c(1,10)),
              Background = c("DA","DA"),
              Type = c("Flash","Flash"))  # Example stimulus data

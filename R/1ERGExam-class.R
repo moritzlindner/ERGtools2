@@ -202,6 +202,10 @@ validERGExam <- function(object) {
 
   # Stimulus slot
   if (!all(object@Stimulus$Step %in% unique(Metadata(object)$Step))) {
+    message("Step entries in Stimulus table are:")
+    message(object@Stimulus$Step )
+    message("Steps contained in Metadata are:")
+    message (unique(Metadata(object)$Step))
     stop("All stimuli described must correspond to a Step as defined in 'Metadata'.")
   }
 
@@ -447,7 +451,9 @@ ERGExam <- setClass(
 #'     Result = as.integer(c(1,1,1,1))
 #'   )
 #' Stimulus <-
-#'   data.frame(Description = c("Stim1", "Stim2"),
+#'   data.frame(
+#'              Step = as.integer(c(1,1,2,2)),
+#'              Description = c("Stim1", "Stim2"),
 #'              Intensity = as.numeric(c(1,10)),
 #'              Background = c("DA","DA"),
 #'              Type = c("Flash","Flash"))  # Example stimulus data
@@ -490,10 +496,19 @@ newERGExam <-
     # Call the default constructor
     obj <- new("ERGExam")
 
-    if("Step" %in% colnames(Stimulus)){
-      warning("Reserved column name 'Step' encountered. Will be overwritten.")
+    if ("Step" %in% colnames(Stimulus)) {
+      if ((suppressWarnings(all(!is.na(
+        as.integer(as.character(Stimulus$Step))
+      ))))) {
+        Stimulus$Step <- as.integer(Stimulus$Step)
+      } else {
+        stop("'Step' column in stimulus table contains invalid values: ", Stimulus$Step)
+      }
+    } else {
+      warning("No 'Step' column in stimulus table encountered. Will be filled with row numbers.")
+      Stimulus$Step <- as.integer(1:nrow(Stimulus))
     }
-    Stimulus$Step<-as.integer(1:nrow(Stimulus))
+
 
     # Set the values for the slots
     obj@Data <- Data

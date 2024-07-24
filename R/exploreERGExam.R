@@ -211,7 +211,6 @@ setMethod("exploreERGExam",
 
                 selectedRow <-
                   as.numeric(filteredData()[input$filteredData_rows_selected, "IDX"])
-                print(selectedRow)
                 ggERGTrace(X, where = selectedRow) #where = list(Recording = selectedRow))
               })
               # observe the remove buttons

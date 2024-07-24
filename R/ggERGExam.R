@@ -21,7 +21,7 @@
 #' ggERGExam(ERG,SetSIPrefix="auto")
 #' ggERGExam(ERG,SetSIPrefix="k")
 #'
-#' @importFrom ggplot2 ggplot aes geom_line facet_grid vars ggtitle facet_wrap element_line
+#' @importFrom ggplot2 ggplot aes geom_line facet_grid vars ggtitle facet_wrap element_line guide_legend
 #' @importFrom ggpubr theme_pubr
 #' @importFrom gridExtra grid.arrange
 #' @importFrom grid textGrob
@@ -110,16 +110,19 @@ setMethod(
           curr$colourby <- as.ordered(curr[, colourby])
           ID <- paste0(b, "-", t)
           plotrows[[ID]] <- ggplot(curr,
-                                   aes(
-                                     x = Time,
-                                     y = Value,
-                                     colour = colourby
-                                   )) +
+                                   aes(x = Time,
+                                       y = Value,
+                                       colour = colourby)) +
             geom_line() +
-            facet_grid(Channel ~ Eye, scales = "free") +
-            ggtitle(paste0(Subject(X), ", ", ExamDate(X), "\n", ProtocolName(X))) +
-            theme_pubr(base_size = 8) +
-            ggtitle((ID))
+            #ggtitle(paste0(Subject(X), ", ", ExamDate(X), "\n", ProtocolName(X))) +
+            guides(color = guide_legend(title = colourby)) +
+            theme_pubr(base_size = 8)
+            if (length(unique(curr$Channel)) * length(unique(curr$Eye)) > 1) {
+              plotrows[[ID]] <- plotrows[[ID]] +
+              facet_grid(Channel ~ Eye, scales = "free")
+            }
+            plotrows[[ID]] <- plotrows[[ID]] +
+              ggtitle((ID))
 
           # add Measurements
 
@@ -165,10 +168,14 @@ setMethod(
                                      colour = as.ordered(Result)
                                    )) +
             geom_line() +
-            facet_grid(~ Eye, scales = "free") +
-            ggtitle(paste0(Subject(X), ", ", ExamDate(X), "\n", ProtocolName(X))) +
-            theme_pubr(base_size = 8) +
-            ggtitle((ID))
+            #ggtitle(paste0(Subject(X), ", ", ExamDate(X), "\n", ProtocolName(X))) +
+            theme_pubr(base_size = 8)
+          if (length(unique(curr$Eye)) > 1) {
+            plotrows[[ID]]  <-
+              plotrows[[ID]] + facet_grid(~ Eye, scales = "free")
+          }
+
+          plotrows[[ID]] <- plotrows[[ID]] + ggtitle((ID))
         }
       }
     }
