@@ -34,9 +34,11 @@ These functions load and save \linkS4class{ERGExam} objects from or into HDF5 fi
 }}
 \examples{
 data(ERG)
+ERG<-SetStandardFunctions(ERG)
 fn <- tempfile()
 Save(ERG, fn, overwrite=T)
 data(ERG)
+ERG<-SetStandardFunctions(ERG)
 fn <- tempfile()
 Save(ERG, fn, overwrite=T)
 Load.ERGExam(fn)

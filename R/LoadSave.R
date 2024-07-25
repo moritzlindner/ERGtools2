@@ -19,6 +19,7 @@ NULL
 #' @importFrom EPhysData Save
 #' @examples
 #' data(ERG)
+#' ERG<-SetStandardFunctions(ERG)
 #' fn <- tempfile()
 #' Save(ERG, fn, overwrite=T)
 #' @rdname LoadSave-methods
@@ -77,6 +78,7 @@ setMethod("Save",
 #' @describeIn LoadSave-methods Load \linkS4class{EPhysData:EPhysData} or \linkS4class{EPhysData:EPhysSet} objects from an HDF5 file
 #' @examples
 #' data(ERG)
+#' ERG<-SetStandardFunctions(ERG)
 #' fn <- tempfile()
 #' Save(ERG, fn, overwrite=T)
 #' Load.ERGExam(fn)
