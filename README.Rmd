@@ -10,7 +10,6 @@ knitr::opts_chunk$set(
   comment = "#>",
   fig.path = "man/figures/README-",
   out.width = "100%",
-  results = "hide",
   message = FALSE
 )
 ```
@@ -56,7 +55,8 @@ ERG<-ClearMeasurements(ERG) # Clear Measuremnts that migth be alredy in object
 ERG<-SetStandardFunctions(ERG)
 ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG", Result = as.integer(1))) # pick one and have a look at the traces as imported
 
-ERG <- AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG_auto")) # automatically place markers
+ERG <- AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG")) # automatically place markers
+Measurements(ERG)
 ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG", Result = as.integer(1))) # pick one and have a look at the traces as imported
 
 ```
