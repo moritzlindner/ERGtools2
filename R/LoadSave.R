@@ -9,6 +9,7 @@
 #' * Load: An \linkS4class{ERGExam} object.
 #' @name LoadSave
 #' @rdname LoadSave-methods
+#' @aliases Load Save
 #' @docType methods
 NULL
 
@@ -75,12 +76,14 @@ setMethod("Save",
 
 #' @importFrom hdf5r H5File
 #' @importFrom utils packageVersion compareVersion getFromNamespace
+#' @importFrom EPhysMethods filter.detrend filter.bandpass filter.lin.detrend autoreject.by.absolute.threshold autoreject.by.distance autoreject.by.signalfree
 #' @describeIn LoadSave-methods Load \linkS4class{EPhysData:EPhysData} or \linkS4class{EPhysData:EPhysSet} objects from an HDF5 file
 #' @examples
 #' data(ERG)
 #' ERG<-SetStandardFunctions(ERG)
 #' fn <- tempfile()
 #' Save(ERG, fn, overwrite=T)
+#' require(EPhysMethods) # EPhysMethods is required as SetStandardFunctions has written functions from it into the file
 #' Load.ERGExam(fn)
 #' @export
 Load.ERGExam <- function(filename) {

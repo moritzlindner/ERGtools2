@@ -3,6 +3,8 @@
 \docType{methods}
 \name{LoadSave}
 \alias{LoadSave}
+\alias{Load}
+\alias{Save}
 \alias{Save,ERGExam-method}
 \alias{Load.ERGExam}
 \title{Load/Save ERGExam objects to or from  HDF5 files}
@@ -41,5 +43,6 @@ data(ERG)
 ERG<-SetStandardFunctions(ERG)
 fn <- tempfile()
 Save(ERG, fn, overwrite=T)
+require(EPhysMethods) # EPhysMethods is required as SetStandardFunctions has written functions from it into the file
 Load.ERGExam(fn)
 }

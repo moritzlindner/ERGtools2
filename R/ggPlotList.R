@@ -308,6 +308,24 @@ ggPlotRecordings <- function(List,
     "Intensity"
   results$Step <- iconv(results$Step, "ASCII//TRANSLIT", sub = '')
 
+  # define faceting variables
+  get_non_unary_columns <- function(df, columns) {
+    non_unary_columns <- columns[sapply(df[columns], function(x) length(unique(x)) > 1)]
+    return(non_unary_columns)
+  }
+  rows <- get_non_unary_columns(results, c("Type", "Background", "Intensity", "Channel"))
+  if(length(rows)==0){
+    rows<-"1"
+  }
+  cols <- get_non_unary_columns(results, c("Group", "Subject"))
+  if(length(cols)==0){
+    cols<-"1"
+  }
+  facet_formula <- as.formula(paste(
+    paste(rows, collapse = "+"),
+    paste(cols, collapse = "+"),
+    sep = " ~ "
+  ))
 
   # plot
   ggplot(data = results, aes(
@@ -322,7 +340,7 @@ ggPlotRecordings <- function(List,
     geom_hline(yintercept = as_units(0,"uV"), colour = "gray") +
     geom_line() +
     geom_ribbon(alpha=0.2, colour=NA) +
-    facet_grid(Type+Background+Intensity+Channel~Group+Subject,
+    facet_grid(facet_formula,
                scales = scales
     ) +
     theme_pubclean(base_size = 8) +
