@@ -52,6 +52,7 @@ library(ERGtools2)
 data(ERG) # load example data, to import own data, see the examples provided for newERGExam and ImportEspion
 StimulusTable(ERG) # have a look whats inside
 Metadata(ERG)
+ERG<-ClearMeasurements(ERG) # Clear Measuremnts that migth be alredy in object
 ERG<-SetStandardFunctions(ERG)
 ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG", Result = as.integer(1))) # pick one and have a look at the traces as imported
 
