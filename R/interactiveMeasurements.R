@@ -519,19 +519,19 @@ setMethod("interactiveMeasurements",
                                                                        "Recording",
                                                                        "Result",
                                                                        "Name",
-                                                                       "Channel_Name",
+                                                                       "Channel",
                                                                        "Relative")]) %in% do.call(paste, new.measurements[, c("Step",
                                                                                                                               "Eye",
                                                                                                                               "Recording",
                                                                                                                               "Result",
                                                                                                                               "Name",
-                                                                                                                              "Channel_Name",
+                                                                                                                              "Channel",
                                                                                                                               "Relative")])), c("Step",
                                                                                                                                                 "Eye",
                                                                                                                                                 "Recording",
                                                                                                                                                 "Result",
                                                                                                                                                 "Name",
-                                                                                                                                                "Channel_Name")]
+                                                                                                                                                "Channel")]
               ## update and add
               new.measurements <-
                 merge(
@@ -558,13 +558,13 @@ setMethod("interactiveMeasurements",
                       where = list(
                         Step = curr.m$Step,
                         Eye = curr.m$Eye,
-                        Channel = curr.m$Channel_Name,
+                        Channel = curr.m$Channel,
                         Result = curr.m$Result
                       )
                     ),
                     create.marker.if.missing = T,
                     Relative = curr.m$Relative,
-                    ChannelBinding = curr.m$Channel_Name
+                    ChannelBinding = curr.m$Channel
                   ) <- curr.m$Time
                   setTxtProgressBar(pb, m)
                 }
@@ -589,7 +589,7 @@ setMethod("interactiveMeasurements",
                       where = list(
                         Step = curr.m$Step,
                         Eye = curr.m$Eye,
-                        Channel = curr.m$Channel_Name,
+                        Channel = curr.m$Channel,
                         Result = curr.m$Result
                       )
                     ),
