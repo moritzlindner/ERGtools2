@@ -45,8 +45,6 @@ setMethod("ggERGTrace",
             }
             sel <- X[[which]]
 
-            Rejected(sel) <-
-              as.vector(Rejected(sel)) #workaround in case of non-vector results of the Rejected function
             un <- Measurements(X,
                                where = which)$Voltage[1]
             sel@Data <-
