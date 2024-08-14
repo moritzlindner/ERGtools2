@@ -22,7 +22,7 @@ setGeneric(
   name = "ggERGTrace",
   def = function(X,
                  where,
-                 Interactive = F
+                 Interactive = F,
                  SetSIPrefix="auto",
                  Raw = T) {
     standardGeneric("ggERGTrace")
@@ -34,7 +34,7 @@ setMethod("ggERGTrace",
           "ERGExam",
           function(X,
                    where,
-                   Interactive = F
+                   Interactive = F,
                    SetSIPrefix="auto",
                    Raw = T) {
             which <-
