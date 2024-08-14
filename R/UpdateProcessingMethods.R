@@ -64,7 +64,7 @@ setMethod(
       AverageFunction(X@Data[[i]]) <- mean
       FilterFunction(X@Data[[i]]) <- filter.lin.detrend
       if (Md$Type[i] %in% Stimulus.type.names$Flash) {
-        Rejected(X@Data[[i]]) <- autoreject.by.signalfree  # select by signal amplitude???
+        Rejected(X@Data[[i]]) <- autoreject.by.distance  # select by signal amplitude???
       }
       if (Md$Type[i] %in% Stimulus.type.names$Flicker) {
         Rejected(X@Data[[i]]) <- autoreject.by.distance
