@@ -9,7 +9,14 @@
 #' @param SetSIPrefix Change the SI prefix. Set to \code{keep}, for not to change anything, to \code{auto} (default) for using the \link[EPhysData:BestSIPrefix-methods]{EPhysData:BestSIPrefix-methods} to minimize the number of relevant digits or to any SI prefix to use that. Calls the \link[EPhysData:SetSIPrefix-methods]{EPhysData:SetSIPrefix-methods}.
 #' @param downsample 	Integer giving the desired number of intervals for downsampling. Non-integer values are rounded down. Defaults to 250.
 #'
-#' @return A \link[ggplot2:ggplot]{ggplot2:ggplot} plot of the ERGExam data.
+#' @return Depending on the \code{return.as} parameter, this function returns either a \link[gridExtra:grid.arrange]{gridExtra::grid.arrange} object containing the plot(s) or a list of \link[ggplot2:ggplot]{ggplot2:ggplot} objects.
+#'
+#' @details The function arranges the plots based on the data characteristics:
+#' \itemize{
+#'   \item **Rows:** If there are multiple channels (e.g., ERG, VEP) recorded, each channel is plotted in a separate row. If the `ERGExam` object contains data from both eyes, separate rows will also be used for each eye.
+#'   \item **Columns:** The plots are arranged into columns based on the adaptation state (e.g., dark-adapted, light-adapted) and stimulus type.
+#' }
+#' If both channels and eye recordings are present, the plot will use a facet grid with channels in rows and eyes in columns. If only one eye or one channel is present, a single plot is returned.
 #'
 #' @export
 #' @examples
