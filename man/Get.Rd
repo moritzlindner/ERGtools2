@@ -5,7 +5,7 @@
 \alias{Eyes}
 \alias{Channels}
 \alias{Steps}
-\alias{Results}
+\alias{Repeats}
 \alias{Subject}
 \alias{MarkerNames}
 \alias{ProtocolName}
@@ -20,7 +20,7 @@ Channels(X)
 
 Steps(X)
 
-Results(X)
+Repeats(X)
 
 Subject(X)
 
@@ -56,7 +56,7 @@ These methods can be used to access metadata information stored in \linkS4class{
 
 \item \code{Steps()}: Returns the steps of the exam
 
-\item \code{Results()}: Returns the indices of individual results contained in an ERG exam.
+\item \code{Repeats()}: Returns the indices of individual repeats contained in an ERG exam.
 
 \item \code{Subject()}: Returns the subject's name
 
@@ -85,7 +85,7 @@ Channels(ERG)
 Steps(ERG)
 
 # Accessing steps from ERGExam object
-Results(ERG)
+Repeats(ERG)
 
 # Accessing subject from ERGExam object
 Subject(ERG)

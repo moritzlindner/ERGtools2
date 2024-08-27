@@ -13,5 +13,5 @@ setMethod("ExtraMetaColumns",
           "ERGExam",
           function(X) {
             cols<-colnames(Metadata(X))
-            return(cols[!(cols %in% c("Step", "Channel", "Result", "Eye"))])
+            return(cols[!(cols %in% c("Step", "Channel", "Repeat", "Eye"))])
           })

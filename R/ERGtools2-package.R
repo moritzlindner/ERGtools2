@@ -33,7 +33,7 @@
 #'   \link[=Markers]{Markers} \tab \linkS4class{ERGExam} , \linkS4class{ERGMeasurements} \tab Returns marker information from the dataset. \cr
 #'   \strong{\link[=Measurements]{Measurements}} \tab \linkS4class{ERGExam} , \linkS4class{ERGMeasurements} \tab Returns the Measurements table. \cr
 #'   \link[=DOB]{DOB}, \link[=ExamDate]{ExamDate}, \link[=GroupName]{GroupName}, \link[=ProtocolName]{ProtocolName} \tab \linkS4class{ERGExam}  \tab Returns information on the exam and the examined subject. \cr
-#'   \link[=Eyes]{Eyes}, \link[=Steps]{Steps}, \link[=Channels]{Channels}, \link[=Results]{Results} \tab \linkS4class{ERGExam}  \tab Returns information on the Recordings contained in the dataset. \cr
+#'   \link[=Eyes]{Eyes}, \link[=Steps]{Steps}, \link[=Channels]{Channels}, \link[=Repeats]{Repeats} \tab \linkS4class{ERGExam}  \tab Returns information on the Recordings contained in the dataset. \cr
 #' }
 #'
 #' @section Processing:
@@ -79,14 +79,14 @@
 #' StimulusTable(ERG) # have a look whats inside
 #' Metadata(ERG)
 #' ERG<-SetStandardFunctions(ERG)
-#' ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG", Result = as.integer(1))) # pick one and have a look at the traces as imported
+#' ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG", Repeat = as.integer(1))) # pick one and have a look at the traces as imported
 #'
 #' ERG <- AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG_auto")) # automatically place markers
 #'
-#' ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG", Result = as.integer(1))) # pick one and have a look at the traces as imported
+#' ggERGTrace(ERG, where = list( Step = as.integer(3), Eye = "RE", Channel ="ERG", Repeat = as.integer(1))) # pick one and have a look at the traces as imported
 #'
 #' @author \href{https://www.lindnerlab.de}{Moritz Lindner}
 #' @aliases ERGtools2-package
-#' @docType package
+#' @docType _PACKAGE
 #' @name ERGtools2-package
 NULL

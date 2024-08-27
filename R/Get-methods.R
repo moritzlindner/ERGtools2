@@ -21,7 +21,7 @@
 #' Steps(ERG)
 #'
 #' # Accessing steps from ERGExam object
-#' Results(ERG)
+#' Repeats(ERG)
 #'
 #' # Accessing subject from ERGExam object
 #' Subject(ERG)
@@ -97,23 +97,23 @@ setMethod("Steps",
             unique(X@Metadata$Step)
           })
 
-#' @describeIn Get Returns the indices of individual results contained in an ERG exam.
-#' @exportMethod Results
+#' @describeIn Get Returns the indices of individual repeats contained in an ERG exam.
+#' @exportMethod Repeats
 #' @noMd
 setGeneric(
-  name = "Results",
+  name = "Repeats",
   def = function(X)
   {
-    standardGeneric("Results")
+    standardGeneric("Repeats")
   }
 )
 #' @noMd
-setMethod("Results",
+setMethod("Repeats",
           "ERGExam",
           function(X) {
-            res<-unique(X@Metadata$Result)
+            res<-unique(X@Metadata$Repeat)
             if(length(res)!=1 || res!=1){
-              warning("Using multiple Results is still experimental. When creating the ERGExam, set Results to 1, if not needed.")
+              warning("Using multiple Repeats is still experimental. When creating the ERGExam, set Repeats to 1, if not needed.")
             }
             return(res)
           })

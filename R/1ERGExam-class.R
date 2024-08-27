@@ -3,19 +3,19 @@
 validERGExam <- function(object) {
 
   # Check if the metadata has the required columns and are of correct format
-  required_columns <- c("Step", "Eye", "Channel","Result")
+  required_columns <- c("Step", "Eye", "Channel","Repeat")
   if (!all(required_columns %in% names(object@Metadata))) {
     stop(
-      "Metadata provided is not in correct format. Must be a data.frame with the columns 'Step', 'Eye', 'Channel', and 'Result'."
+      "Metadata provided is not in correct format. Must be a data.frame with the columns 'Step', 'Eye', 'Channel', and 'Repeat'."
     )
   }
   if (!(any(c("integer","numeric") %in% class(object@Metadata$Step))) ||
-      !(any(c("integer","numeric") %in% class(object@Metadata$Result)))) {
+      !(any(c("integer","numeric") %in% class(object@Metadata$Repeat)))) {
     stop(
-      "Metadata columns 'Step' and 'Result' must be of class 'integer'. They are: '",
+      "Metadata columns 'Step' and 'Repeat' must be of class 'integer'. They are: '",
       class(object@Metadata$Step),
       "' and '",
-      class(object@Metadata$Result),
+      class(object@Metadata$Repeat),
       "', respectivley."
     )
   }
@@ -25,14 +25,14 @@ validERGExam <- function(object) {
       "Metadata columns 'Channel' and 'Eye' must be of class 'character'. They are: '",
       class(object@Metadata$Step),
       "' and '",
-      class(object@Metadata$Result),
+      class(object@Metadata$Repeat),
       "', respectivley."
     )
   }
 
-  if(any(is.na(object@Metadata[,c("Step", "Eye", "Channel","Result")]))){
+  if(any(is.na(object@Metadata[,c("Step", "Eye", "Channel","Repeat")]))){
     warning(
-      "The essential columns of the Metadata slot ('Step', 'Eye', 'Channel','Result') should not contain missing values. Check using 'Metadata()' to ensure downstream methods won't fail."
+      "The essential columns of the Metadata slot ('Step', 'Eye', 'Channel','Repeat') should not contain missing values. Check using 'Metadata()' to ensure downstream methods won't fail."
     )
   }
 
@@ -59,13 +59,13 @@ validERGExam <- function(object) {
   # Rejected (inEPhysRaw) - must be the same across all channels within one eye
   for (s in unique(object@Metadata$Step)) {
     for (e in unique(object@Metadata$Eye[object@Metadata$Step == s])) {
-      for (r in unique(object@Metadata$Result[object@Metadata$Step == s &
+      for (r in unique(object@Metadata$Repeat[object@Metadata$Step == s &
                                               object@Metadata$Eye == e])) {
         ids.equal <-
-          object@Metadata$Step == s & object@Metadata$Eye == e & object@Metadata$Result == r
+          object@Metadata$Step == s & object@Metadata$Eye == e & object@Metadata$Repeat == r
         feature.list <- lapply(object@Data[ids.equal], Rejected)
         if (length(unique(unlist(lapply(feature.list,length))))!=1){
-          stop(paste0("Step '", s, "', Eye '", e, "', Result ,'", r, "': Unequal amount of recordings for the different channels."))
+          stop(paste0("Step '", s, "', Eye '", e, "', Repeat ,'", r, "': Unequal amount of recordings for the different channels."))
         }
         feature.df <- tryCatch(
           as.data.frame(do.call(cbind, feature.list)),
@@ -76,7 +76,7 @@ validERGExam <- function(object) {
                 s,
                 "', Eye '",
                 e,
-                "', Result ,'",
+                "', Repeat ,'",
                 r,
                 "': 'Rejected' slots are filled with vectors of unequal length in step ."
               )
@@ -218,7 +218,7 @@ validERGExam <- function(object) {
   if (any(
     colnames(object@Stimulus) %in% c(
       "Channel",
-      "Result",
+      "Repeat",
       "Eye",
       "Name",
       "ChannelBinding",
@@ -226,7 +226,7 @@ validERGExam <- function(object) {
       "Time"
     )
   )) {
-    warning("'Channel', 'Result','Eye', 'Type', 'Name', 'ChannelBinding', 'Relative', and 'Time' are reserved column names and should not be used as extra column names in 'Stimulus'." )
+    warning("'Channel', 'Repeat','Eye', 'Type', 'Name', 'ChannelBinding', 'Relative', and 'Time' are reserved column names and should not be used as extra column names in 'Stimulus'." )
   }
 
   if (!("integer" %in% class(object@Stimulus$Step)) ||
@@ -295,7 +295,7 @@ validERGExam <- function(object) {
 #'   \item{Step}{An integer vector containing the step index. A step describes data recorded in response to the same type of stimulus. This column links the Stimulus slot to the metadata}
 #'   \item{Eye}{A character vector. Possible values "RE" (right eye) and "LE" (left eye).}
 #'   \item{Channel}{A character vector containing the channel name. This can be "ERG", "VEP" or "OP" for instance.}
-#'   \item{Result}{A numeric vector containing the indices of individual results contained in an ERG exam. E.g., if a recording to one identical stimulus is performed twice, these would be distinguished by different indices in the Result column. Warning: This is currently experimental}
+#'   \item{Repeat}{A numeric vector containing the indices of individual repeats contained in an ERG exam. E.g., if a recording to one identical stimulus is performed twice, these would be distinguished by different indices in the 'repeat' column. Warning: This is currently experimental}
 #' }
 #'
 #' @slot Stimulus
@@ -448,7 +448,7 @@ ERGExam <- setClass(
 #'     Step = as.integer(c(1,1,2,2)),
 #'     Eye = c("RE", "LE", "LE", "LE"),
 #'     Channel = c("Ch1", "Ch1", "Ch1", "Ch2"),
-#'     Result = as.integer(c(1,1,1,1))
+#'     Repeat = as.integer(c(1,1,1,1))
 #'   )
 #' Stimulus <-
 #'   data.frame(

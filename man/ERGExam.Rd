@@ -18,7 +18,7 @@ A class representing an ERG (Electroretinogram) exam. This class extends the \li
 \item{Step}{An integer vector containing the step index. A step describes data recorded in response to the same type of stimulus. This column links the Stimulus slot to the metadata}
 \item{Eye}{A character vector. Possible values "RE" (right eye) and "LE" (left eye).}
 \item{Channel}{A character vector containing the channel name. This can be "ERG", "VEP" or "OP" for instance.}
-\item{Result}{A numeric vector containing the indices of individual results contained in an ERG exam. E.g., if a recording to one identical stimulus is performed twice, these would be distinguished by different indices in the Result column. Warning: This is currently experimental}
+\item{Repeat}{A numeric vector containing the indices of individual repeats contained in an ERG exam. E.g., if a recording to one identical stimulus is performed twice, these would be distinguished by different indices in the 'repeat' column. Warning: This is currently experimental}
 }}
 
 \item{\code{Stimulus}}{A data frame containing stimulus information.

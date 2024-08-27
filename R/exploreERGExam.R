@@ -160,7 +160,7 @@ setMethod("exploreERGExam",
                           "Background",
                           "Type",
                           "Description",
-                          "Result"
+                          "Repeat"
                         )]
                 if (AnyMeasuremnts) {
                   measurementsCount <-

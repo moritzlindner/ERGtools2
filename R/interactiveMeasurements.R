@@ -58,7 +58,7 @@ setMethod("interactiveMeasurements",
                             aes(
                               x = Time,
                               y = Value,
-                              color = factor(Result),
+                              color = factor(Repeat),
                               customdata = key
                             )) +
                   geom_line()
@@ -145,7 +145,7 @@ setMethod("interactiveMeasurements",
                 as.factor(paste(
                   Metadata(curr)$Step,
                   Metadata(curr)$Eye,
-                  Metadata(curr)$Result,
+                  Metadata(curr)$Repeat,
                   sep = "_"
                 ))
               curr <- AddMetadata(curr, "key", key)
@@ -268,7 +268,7 @@ setMethod("interactiveMeasurements",
                                      click.Step <-
                                        as.numeric(click.traceinfo[1])
                                      click.Eye <- click.traceinfo[2]
-                                     click.Result <-
+                                     click.Repeat <-
                                        as.numeric(click.traceinfo[3])
                                      click.idx <-
                                        IndexOf(
@@ -276,7 +276,7 @@ setMethod("interactiveMeasurements",
                                          Step = click.Step,
                                          Eye = click.Eye,
                                          Channel = Channel,
-                                         Result = click.Result
+                                         Repeat = click.Repeat
                                        )
 
                                      existing <- Markers(CURR$data)
@@ -424,7 +424,7 @@ setMethod("interactiveMeasurements",
                           where = list(
                             Step = tmp$Step,
                             Eye = tmp$Eye,
-                            Result = tmp$Result
+                            Repeat = tmp$Repeat
                           ),
                           Marker = tmp$Name,
                           ChannelBinding = Channel
@@ -491,8 +491,8 @@ setMethod("interactiveMeasurements",
                 #Display the measurement results
                 output$measurement_output <-
                   renderDataTable({
-                    mes <-Measurements(CURR$data,TimesOnly=T,quiet = T)[,c("Step","Eye","Result","Name","Time")]
-                    mes<-mes[with(mes, order(Step, Eye, Result)), ]
+                    mes <-Measurements(CURR$data,TimesOnly=T,quiet = T)[,c("Step","Eye","Repeat","Name","Time")]
+                    mes<-mes[with(mes, order(Step, Eye, Repeat)), ]
                     mes<<-mes
                     datatable(mes, selection = "single")
                   }, width = "100%", selection = "single",
@@ -517,19 +517,19 @@ setMethod("interactiveMeasurements",
                 old.measurements[!(do.call(paste, old.measurements[, c("Step",
                                                                        "Eye",
                                                                        "Recording",
-                                                                       "Result",
+                                                                       "Repeat",
                                                                        "Name",
                                                                        "Channel",
                                                                        "Relative")]) %in% do.call(paste, new.measurements[, c("Step",
                                                                                                                               "Eye",
                                                                                                                               "Recording",
-                                                                                                                              "Result",
+                                                                                                                              "Repeat",
                                                                                                                               "Name",
                                                                                                                               "Channel",
                                                                                                                               "Relative")])), c("Step",
                                                                                                                                                 "Eye",
                                                                                                                                                 "Recording",
-                                                                                                                                                "Result",
+                                                                                                                                                "Repeat",
                                                                                                                                                 "Name",
                                                                                                                                                 "Channel")]
               ## update and add
@@ -559,7 +559,7 @@ setMethod("interactiveMeasurements",
                         Step = curr.m$Step,
                         Eye = curr.m$Eye,
                         Channel = curr.m$Channel,
-                        Result = curr.m$Result
+                        Repeat = curr.m$Repeat
                       )
                     ),
                     create.marker.if.missing = T,
@@ -590,7 +590,7 @@ setMethod("interactiveMeasurements",
                         Step = curr.m$Step,
                         Eye = curr.m$Eye,
                         Channel = curr.m$Channel,
-                        Result = curr.m$Result
+                        Repeat = curr.m$Repeat
                       )
                     ),
                     create.marker.if.missing = T,

@@ -246,8 +246,8 @@ ggPlotRecordings <- function(List,
                              downsample = 250){
 
   # ggplot workaround
-  Time<-Value<-Eye<-Result<-NULL
-  commoncolnames<-c("Step","Channel","Result","Eye","Repeat","Time")
+  Time<-Value<-Eye<-Repeat<-NULL
+  commoncolnames<-c("Step","Channel","Repeat","Eye","Repeat","Time")
   message("Running 'ggPlotRecordings()'. This may take a while for long ERGExam lists. ")
 
   results <- lapply(List, function(x) {
@@ -271,7 +271,7 @@ ggPlotRecordings <- function(List,
         df.sdev[c(
           df.sdev$Step == curr.md$Step &
           df.sdev$Channel == curr.md$Channel &
-          df.sdev$Result == curr.md$Result &
+          df.sdev$Repeat == curr.md$Repeat &
           df.sdev$Eye == curr.md$Eye
         ),"n"] <- dim(x[[i]])[2]
       }
@@ -335,7 +335,7 @@ ggPlotRecordings <- function(List,
     ymax = Value + SEM,
     color = Eye,
     fill = Eye,
-    linetype = as.factor(Result)
+    linetype = as.factor(Repeat)
   )) +
     geom_hline(yintercept = as_units(0,"uV"), colour = "gray") +
     geom_line() +

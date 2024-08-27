@@ -52,14 +52,14 @@ setMethod(
   definition = function(X, return.as = "grid", show.markers = T, SetSIPrefix="auto", downsample = 250) {
 
     # internal fx
-    count_down_results <- function(df) {
-      # Get all column names except "Result" and "Filename"
-      column_names <- setdiff(names(df), c("Result", "Filename","Recording"))
+    count_down_Repeats <- function(df) {
+      # Get all column names except "Repeat" and "Filename"
+      column_names <- setdiff(names(df), c("Repeat", "Filename","Recording"))
 
-      # Group by these columns, then mutate "Result" within each group
+      # Group by these columns, then mutate "Repeat" within each group
       df %>%
         group_by_at(column_names) %>%
-        mutate(Result = row_number()) %>%
+        mutate(Repeat = row_number()) %>%
         ungroup()  # Make sure to ungroup at the end
     }
 
@@ -71,7 +71,7 @@ setMethod(
     X <- Subset(X, Raw = F)
     X<-SetSIPrefix(X,SetSIPrefix)
 
-    Metadata(X)<-count_down_results(Metadata(X))
+    Metadata(X)<-as.data.frame(count_down_Repeats(Metadata(X)))
 
     dat <- as.data.frame(X)
     stimtab <- StimulusTable(X)
@@ -92,16 +92,16 @@ setMethod(
         if (nrow(curr) > 0) {
           curr.mes <-mes[mes$Background == b &
                            mes$Type == t, ]
-          if (any(curr$Result != 1)) {
+          if (any(curr$Repeat != 1)) {
             for (s in unique(curr$Step[curr$Background == b &
                                        curr$Type == t])) {
               tmp <- curr[curr$Step == s,]
-              if (!(length(unique(tmp$Result)) > 1)) {
-                curr$Result[curr$Background == b & curr$Type == t] <- 1
+              if (!(length(unique(tmp$Repeat)) > 1)) {
+                curr$Repeat[curr$Background == b & curr$Type == t] <- 1
               }
             }
           }
-          curr <- curr[curr$Result == 1,]
+          curr <- curr[curr$Repeat == 1,]
 
           defining <-
             unique(curr[, c("Intensity", "Description")])
@@ -138,13 +138,6 @@ setMethod(
               # Measurements
               if (show.markers) {
                 plotrows[[ID]] <- plotrows[[ID]] +
-                  # geom_line(
-                  #   data = curr.mes,
-                  #   aes(group = Name),
-                  #   color = "black",
-                  #   linewidth = 1.0675,
-                  #   alpha = 0.3
-                  # ) +
                   geom_point(data = curr.mes, aes(group = Name), color = "black")
               }
             }
@@ -155,14 +148,14 @@ setMethod(
     }
     # repeated recordings
     repeated <-
-      unique(dat[dat$Result > 1, c("Step", "Channel")])
+      unique(dat[dat$Repeat > 1, c("Step", "Channel")])
     if (nrow(repeated) > 0) {
       message("Repeated recordings detected")
       for (r in 1:nrow(repeated)) {
         curr <-
           dat[dat$Step == repeated$Step[r] &
                 dat$Channel == repeated$Channel[r],]
-        if (length(unique(curr$Result)) > 1) {
+        if (length(unique(curr$Repeat)) > 1) {
           ID <-
             paste0("Repeated: ",
                    unique(curr$Description),
@@ -172,7 +165,7 @@ setMethod(
                                    aes(
                                      x = Time,
                                      y = Value,
-                                     colour = as.ordered(Result)
+                                     colour = as.ordered(Repeat)
                                    )) +
             geom_line() +
             #ggtitle(paste0(Subject(X), ", ", ExamDate(X), "\n", ProtocolName(X))) +

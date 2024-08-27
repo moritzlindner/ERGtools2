@@ -17,6 +17,7 @@ ImportEspionProtocol<-function(filename){
   nSteps=getSingleColumnNumeric(Header,"Total steps")
   nChannels=getSingleColumnNumeric(Header,"Total channels")
 
+  message("Methods handling Espion Protocols are experimental.")
   # import Step Parameters
   rn <-
     fread(

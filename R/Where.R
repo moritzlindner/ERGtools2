@@ -197,7 +197,7 @@ setGeneric(
                  Step = Steps(X),
                  Eye = Eyes(X),
                  Channel = Channels(X),
-                 Result = 1)
+                 Repeat = 1)
   {
     standardGeneric("IndexOf")
   }
@@ -210,21 +210,21 @@ setMethod("IndexOf",
                    Step = Steps(X),
                    Eye = Eyes(X),
                    Channel = Channels(X),
-                   Result = 1) {
+                   Repeat = 1) {
             # Check if Step, Eye, and Channel are characters
             if (!is.character(Eye) || !is.character(Channel)) {
               stop("Eye and Channel must be characters.")
             }
-            # Check if Result is numeric
-            if (!is.numeric(Step) || !is.numeric(Result)) {
-              stop("Step and Result must be numeric.")
+            # Check if Repeat is numeric
+            if (!is.numeric(Step) || !is.numeric(Repeat)) {
+              stop("Step and Repeat must be numeric.")
             }
 
             if (!all(Step %in% Steps(X)) |
                 !all(Eye %in% Eyes(X)) |
                 !all(Channel %in% Channels(X))|
-                !all(Result %in% Results(X))) {
-              stop("Values for 'Step','Eye', 'Channel' and 'Result' must exist in the metadata.")
+                !all(Repeat %in% Repeats(X))) {
+              stop("Values for 'Step','Eye', 'Channel' and 'Repeat' must exist in the metadata.")
             }
 
             Md <- Metadata(X)
@@ -233,7 +233,7 @@ setMethod("IndexOf",
               which(Md$Step  %in% Step &
                       Md$Eye %in% Eye &
                       Md$Channel %in% Channel &
-                      Md$Result %in% Result)
+                      Md$Repeat %in% Repeat)
 
             # if(length(which)>1){
             #   stop("Multiple recordings match the given parameters. Is the metadata slot of X corrupted?")

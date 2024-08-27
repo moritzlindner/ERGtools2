@@ -119,7 +119,7 @@ get_measurements <- function(filename, toc, sep) {
   colnames(measurements)[colnames(measurements) == "Name.1"] <-
     "Marker"
   colnames(measurements)[colnames(measurements) == "R"] <-
-    "Result" # Was Repeat
+    "Repeat"
 
   TimeUnit <-enc2utf8( colnames(measurements)[colnames(measurements) == "ms"])
   colnames(measurements)[colnames(measurements) == "ms"] <- "Time"
@@ -149,7 +149,7 @@ get_trace <- function(filename, toc, Data_Header, IDX, what) {
                1):(Data_Header[IDX, "Column.1"] + Data_Header[IDX, "Trials"]))
   }
 
-  ERRORSTRING<-paste0("While importing ",what," for Step '",Data_Header[IDX, "Step"],"', Channel '",Data_Header[IDX, "Chan"],"', Result '",Data_Header[IDX, "Result"],"': ")
+  ERRORSTRING<-paste0("While importing ",what," for Step '",Data_Header[IDX, "Step"],"', Channel '",Data_Header[IDX, "Chan"],"', Repeat '",Data_Header[IDX, "Repeat"],"': ")
 
   tryCatch({
 

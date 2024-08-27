@@ -93,8 +93,8 @@ functionupdater <- function(X, where, value, what) {
         AverageFunction(X@Data[[i]]) <- value
       }
     }, error = function(e){
-      pos<-Metadata(X)[i,c("Step","Channel","Eye","Result")]
-      stop(what, " failed for ", Subject(X), " in Step ", pos$Step, ", Ch. ", pos$Channel, ",  Eye ", pos$Eye, ", Result ", pos$Result, " with error message: ", e)
+      pos<-Metadata(X)[i,c("Step","Channel","Eye","Repeat")]
+      stop(what, " failed for ", Subject(X), " in Step ", pos$Step, ", Ch. ", pos$Channel, ",  Eye ", pos$Eye, ", Repeat ", pos$Repeat, " with error message: ", e)
     })
 
   }

@@ -73,7 +73,7 @@ Metadata <-
     Step = as.integer(c(1,1,2,2)),
     Eye = c("RE", "LE", "LE", "LE"),
     Channel = c("Ch1", "Ch1", "Ch1", "Ch2"),
-    Result = as.integer(c(1,1,1,1))
+    Repeat = as.integer(c(1,1,1,1))
   )
 Stimulus <-
   data.frame(
