@@ -2,11 +2,6 @@
 
 # ERGtools2
 
-<!-- badges: start -->
-<!-- badges: end -->
-
-The goal of ERGtools2 is to …
-
 ## Installation
 
 You can install the development version of ERGtools2 from
