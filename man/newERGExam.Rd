@@ -11,18 +11,14 @@ newERGExam(
   Averaged = FALSE,
   Measurements = new("ERGMeasurements"),
   ExamInfo,
-  SubjectInfo
+  SubjectInfo,
+  skip.validation = F
 )
 }
 \arguments{
 \item{Data}{A list of \linkS4class{EPhysData::EPhysData} objects.}
 
-\item{Metadata}{A data frame containing metadata information associated with the data, each row corresponds to one list item.
-\describe{
-\item{Step}{An integer vector pointing to a row index of the Stimulus table.}
-\item{Eye}{A character vector containing the possible values "RE" (right eye) and "LE" (left eye).}
-\item{Channel}{A character vector containing the unique names of the third level of \code{Data}.}
-}}
+\item{Metadata}{A data frame containing metadata information associated with the data, each row corresponds to one list item.}
 
 \item{Stimulus}{A data frame containing stimulus information associated with the data.
 \describe{
@@ -51,6 +47,13 @@ newERGExam(
 \item{DOB}{A \code{Date} object  (required) indicating the date of birth of the patient.}
 \item{Gender}{Optional: A character vector indicating the gender of the patient.}
 \item{Group}{Optional: A character vector indicating the group to which the patient belongs.}
+}}
+
+\item{skip.validation}{Do not test if object is valid. Default is \code{FALSE}. This can be helpful when creating import functions where incomplete datasets might exist.
+\describe{
+\item{Step}{An integer vector pointing to a row index of the Stimulus table.}
+\item{Eye}{A character vector containing the possible values "RE" (right eye) and "LE" (left eye).}
+\item{Channel}{A character vector containing the unique names of the third level of \code{Data}.}
 }}
 }
 \value{

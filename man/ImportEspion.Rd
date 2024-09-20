@@ -13,7 +13,8 @@ ImportEspion(
   sep = "\\t",
   Import = list("Averaged", "Measurements"),
   Protocol = NULL,
-  where = NULL
+  where = NULL,
+  skip.validation = F
 )
 
 ImportEspionInfo(filename, sep = "\\t")
@@ -37,6 +38,13 @@ Possible elements are "Raw" - for importing the raw recordings, "Averaged" - for
 \item{Protocol}{An S4 object of class \link[Protocol]{ERGProtocol()} or a list thereof.}
 
 \item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
+
+\item{skip.validation}{Do not test if object is valid. Default is \code{FALSE}. This can be helpful when creating import functions where incomplete datasets might exist.
+\describe{
+\item{Step}{An integer vector pointing to a row index of the Stimulus table.}
+\item{Eye}{A character vector containing the possible values "RE" (right eye) and "LE" (left eye).}
+\item{Channel}{A character vector containing the unique names of the third level of \code{Data}.}
+}}
 }
 \value{
 For ImportEspion: A \linkS4class{ERGExam} object.

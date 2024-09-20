@@ -13,6 +13,7 @@
 #'   Possible elements are "Raw" - for importing the raw recordings, "Averaged" - for importing the averaged recordings ("Results"), and "Measurements" - for importing the measured markers. Either of "Raw" or "Averaged" must be selected.
 #' @param Protocol An S4 object of class \link[Protocol]{ERGProtocol()} or a list thereof.
 #' @inheritParams Where
+#' @inheritParams newERGExam
 #' @seealso \linkS4class{ERGExam} \link[Protocol]{ERGProtocol()}
 #'
 #' @examples
@@ -35,7 +36,8 @@ ImportEspion <- function(filename,
                          sep = "\t",
                          Import = list ("Averaged", "Measurements"),
                          Protocol = NULL,
-                         where = NULL) {
+                         where = NULL,
+                         skip.validation = F) {
   #(NA.EXCLUDE REMOVED!!!! DOES THAT WORK??)
   message(paste("Importing", filename))
 
@@ -256,8 +258,11 @@ ImportEspion <- function(filename,
 
     M <- newERGMeasurements(measurements, update.empty.relative = T)
 
+    grp = unique(measurements$Group)
+
   } else{
     M <- newERGMeasurements(data.frame(Channel=character(),Name=character(),Recording=numeric(),Time=numeric(),Relative=character()))
+    grp <- NULL
   }
 
   # Dump empty traces
@@ -319,7 +324,8 @@ ImportEspion <- function(filename,
       Subject = recording_info$Animal,
       DOB = as.Date(as.character(recording_info$DOB), format =    "%d/%m/%Y", origin = "1970-01-01"),
       Gender = recording_info$Gender,
-      Group = unique(measurements$Group)
-    )
+      Group = grp
+    ),
+    skip.validation = skip.validation
   )
 }
