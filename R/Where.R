@@ -8,7 +8,7 @@
 #' @return A numeric vector of  containing the index of a recording defined by the parameters, or NULL if entry was not found.
 #' @examples
 #' data(ERG)
-#' Where(ERG,list(Channel="ERG", Intensity=1))
+#' Where(ERG,list(Channel="ERG", StimulusEnergy=1))
 #'
 #' @name Where
 #' @exportMethod Where
@@ -89,13 +89,22 @@ Where.generic <- function(MD,
     # if all should be returned
     idx <- 1:nrow(MD)
   } else {
+
+    if (!(all(names(where) %in% c(colnames(STIMTAB), colnames(MD))))) {
+      not.found<-names(where)[!(names(where) %in% c(colnames(STIMTAB), colnames(MD)))]
+      stop(
+        paste0("Names of 'where' must be valid column names from the object's metadata or stimulus table, but '", not.found,"' was not found.")
+      )
+    }
+
     md.sel <- which(names(where) %in% colnames(MD))
     stim.sel <-
       which(names(where) %in% colnames(STIMTAB))
 
+
     if (all(length(md.sel) == 0, length(stim.sel) == 0)) {
       stop(
-        "Names of 'where' must be valid column names from the object's metadata or stimulus table."
+        "Names of 'where' must be valid column names from the object's metadata or stimulus table, but none of the provided names was found"
       )
     }
     if (length(stim.sel) != 0) {

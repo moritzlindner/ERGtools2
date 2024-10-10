@@ -83,7 +83,7 @@ merge2ERGExams <- function(exam1, exam2, mergemethod = "Append") {
       stimtab1,
       by = c(
         "Description",
-        "Intensity",
+        "StimulusEnergy",
         "Background",
         "Type",
         "ProtocolName"

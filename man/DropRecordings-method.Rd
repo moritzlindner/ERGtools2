@@ -20,7 +20,7 @@ identified by the \code{where} criteria.
 }
 \examples{
 data(ERG)
-tmp<-DropRecordings(ERG, where=list(Channel="ERG", Intensity=1))
+tmp<-DropRecordings(ERG, where=list(Channel="ERG", StimulusEnergy=1))
 }
 \seealso{
 \link[EPhysData:Subset]{EPhysData::Subset}

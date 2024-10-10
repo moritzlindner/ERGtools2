@@ -11,10 +11,10 @@
 #' @examples
 #' data(ERG)
 #' ERG<-SetStandardFunctions(ERG)
-#' ggERGTrace(ERG,where=list(Intensity=1,Channel="ERG",Eye="RE"))
+#' ggERGTrace(ERG,where=list(StimulusEnergy=1,Channel="ERG",Eye="RE"))
 #'
-#' AverageFunction(ERG,where=list(Intensity=1))<-min
-#' ggERGTrace(ERG,where=list(Intensity=1,Channel="ERG",Eye="RE"))
+#' AverageFunction(ERG,where=list(StimulusEnergy=1))<-min
+#' ggERGTrace(ERG,where=list(StimulusEnergy=1,Channel="ERG",Eye="RE"))
 #'
 #'
 #' @seealso \link[EPhysData:Get_Set_EPhysData]{EPhysData::Get_Set_EPhysData}, \link[EPhysMethods:autoreject.by.distance]{EPhysMethods::autoreject.by.distance}, \link[EPhysMethods:autoreject.by.signalfree]{EPhysMethods::autoreject.by.signalfree}, \link[EPhysMethods:filter.bandpass]{EPhysMethods::filter.bandpass}, \link[EPhysMethods:filter.detrend]{EPhysMethods::filter.detrend},

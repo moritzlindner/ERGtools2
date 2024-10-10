@@ -111,7 +111,7 @@ setMethod("Measurements", "ERGMeasurements",
 
 
 #' @describeIn Measurements-Methods Get Measurements table from an \linkS4class{ERGExam} object
-#' @importFrom utils txtProgressBar setTxtProgressBar
+#' @importFrom cli cli_progress_bar cli_progress_update cli_progress_done
 #' @importFrom EPhysData Metadata AverageFunction
 #' @noMd
 setMethod("Measurements",
@@ -180,18 +180,16 @@ setMethod("Measurements",
 
               if (!TimesOnly) {
                 if (!quiet) {
-                  message("Retrieving record values for the given time points.")
-                  pb = txtProgressBar(min = 0,
-                                      max = nrow(measurements),
-                                      initial = 0)
+                  cli_progress_bar("Retrieving record values for the given time points.", total = length(X@Data),  clear = TRUE, auto_terminate = F)
                 }
                 for (i in 1:nrow(measurements)) {
                   sel <- X[[measurements$Recording[i]]]
                   if (length(AverageFunction(sel)(1:3)) != 1 &&
                       dim(sel)[2] != 1) {
-                    stop(
-                      "You need to set an averaging function before performing Marker and Measuremnt operations. E.g. run 'SetStandardFunctions(X)'"
-                    )
+                    Notice(X,
+                           where = measurements$Recording[i],
+                           what = "E",
+                           notice_text = "You need to set an averaging function before performing Marker and Measuremnt operations. E.g. run {.run SetStandardFunctions({deparse(substitute(x))})}")
                   }
                   if (!is.na(measurements$Time[i])) {
                     Voltage <-
@@ -209,17 +207,21 @@ setMethod("Measurements",
                     if (all(dim(Voltage) == 1)) {
                       measurements$Voltage[i] <- set_units(Voltage[1, 1], "uV")
                     } else{
-                      stop("GetData returns multiple values.")
+                      Notice(X,
+                             where = measurements$Recording[i],
+                             what = "E",
+                             notice_text = "GetData returns multiple values.")
                     }
                   } else {
                     Voltage <- set_units(NA, "uV")
                   }
                   if (!quiet) {
-                    setTxtProgressBar(pb, i)
+                    cli_progress_update()
                   }
                 }
+
                 if (!quiet) {
-                  close(pb)
+                  cli_progress_done()
                 }
               }
               measurements<-merge(measurements,Metadata(X)[,c(extracols),drop=F],by.x = "Recording", by.y = 0)

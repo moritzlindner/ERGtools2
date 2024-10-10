@@ -80,7 +80,7 @@ get_stim_info <- function(filename, toc, sep) {
   stim_info <-
     as.data.frame(get_content(filename, toc, "Stimulus Table", sep = sep))
   colnames(stim_info)[str_detect(colnames(stim_info), "cd.")] <-
-    "Intensity"
+    "StimulusEnergy"
   stim_info$Background <- NA
   stim_info$Background[grepl("LA", stim_info[, "Description"], fixed = TRUE, useBytes = TRUE)] <-
     "LA"

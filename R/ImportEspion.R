@@ -30,6 +30,7 @@
 #' @importFrom stats na.exclude
 #' @importFrom stringr str_detect str_remove str_trim str_replace_all regex
 #' @importFrom EPhysData newEPhysData
+#' @importFrom cli cli_warn cli_abort cli_alert_info cli_progress_bar cli_progress_update cli_progress_done
 #' @name ImportEspion
 #' @export
 ImportEspion <- function(filename,
@@ -44,37 +45,46 @@ ImportEspion <- function(filename,
   # Checks
 
   if (!file.exists(filename)) {
-    stop("File ", filename, " does not exist")
+    cli_abort("File {.file {filename}} does not exist.")
   }
   if (sep != "\t") {
-    message("Import using fiels separators other than '\t' untested.")
+    cli_alert_info("Import of files using separaotrs other than '\t' is experimental.")
   }
 
   if (is.null(Protocol)) {
+    cli_warn(c(
+      "Provision of the protocol is recommended and may be essential if the marker table is not provided or does not include markers for each step and channel of the recording."
+    ))
   } else{
     if (!inherits(Protocol, "ERGProtocol")) {
       if (is.list(Protocol)) {
         if (!(all(unlist(lapply(Protocol, function(x) {
           inherits(x, "ERGProtocol")
         }))))) {
-          stop("'Protocol' must be an object of class 'Protocol' or a list thereof.")
+          cli_abort(c(
+            "'{.strong Protocol}' must be an object of class 'Protocol' or a list thereof."
+          ))
         }
       } else{
-        stop("'Protocol' must be an object of class 'Protocol' or a list thereof.")
+        cli_abort(c(
+          "'{.strong Protocol}' must be an object of class 'Protocol' or a list thereof."
+        ))
       }
     }
   }
 
   contains_raw <- "Raw" %in% Import
   contains_averaged <- "Averaged" %in% Import
-  if (!((contains_raw ||
-         contains_averaged) &&
-        !(contains_raw && contains_averaged))) {
-    stop("Exactly one of 'Raw' and 'Averaged' must be selected for import.")
+  if (!((contains_raw || contains_averaged) && !(contains_raw && contains_averaged))) {
+    cli_abort(c(
+      "Exactly one of '{.strong Raw}' and '{.strong Averaged}' must be selected for import."
+    ))
   }
 
-  if (!(all(Import %in% list ("Raw", "Averaged", "Measurements")))) {
-    stop("'Import' must be one or several of the following: 'Raw','Averaged','Measurements'")
+  if (!(all(Import %in% list("Raw", "Averaged", "Measurements")))) {
+    cli_abort(c(
+      "'Import' must be one or several of the following: '{.val Raw}', '{.val Averaged}', '{.val Measurements}'."
+    ))
   }
 
   # load
@@ -82,37 +92,45 @@ ImportEspion <- function(filename,
                header = F,
                sep = sep,
                nrow = 1)[[1]] != "Contents Table") {
-    stop(paste(filename, " does not begin with a table of content."))
+    cli_abort("{.file {filename}} does not begin with a table of content.")
   }
   # get Table of content
   toc <- get_toc(filename, sep = sep)
 
-  if (!all(c("Header Table",
-             "Marker Table",
-             "Stimulus Table",
-             "Data Table") %in% (rownames(toc)))) {
-    stop(
-      "'Header Table', 'Marker Table', 'Stimulus Table' and 'Data Table' must all be included in the data set (even if they should not be imported). At least one of these is missing."
-    )
+  required_tables <- c("Header Table", "Marker Table", "Stimulus Table", "Data Table")
+  missing_tables <- required_tables[!(required_tables %in% rownames(toc))]
+
+  if (length(missing_tables) > 0) {
+    cli_abort(c(
+      "'Header Table', 'Marker Table', 'Stimulus Table', and 'Data Table' must all be included in the data set (even if they should not be imported).",
+      "The following table(s) are missing: {.val {missing_tables}}."
+    ))
   }
 
 
   # get protocol info
   recording_info <- ImportEspionInfo(filename)
-  if (!all(
-    c(
-      "Protocol",
+  required_fields <-
+    c("Protocol",
       "Version",
       "Dateperformed",
       "Testmethod",
       "Animal",
-      "DOB"
-    ) %in%  names(recording_info)
-  )) {
-    stop(
-      "Table of content incomplete. Have these data been exported as anonymous? This is currently unsupported"
+      "DOB")
+  missing_fields <-
+    required_fields[!(required_fields %in% names(recording_info))]
+
+  if (length(missing_fields) > 0) {
+    cli_abort(
+      c(
+        "Table of content incomplete. Have these data been exported as anonymous? This is currently unsupported.",
+        "The following field(s) are missing: {.val {missing_fields}}."
+      )
     )
+
   }
+
+
 
   # Get Protocol info
   if (!is.null(Protocol)) {
@@ -122,15 +140,15 @@ ImportEspion <- function(filename,
         x@Name
       })))
       if (length(idx) == 0) {
-        stop("Required protocol not in list.")
+        cli_abort(c("Required protocol not in the list."))
       }
       if (length(idx) > 1) {
-        stop("Duplicate protocol entry in 'Protocols' list.")
+        cli_abort(c("Duplicate protocol entry in the 'Protocols' list."))
       }
       Protocol <- Protocol[[idx]]
     } else{
       if (Protocol@Name != tmp1) {
-        stop("Provided protocol is not the required.")
+        cli_abort(c("Provided protocol is not the required one."))
       }
     }
   }
@@ -152,7 +170,10 @@ ImportEspion <- function(filename,
                                stim_info,
                                where = where)
     if(length(where.idx)==0){
-      stop("'where' selection does not return any data for the given file. Try 'ImportEspionMetadata()' and 'ImportEspionStimTab()' to find available key-value pairs for 'where")
+      cli_abort(c(
+        "'{.strong where}' selection does not return any data for the given file.",
+        "Try using {.run ImportEspionMetadata({filename})} and {.run ImportEspionStimTab({filename})} to find available key-value pairs for '{.strong where}'."
+      ))
     }
   }else{
     where.idx<-1:nrow(Metadata)
@@ -173,11 +194,9 @@ ImportEspion <- function(filename,
 
   if (("Data Table" %in% rownames(toc)) &&
       any(c("Raw", "Averaged") %in% Import)) {
-    pb = txtProgressBar(min = 0,
-                        max = dim(Data_Header)[1],
-                        initial = 0)
+    cli_progress_bar("Importing", total = dim(Data_Header)[1],  clear = TRUE, auto_terminate = T)
     for (i in 1:dim(Data_Header)[1]) {
-      setTxtProgressBar(pb, i)
+      cli_progress_update()
       tryCatch({
         if (as.numeric(Data_Header$Chan[i]) == 1) {
           #if(i==1 || (Data_Header$Step[i]!=Data_Header$Step[i-1])){ # only the first for new step contains a time frame
@@ -206,22 +225,14 @@ ImportEspion <- function(filename,
           }
         }
       }, error = function (e) {
-        stop(
-          "Importing Data failed for ",
-          basename(filename),
-          " with error message: ",
-          e,
-          " for Step '",
-          Data_Header$Step[i],
-          "' Channel '",
-          Data_Header$Channel[i],
-          "' Repeat '",
-          Data_Header$Repeat[i],
-          "'."
-        )
+        cli_abort(c(
+          "Importing data failed for file '{.file {basename(filename)}}' with the following error message:",
+          "{.val {e}}",
+          "Failed at Step '{.strong {Data_Header$Step[i]}}', Channel '{.strong {Data_Header$Channel[i]}}', Repeat '{.strong {Data_Header$Repeat[i]}}'."
+        ))
       })
     }
-    close(pb)
+    cli_progress_done()
   }
   STEPS<-STEPS[where.idx]
 
@@ -289,19 +300,6 @@ ImportEspion <- function(filename,
                           "%d/%m/%Y %H:%M:%S"))
   ExamDate <-
     as.POSIXct.numeric(as.numeric(ExamDate), origin = "1970-01-01 00:00.00 UTC")
-
-
-  # data strangely pooled, every second from other channel.
-  # is this in file or import mistake?
-  #   how to make fail proof?
-  # ggEPhysData(Subset(STEPS[[5]],Trials=seq(1,50,2)))
-  # Warnmeldungen:
-  #   1: In GetData(x, Raw = Raw) :
-  #   Averaging function function (x) {    x} returns more than a single value per time point. Has a valid function been set? Try e.g.: AverageFunction(X)<-mean
-  # 2: In ggEPhysData(Subset(STEPS[[5]], Trials = seq(1, 50, 2))) :
-  #   No averaging function set.
-  # > ggEPhysData(Subset(STEPS[[5]],Trials=seq(2,50,2)))
-
 
   # return the object
   newERGExam(

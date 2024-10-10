@@ -21,7 +21,7 @@ CollectMeasurements(
 \item{measure.absolute}{Logical, default: FALSE. If absolute amplitudes should be returned instead of amplitudes relative to the reference marker (where given).}
 }
 \value{
-A data frame with measurements for plotting.#'
+A data frame with measurements for plotting.
 }
 \description{
 This function extracts measurements and related information, e.g. for plotting or statistics.

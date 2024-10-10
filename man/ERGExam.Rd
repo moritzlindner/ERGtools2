@@ -16,7 +16,7 @@ A class representing an ERG (Electroretinogram) exam. This class extends the \li
 \item{\code{Metadata}}{A data frame containing metadata information associated with the data in the Data slot, each row corresponds to one item in \code{data}.
 \describe{
 \item{Step}{An integer vector containing the step index. A step describes data recorded in response to the same type of stimulus. This column links the Stimulus slot to the metadata}
-\item{Eye}{A character vector. Possible values "RE" (right eye) and "LE" (left eye).}
+\item{Eye}{A character vector. Possible standard values "RE" (right eye) , "LE" (left eye), and "BE" (bhot eyes). Possible non-standard values can be listed running \code{od_str}, \code{os_str} and \code{ou_str}, resp.. See: \link[=as.std.eyename]{as.std.eyename}.}
 \item{Channel}{A character vector containing the channel name. This can be "ERG", "VEP" or "OP" for instance.}
 \item{Repeat}{A numeric vector containing the indices of individual repeats contained in an ERG exam. E.g., if a recording to one identical stimulus is performed twice, these would be distinguished by different indices in the 'repeat' column. Warning: This is currently experimental}
 }}
@@ -25,7 +25,7 @@ A class representing an ERG (Electroretinogram) exam. This class extends the \li
 \describe{
 \item{Step}{An integer vector row index. Will be removed in future versions.}
 \item{Description}{A character vector describing the stimulus in a human-readable way.}
-\item{Intensity}{A numeric vector representing the intensity of the stimulus.}
+\item{StimulusEnergy}{A numeric vector representing the energy of the stimulus.}
 \item{Background}{A character vector describing the adaptation state of the retina for that stimulus (DA or LA).}
 \item{Type}{A character vector describing the type of the stimulus (e.g. Flash or Flicker).}
 }}

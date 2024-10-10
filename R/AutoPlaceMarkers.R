@@ -7,6 +7,7 @@
 #' @param Channel.names A \code{pairlist} specifying channel names.
 #' @param robust.peak.filter.bands A numeric vector of length 2 specifying the lower and upper bounds of the frequency band used for initial peak idetification n the lowe-level methods
 #' @param true.peak.tolerance A vector of class units and length 2 specifying the tolerance range around true peaks. Must be time values (i.e. a unit convertibel into 'seconds').
+#' @importFrom cli cli_progress_bar cli_progress_update cli_progress_done
 #'
 #' @details These methods are used to automatically place markers for ERGs/VEPs.\cr\cr
 #' \code{AutoPlaceMarkers()} sets markers depending on the channel (E.g. ERG, VEP, OP,...) and stimulus type (Flash, Flicker), defined via the \code{Channel.names} and \code{Stimulus.type.names} arguments. Markers are placed using the lower level methods \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} or \link[=AutoPlaceVEP]{AutoPlaceVEP} function depending on the stimulus type.\cr\cr
@@ -63,9 +64,7 @@ setMethod(
 
     markerlist <- list()
     Md <- merge(Metadata(X), StimulusTable(X))
-    pb = txtProgressBar(min = 0,
-                        max = length(X@Data),
-                        initial = 0)
+    cli_progress_bar("Placing markers", total = length(X@Data),  clear = TRUE, auto_terminate = T)
     for (i in 1:length(X@Data)) {
       x <- X@Data[[i]]
       update <- F
@@ -122,26 +121,14 @@ setMethod(
         }
       },
       error = function(e) {
-        currMd <- merge(Metadata(X), StimulusTable(X))[i,]
-        close(pb)
-        stop(
-          "Auto placement of markers failed for recording ",
-          i,
-          " (Step: ",
-          currMd$Step,
-          " - ",
-          currMd$Description,
-          ", Channel: ",
-          currMd$Channel,
-          ", Eye: ",
-          currMd$Eye,
-          ") with message: ",
-          e
-        )
+        Notice(X,
+               where = i,
+               what = "E",
+               notice_text = "Auto placement of markers failed with error message {.val e}")
       })
-      setTxtProgressBar(pb, i)
+      cli_progress_update()
     }
-    close(pb)
+    cli_progress_done()
     return(X)
   }
 )

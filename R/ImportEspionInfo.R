@@ -8,6 +8,7 @@
 #' @return For ImportEspionInfo: A named list containing the exam info stored in an exported Espion ERG exam.
 #' @importFrom stringr str_remove_all
 #' @importFrom utils read.csv
+#' @importFrom cli cli_abort cli_alert_info
 #' @export
 ImportEspionInfo <- function(filename,
                              sep = "\t") {
@@ -15,22 +16,24 @@ ImportEspionInfo <- function(filename,
     stop("File ", filename, " does not exist")
   }
   if (sep != "\t") {
-    message("Import using fiels separators other than '\t' untested.")
+    cli_alert_info("Import of files using separaotrs other than '\t' is experimental.")
   }
   if (read.csv(filename,
                header = F,
                sep = sep,
                nrow = 1)[[1]] != "Contents Table") {
-    stop(paste(filename, " does not begin with a table of content."))
+    cli_abort(c(
+      "{.file {filename}} does not begin with a table of content."
+    ))
   }
 
   # get Table of content
   toc <- get_toc(filename, sep = sep)
 
   if (!all(c("Header Table") %in% (rownames(toc)))) {
-    stop(
-      "'Header Table', must be included in the data set (even if they should not be imported). At least one of these is missing."
-    )
+    cli_abort(c(
+      "'{.strong Header Table}' must be included in the data set."
+    ))
   }
   recording_info <-
     get_content(filename, toc, "Header Table", sep = sep)

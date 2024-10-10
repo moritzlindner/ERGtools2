@@ -13,7 +13,7 @@ exploreERGExam(X)
 A Shiny app to interactively explore ERGExam metadata and measurements.
 }
 \description{
-Launches a Shiny app to explore the content of the Metadata slot of the ERGExam object and allows for filtering by metadata columns Eye and Channel as well as by the Stimulus columns Description, Intensity, Background, and Type. Metadata and Stimulus are matched by the Step column in Metadata, which contains the index of the corresponding row of the data.frame in the Stimulus slot.
+Launches a Shiny app to explore the content of the Metadata slot of the ERGExam object and allows for filtering by metadata columns Eye and Channel as well as by the Stimulus columns Description, StimulusEnergy, Background, and Type. Metadata and Stimulus are matched by the Step column in Metadata, which contains the index of the corresponding row of the data.frame in the Stimulus slot.
 }
 \examples{
 \dontrun{

@@ -56,7 +56,7 @@ ImportEspionProtocol<-function(filename){
       "Baseline pre-trigger",
       "Baseline range"
     )
-  StepParam<-StepParam[keep,]
+  StepParam<-StepParam[keep, , drop=F]
   StepParam<-unlist(apply(StepParam, 2, list), recursive = F, use.name = F)
   StepParam<-lapply(StepParam, function(x) {
     x <- as.data.frame(x, col.names = FALSE)
@@ -89,8 +89,8 @@ ImportEspionProtocol<-function(filename){
         which(str_detect(rownames(ChParam), "Amplitude is relative to"))
 
 
-      markers_names <- ChParam[markers_names,]
-      markers_relto <- ChParam[markers_relto,]
+      markers_names <- ChParam[markers_names, , drop=F]
+      markers_relto <- ChParam[markers_relto, , drop=F]
     }else{
       markers_names<-NULL
       markers_relto<-NULL
@@ -105,11 +105,14 @@ ImportEspionProtocol<-function(filename){
         "Filter high frequency cutoff",
         "Invert input polarity"
       )
-    ChParam <- ChParam[keep, ]
+    ChParam <- ChParam[keep, , drop=F]
 
-    MarkerList[[i]]<-list(Names=markers_names,RelTo=markers_relto)
+    if(length(markers_names)>1){
+      MarkerList[[i]]<-list(Names=markers_names,RelTo=markers_relto)
+    } else {
+      MarkerList[[i]]<-list(Names=NULL,RelTo=NULL)
+    }
     ChannelList[[i]]<-as.data.frame(ChParam)
-    #ChannelList[[i]]$Marker<-
   }
 
   # convert into S4 Structure
@@ -169,7 +172,7 @@ ImportEspionProtocol<-function(filename){
         as.std.eyename(curr["Eye being tested",1])
       }, error = function (e){
         inchanneldesc <- str_detect(orig.ch.name, eye.haystack())
-        if(sum(inchanneldesc)==1){
+        if(sum(inchanneldesc, na.rm = T) == 1){
           extr<-as.std.eyename(orig.ch.name, exact = F)
           message("Eye identifier ('", extr, "') in '", basename(filename), "', Step '", s, "', Channel '", c, "' (Name: '", currChan@Name, "') was extracted from original channel name ('", orig.ch.name, "'). ")
           extr
@@ -239,7 +242,6 @@ getTable<-function(filename,start,end,nCols){
     data.table = F
   )
   rownames(tab)<-make.unique(tab[,1])
-  tab<-tab[,-1]
+  tab<-tab[,-1 , drop=F]
   return(tab)
 }
-

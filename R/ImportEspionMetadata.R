@@ -8,34 +8,39 @@
 #' @return For ImportEspionMetadata: A \link[data.frame]{data.frame()} containing the metadata for an ERG Recording.
 #' @importFrom units as_units
 #' @importFrom utils read.csv
+#' @importFrom cli cli_warn cli_abort cli_inform
 #' @export
 ImportEspionMetadata <- function(filename,
                                  sep = "\t",
                                  Protocol = NULL) {
   # Checks
   if (is.null(Protocol)) {
-    warning(
-      "Provision of the protocol is recommended and may be essential if marker table is not provided or does not include markers for each step and channel of the recording."
-    )
+    cli_warn(c(
+      "Provision of the protocol is recommended and may be essential if the marker table is not provided or does not include markers for each step and channel of the recording."
+    ))
   } else{
     if (!inherits(Protocol, "ERGProtocol")) {
       if (is.list(Protocol)) {
         if (!(all(unlist(lapply(Protocol, function(x) {
           inherits(x, "ERGProtocol")
         }))))) {
-          stop("'Protocol' must be an object of class 'Protocol' or a list thereof.")
+          cli_abort(c(
+            "'{.strong Protocol}' must be an object of class 'Protocol' or a list thereof."
+          ))
         }
       } else{
-        stop("'Protocol' must be an object of class 'Protocol' or a list thereof.")
+        cli_abort(c(
+          "'{.strong Protocol}' must be an object of class 'Protocol' or a list thereof."
+        ))
       }
     }
   }
 
   if (!file.exists(filename)) {
-    stop("File ", filename, " does not exist")
+    cli_abort("File {.file {filename}} does not exist.")
   }
   if (sep != "\t") {
-    message("Import using fiels separators other than '\t' untested.")
+    cli_inform("Import of files using separaotrs other than '\t' is experimental.")
   }
 
   # load
@@ -43,21 +48,25 @@ ImportEspionMetadata <- function(filename,
                header = F,
                sep = sep,
                nrow = 1)[[1]] != "Contents Table") {
-    stop(paste(filename, " does not begin with a table of content."))
+    cli_abort("{.file {filename}} does not begin with a table of content.")
   }
   # get Table of content
   toc <- get_toc(filename, sep = sep)
 
   if (!c("Header Table") %in% (rownames(toc))) {
-    stop("'Header Table' must be included in the data set.")
+    cli_abort(c(
+      "'{.strong Header Table}' must be included in the data set."
+    ))
   }
 
   # get protocol info
   recording_info <- ImportEspionInfo(filename)
   if (!("Protocol" %in%  names(recording_info))) {
-    stop(
-      "Table of content incomplete. Have these data been exported as anonymous? This is currently unsupported"
-    )
+    cli_abort(c(
+      "Table of content incomplete.",
+      "Have these data been exported as anonymous? This is currently unsupported."
+    ))
+
   }
 
   # Get Protocol info
@@ -68,15 +77,21 @@ ImportEspionMetadata <- function(filename,
         x@Name
       })))
       if (length(idx) == 0) {
-        stop("Required protocol not in list.")
+        cli_abort(c(
+          "Required protocol not in the list."
+        ))
       }
       if (length(idx) > 1) {
-        stop("Duplicate protocol entry in 'Protocols' list.")
+        cli_abort(c(
+          "Duplicate protocol entry in the 'Protocols' list."
+        ))
       }
       Protocol <- Protocol[[idx]]
     } else{
       if (Protocol@Name != tmp1) {
-        stop("Provided protocol is not the required.")
+        cli_abort(c(
+          "Provided protocol is not the required one."
+        ))
       }
     }
   }
@@ -121,13 +136,11 @@ ImportEspionMetadata <- function(filename,
       if (length(new.chname) > 1 & !all(is.na(new.chname))) {
         new.chname <- new.chname[!is.na(new.chname)]
         if (length(new.chname) == 1) {
-          message(
-            "Empty channel name detected for channel '",
-            c,
-            "'. Assimilating to only valid found: '",
-            new.chname,
-            "'."
-          )
+          cli_inform(c(
+            "Several channel names detected for channel '{c}'.",
+            "Inferring by markers to: '{new.chname}'."
+          ))
+
         } else {
           relevantsteps <- unique(Metadata$Step[Metadata$Channel == c])
           curr.markers <- lapply(relevantsteps, function(x) {
@@ -135,13 +148,10 @@ ImportEspionMetadata <- function(filename,
           })
           new.chname <-
             inferre.channel.names.from.markers(unique(unlist(curr.markers)))
-          message(
-            "Several channel names detected for channel '",
-            c,
-            "'. Inferring by markers to: '",
-            new.chname,
-            "'."
-          )
+          cli_inform(c(
+            "Several channel names detected for channel '{c}'.",
+            "Inferring by markers to: '{new.chname}'."
+          ))
         }
       }
       Metadata$Channel_Name[Metadata$Channel == c] <- new.chname
@@ -150,7 +160,9 @@ ImportEspionMetadata <- function(filename,
   } else {
     # if marker table contained in file
     if (!c("Marker Table" %in% (rownames(toc)))) {
-      stop("'Marker Table' must be included in the data set if Protocol is missing.")
+      cli_abort(c(
+        "'{.strong Marker Table}' must be included in the data set if the protocol is missing."
+      ))
     }
     measurements <- get_measurements(filename, toc, sep)
     measurements$Channel_Name <- as.character(NA)

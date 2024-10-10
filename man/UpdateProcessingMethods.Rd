@@ -49,10 +49,10 @@ They allow setting the functions to a subset of recordings based on the specifie
 \examples{
 data(ERG)
 ERG<-SetStandardFunctions(ERG)
-ggERGTrace(ERG,where=list(Intensity=1,Channel="ERG",Eye="RE"))
+ggERGTrace(ERG,where=list(StimulusEnergy=1,Channel="ERG",Eye="RE"))
 
-AverageFunction(ERG,where=list(Intensity=1))<-min
-ggERGTrace(ERG,where=list(Intensity=1,Channel="ERG",Eye="RE"))
+AverageFunction(ERG,where=list(StimulusEnergy=1))<-min
+ggERGTrace(ERG,where=list(StimulusEnergy=1,Channel="ERG",Eye="RE"))
 
 
 }

@@ -1,6 +1,6 @@
 #' Explore ERGExam Metadata and Measurements
 #'
-#' Launches a Shiny app to explore the content of the Metadata slot of the ERGExam object and allows for filtering by metadata columns Eye and Channel as well as by the Stimulus columns Description, Intensity, Background, and Type. Metadata and Stimulus are matched by the Step column in Metadata, which contains the index of the corresponding row of the data.frame in the Stimulus slot.
+#' Launches a Shiny app to explore the content of the Metadata slot of the ERGExam object and allows for filtering by metadata columns Eye and Channel as well as by the Stimulus columns Description, StimulusEnergy, Background, and Type. Metadata and Stimulus are matched by the Step column in Metadata, which contains the index of the corresponding row of the data.frame in the Stimulus slot.
 #'
 #' @param X An ERGExam object.
 #' @return A Shiny app to interactively explore ERGExam metadata and measurements.
@@ -54,8 +54,8 @@ setMethod("exploreERGExam",
                   selectInput("description", "Description:", choices = c("All", unique(
                     X@Stimulus$Description
                   ))),
-                  selectInput("intensity", "Intensity:", choices = c("All", as.character(
-                    unique(X@Stimulus$Intensity)
+                  selectInput("intensity", "StimulusEnergy:", choices = c("All", as.character(
+                    unique(X@Stimulus$StimulusEnergy)
                   ))),
                   selectInput("background", "Background:", choices = c("All", unique(
                     X@Stimulus$Background
@@ -134,7 +134,7 @@ setMethod("exploreERGExam",
                 }
                 if (input$intensity != "All") {
                   filteredStimulus <-
-                    filteredStimulus[filteredStimulus$Intensity == as.numeric(input$intensity),]
+                    filteredStimulus[filteredStimulus$StimulusEnergy == as.numeric(input$intensity),]
                 }
                 if (input$background != "All") {
                   filteredStimulus <-
@@ -156,7 +156,7 @@ setMethod("exploreERGExam",
                           "IDX",
                           "Channel",
                           "Eye",
-                          "Intensity",
+                          "StimulusEnergy",
                           "Background",
                           "Type",
                           "Description",

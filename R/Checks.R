@@ -28,17 +28,21 @@ setMethod("CheckAvgFxSet",
             fx.set <- unlist(lapply(X@Data, function(x) {
               suppressWarnings({
                 dat <-
-                  GetData(x, Raw = FALSE, Time = c(min(TimeTrace(x)), TimeTrace(x)[min(5,length(TimeTrace(x)))]))
+                  GetData(x, Raw = FALSE, Time = c(min(TimeTrace(x)), TimeTrace(x)[min(5, length(TimeTrace(x)))]), Trials = c(1:(min(5, dim(x)[2]))))
               })
               return(as.logical(ncol(dat) == 1))
             }))
             if (!all(fx.set)) {
-                warning("No valid averaging function found for Recoding ",
-                        paste0(which(!fx.set), ","))
-                warning(
-                  "Not all recordings in X have a valid Averaging Function set. Result of averaging Data must be a vector. See documentation for 'AverageFunction<-' or 'SetStandardFunctions'."
-                )
-                return(FALSE)
+              Notice(
+                X,
+                what = c("Warning"),
+                where = which(!fx.set),
+                notice_text = c(
+                  "No valid averaging function found. Result of averaging Data must be a vector. "
+                ),
+                help_page = "ERGtools2::SetStandardFunctions"
+              )
+              return(FALSE)
             } else{
               return(TRUE)
             }

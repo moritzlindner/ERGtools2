@@ -3,53 +3,89 @@
 #' @param eye_str Character vector of eye identifier strings.
 #' @param exact If \code{TRUE}: Require exact match. If \code{FALSE}: Whole word match is sufficient.
 #' @param warn.only Invalid eye identifier strings will only cause a warning, not an error.
-#' @return A character vector with standardized eye identifiers ('RE' for right eye, 'LE' for left eye).
+#' @return A character vector with standardized eye identifiers ('RE' for right eye, 'LE' for left eye, 'BE' for both eyes).
 #' @examples
-#' as.std.eyename(c("RE", "OD", "OS", "Right"))
+#' as.std.eyename(c("RE", "OD", "OS", "Right","OU"))
 #' @export
-as.std.eyename <- function(eye_str, exact = T, warn.only=F) {
+as.std.eyename <- function(eye_str,
+                           exact = T,
+                           warn.only = F) {
   stopifnot(is.logical(exact))
+  stopifnot(is.logical(warn.only))
+  if (!is.std.eyename(eye_str, exact = exact, warn.only = warn.only)) {
+    return(NULL)
+  }
+  if (exact) {
+    # Exact match conversion
+    eye_str <- unlist(lapply(eye_str, function(x) {
+      if (x %in% od_str()) {
+        return("RE")  # Right Eye
+      }
+      if (x %in% os_str()) {
+        return("LE")  # Left Eye
+      }
+      if (x %in% ou_str()) {
+        return("BE")  # Both Eyes
+      }
+      return(paste0("Unknown_", as.character(x)))  # Handle unknown values
+    }))
+  } else {
+    # Inexact match conversion
+    pattern <-
+      paste0("(^|[^A-Za-z])(",
+             paste(od_str(), collapse = "|"),
+             ")([^A-Za-z]|$)")
+    eye_str[grepl(pattern, eye_str)] <- "RE"
+
+    pattern <-
+      paste0("(^|[^A-Za-z])(",
+             paste(os_str(), collapse = "|"),
+             ")([^A-Za-z]|$)")
+    eye_str[grepl(pattern, eye_str)] <- "LE"
+  }
+  return(eye_str)
+}
+
+#' @return For is.std.eyename: Logical vector indicating whether each element in \code{eye_str} contains a word that describes a standard eye name.
+#' @examples
+#' \dontrun{
+#' is.std.eyename(c("RE", "BE", "LE", "Nonstandard"))
+#' }
+#' @describeIn as.std.eyename Check if eye name strings are standard eye names
+#' @export
+is.std.eyename <- function(eye_str,
+                           exact = T,
+                           warn.only = F) {
+  stopifnot(is.logical(exact))
+  stopifnot(is.logical(warn.only))
   if(!warn.only){
     stopifnot(is.character(eye_str))
   }
-  if (exact){
+  if (exact) {
     if (!any(is.character(eye_str)) ||
-        !all(eye_str %in% c(od_str(), os_str()))) {
-      eye_str_nf<-eye_str[!(eye_str %in% c(od_str(), os_str()))]
-      if(warn.only){
+        !all(eye_str %in% c(od_str(), os_str(), ou_str()))) {
+      eye_str_nf <- eye_str[!(eye_str %in% c(od_str(), os_str()))]
+      if (warn.only) {
         warning(paste0(eye_str_nf, sep = ", "),
                 " is not a / are no valid eye identifier(s).")
       } else{
         stop(paste0(eye_str_nf, sep = ", "),
              " is not a / are no valid eye identifier(s).")
       }
-
+      return(FALSE)
     }
-    eye_str <- unlist(lapply(eye_str, function(x) {
-      if (x %in% od_str()) {
-        return("RE")
-      }
-      if (x %in% os_str()) {
-        return("LE")
-      }
-      if (!(x %in% od_str() || x %in% os_str())) {
-        return(paste0("Unknown_",as.character(x)))
-      }
-    }))
   } else {
+    # Inexact match can have a different implementation
     pattern <-
       paste0("(^|[^A-Za-z])(",
-             paste(od_str(), collapse = "|"),
+             paste(c(od_str(), os_str(), ou_str()), collapse = "|"),
              ")([^A-Za-z]|$)")
-    eye_str[grepl(pattern,eye_str)]<-"RE"
-
-    pattern <-
-      paste0("(^|[^A-Za-z])(",
-             paste(os_str(), collapse = "|"),
-             ")([^A-Za-z]|$)")
-    eye_str[grepl(pattern,eye_str)]<-"LE"
+    if (!any(grepl(pattern, eye_str))) {
+      cli_warn(c("No valid eye identifiers found in {.val {eye_str}}."))
+      return(FALSE)
+    }
   }
-  return(eye_str)
+  return(TRUE)
 }
 
 #' Convert non-standard channel names to standard channel names
@@ -123,21 +159,22 @@ is.std.channelname <- function(channel_str) {
 #' \dontrun{
 #' eye.haystack()
 #' }#'
-#' @describeIn as.std.eyename Get standard eye identifier strings
+#' @describeIn as.std.eyename Return a vector containing all standard eye identifier strings
 #' @noMd
-#' @keywords internal
+#' @export
 eye.haystack <- function() {
   return(c(od_str(),
-           os_str()))
+           os_str(),
+           ou_str()))
 }
 
 #' @examples
 #' \dontrun{
 #' od_str()
 #' }
-#' @describeIn as.std.eyename Get standard right eye identifier strings
+#' @describeIn as.std.eyename Return a vector containing all standard right eye identifier strings
 #' @noMd
-#' @keywords internal
+#' @export
 od_str <- function() {
   c("OD",
     "RE",
@@ -155,9 +192,9 @@ od_str <- function() {
 #' \dontrun{
 #' os_str()
 #' }
-#' @describeIn as.std.eyename Get standard left eye identifier strings
+#' @describeIn as.std.eyename Return a vector containing all standard left eye identifier strings
 #' @noMd
-#' @keywords internal
+#' @export
 os_str <- function() {
   c("OS",
     "LE",
@@ -169,6 +206,26 @@ os_str <- function() {
     "links",
     "left",
     "sinister")
+}
+
+#' @examples
+#' \dontrun{
+#' ou_str()
+#' }
+#' @describeIn as.std.eyename Return a vector containing all standard identifier strings identifying recordings acuired from/for both eyes
+#' @noMd
+#' @export
+ou_str <- function() {
+  c("OU",
+    "BE",
+    "EB",
+    "Both",
+    "Beide",
+    "uo",
+    "be",
+    "eb",
+    "both",
+    "beide")
 }
 
 #' @examples

@@ -1,48 +1,49 @@
 #' @importFrom EPhysData Rejected FilterFunction AverageFunction
 #' @importFrom stats var
-#' @importFrom cli cli_abort cli_alert_danger cli_alert_info cli_alert_warning
+#' @importFrom cli cli_abort cli_inform cli_alert_warning cli_warn
 validERGExam <- function(object) {
+
+  # essential identifiers
+  #Essential fields
+  if (!(
+    nzchar(object@SubjectInfo$Subject) &&
+    !is.na(object@SubjectInfo$DOB) &&
+    all(!is.na(object@ExamInfo$ExamDate))
+  )) {
+    cli_abort("x Subject Name, DOB and ExamDate must be provided.")
+  }
 
   # Check if the metadata has the required columns and are of correct format
   required_columns <- c("Step", "Eye", "Channel","Repeat")
   if (!all(required_columns %in% names(object@Metadata))) {
     missing_columns <- setdiff(required_columns, names(object@Metadata))
-    cli_abort(
-      c(
-        "x Metadata provided is not in the correct format.",
-        "i The metadata must be a data.frame with the columns: 'Step', 'Eye', 'Channel', and 'Repeat'.",
-        "x The following required columns are missing: {missing_columns}.",
-        "i For more information, see the help page: {.fun ERGtools2::1ERGExam-class}}"
-      )
-    )
+    Notice(object,
+            what = c("Error"),
+            notice_text = c("i The metadata must be a data.frame with the columns: 'Step', 'Eye', 'Channel', and 'Repeat'.",
+                            "x The following required columns are missing: {missing_columns}."),
+            help_page = "ERGtools2::ERGExam")
   }
   if (!(any(c("integer", "numeric") %in% class(object@Metadata$Step))) ||
       !(any(c("integer", "numeric") %in% class(object@Metadata$Repeat)))) {
-
-    cli_abort(
-      c(
-        "x Metadata columns 'Step' and 'Repeat' must be of class 'integer'.",
-        "i However, they are currently of class:",
-        "i 'Step': {class(object@Metadata$Step)}",
-        "i 'Repeat': {class(object@Metadata$Repeat)}",
-        "x Please ensure both columns are of class 'integer' before proceeding.",
-        "i For more information, see the help page: {.fun ERGtools2::ERGExam-class}}"
-      )
-    )
+    Notice(object,
+           what = c("Error"),
+           notice_text = c("x Metadata columns 'Step' and 'Repeat' must be of class 'integer'.",
+                           "i However, they are currently of class:",
+                           "i 'Step': {class(object@Metadata$Step)}",
+                           "i 'Repeat': {class(object@Metadata$Repeat)}",
+                           "x Please ensure both columns are of class 'integer' before proceeding."),
+           help_page = "ERGtools2::ERGExam")
   }
   if (!("character" %in% class(object@Metadata$Channel)) ||
       !("character" %in% class(object@Metadata$Eye))) {
-
-    cli_abort(
-      c(
-        "x Metadata columns 'Channel' and 'Eye' must be of class 'character'.",
-        "i However, they are currently of class:",
-        "i 'Channel': {class(object@Metadata$Channel)}",
-        "i 'Eye': {class(object@Metadata$Eye)}",
-        "x Please ensure both columns are of class 'character' before proceeding.",
-        "i For more information, see the help page: {.fun ERGtools2::ERGExam-class}}"
-      )
-    )
+    Notice(object,
+           what = c("Error"),
+           notice_text = c("x Metadata columns 'Channel' and 'Eye' must be of class 'character'.",
+                           "i However, they are currently of class:",
+                           "i 'Channel': {class(object@Metadata$Channel)}",
+                           "i 'Eye': {class(object@Metadata$Eye)}",
+                           "x Please ensure both columns are of class 'character' before proceeding."),
+           help_page = "ERGtools2::ERGExam")
   }
 
   missing_indices <- which(is.na(object@Metadata[, c("Step", "Eye", "Channel", "Repeat")]), arr.ind = TRUE)
@@ -51,46 +52,41 @@ validERGExam <- function(object) {
   })
 
   if (length(missing_indices) > 0) {
-    cli_warn(
-      c(
-        "!" = "The essential columns of the Metadata slot ('Step', 'Eye', 'Channel', 'Repeat') contain missing values.",
-        "i" = "Missing values detected at: {paste(missing_info, collapse = '; ')}.",
-        "!" = "Check the 'Metadata()' function to identify and address these missing values to avoid potential issues in downstream methods.",
-        "i" = "For more information, see the help page: {.fun ERGtools2::ERGExam-class}}"
-      )
-    )
+    Notice(object,
+           what = c("W"),
+           notice_text = c("! The essential columns of the Metadata slot ('Step', 'Eye', 'Channel', 'Repeat') contain missing values.",
+                           "i Missing values detected at: {paste(missing_info, collapse = '; ')}.",
+                           "! Run {.run Metadata({deparse(substitute(x))})} to identify and address these missing values in order to avoid potential issues in downstream methods."),
+           help_page = "ERGtools2::ERGExam")
   }
 
   reserved_columns <- c(
-    "Description", "Intensity", "Background", "Type", "Name",
+    "Description", "StimulusEnergy", "Background", "Type", "Name",
     "ChannelBinding", "Relative", "Time"
   )
 
   used_reserved_columns <- intersect(colnames(object@Metadata), reserved_columns)
 
   if (length(used_reserved_columns) > 0) {
-    cli_warn(
-      c(
-        "!" = "The following reserved column names are being used in 'Metadata': {paste(used_reserved_columns, collapse = ', ')}.",
-        "i" = "'Description', 'Intensity', 'Background', 'Type', 'Name', 'ChannelBinding', 'Relative', and 'Time' are reserved column names.",
-        "!" = "These names should not be used as extra column names in 'Metadata' to avoid potential conflicts.",
-        "i" = "For more information, see the help page: {.fun ERGtools2::ERGExam-class}}"
-      )
-    )
+    Notice(object,
+           what = c("W"),
+           notice_text = c("! The following reserved column names are being used in 'Metadata': {paste(used_reserved_columns, collapse = ', ')}.",
+                           "i 'Description', 'StimulusEnergy', 'Background', 'Type', 'Name', 'ChannelBinding', 'Relative', and 'Time' are reserved column names.",
+                           "! These names should not be used as extra column names in 'Metadata' to avoid potential conflicts."),
+           help_page = "ERGtools2::ERGExam")
   }
 
   # Check if Eye entries valid
   invalid_eyes <- setdiff(unique(object@Metadata$Eye), eye.haystack())
 
   if (length(invalid_eyes) > 0) {
-    cli_abort(
-      c(
-        "x Eye identifiers in the 'Metadata' slot are invalid.",
-        "i Valid identifiers must match any of the values returned by `eye.haystack()`.",
-        "x The following invalid eye identifiers were found: {paste(invalid_eyes, collapse = ', ')}.",
-        "i Please correct the 'Eye' column in the 'Metadata' to use only valid identifiers."
-      )
-    )
+    Notice(object,
+           what = c("Error"),
+           notice_text = c("x Eye identifiers in the 'Metadata' slot are invalid.",
+                           "i Valid identifiers must match any of the values returned by `eye.haystack()`.",
+                           "x The following invalid eye identifiers were found: {paste(invalid_eyes, collapse = ', ')}."),
+           help_page = "ERGtools2::ERGExam")
+
   }
 
   # Rejected (inEPhysRaw) - must be the same across all channels within one eye
@@ -101,23 +97,23 @@ validERGExam <- function(object) {
         ids.equal <-
           object@Metadata$Step == s & object@Metadata$Eye == e & object@Metadata$Repeat == r
         feature.list <- lapply(object@Data[ids.equal], Rejected)
-        if (length(unique(unlist(lapply(feature.list,length))))!=1){
-          cli_abort(paste0("Step '", s, "', Eye '", e, "', Repeat ,'", r, "': Unequal amount of recordings for the different channels."))
+        if (length(unique(unlist(lapply(
+          feature.list, length
+        )))) != 1) {
+          Notice(object,
+                 what = c("E"),
+                 where = list(Step = s, Eye = e, Repeat = r),
+                 notice_text = c("x Unequal amount of recordings for the different channels."),
+                 help_page = "ERGtools2::ERGExam")
         }
         feature.df <- tryCatch(
           as.data.frame(do.call(cbind, feature.list)),
           error = function(er) {
-            cli_abort(
-              paste0(
-                "Step '",
-                s,
-                "', Eye '",
-                e,
-                "', Repeat ,'",
-                r,
-                "': 'Rejected' slots are filled with vectors of unequal length in step ."
-              )
-            )
+            Notice(object,
+                   what = c("E"),
+                   where = list(Step = s, Eye = e, Repeat = r),
+                   notice_text = c("x 'Rejected' slots are filled with vectors of unequal length."),
+                   help_page = "ERGtools2::ERGExam")
           }
         )
         if (!all(apply(feature.df, 1, function(x) {
@@ -127,11 +123,11 @@ validERGExam <- function(object) {
             TRUE
           }
         }))) {
-          warnings("'Rejected' vectors are not identical across channels in step ",
-                   s,
-                   " eye ",
-                   e,
-                   ".")
+          Notice(object,
+                 what = c("W"),
+                 where = list(Step = s, Eye = e, Repeat = r),
+                 notice_text = c("! 'Rejected' vectors are not identical across channels."),
+                 help_page = "ERGtools2::ERGExam")
         }
       }
     }
@@ -150,25 +146,21 @@ validERGExam <- function(object) {
       feature.df <- tryCatch(
         as.data.frame(do.call(cbind, feature.list)),
         error = function(e) {
-          cli_abort(
-            "'filter.fx' slots are filled with vectors of unequal length in step ",
-            s,
-            "channel",
-            c,
-            "."
-          )
+          Notice(object,
+                 what = c("E"),
+                 where = list(Step = s, Eye = e, Repeat = r),
+                 notice_text = c("x 'filter.fx' slots are filled with vectors of unequal length. "),
+                 help_page = "ERGtools2::ERGExam")
         }
       )
       if (!all(apply(feature.df, 1, function(x) {
         length(unique(x)) == 1
       }))) {
-        cli_abort(
-          "'filter.fx' vectors are not identical across both eyes in step ",
-          s,
-          "channel",
-          c,
-          "."
-        )
+        Notice(object,
+               what = c("E"),
+               where = list(Step = s, Eye = e, Repeat = r),
+               notice_text = c("x 'filter.fx' vectors are not identical across both eyes."),
+               help_page = "ERGtools2::ERGExam")
       }
     }
   }
@@ -186,25 +178,21 @@ validERGExam <- function(object) {
       feature.df <- tryCatch(
         as.data.frame(do.call(cbind, feature.list)),
         error = function(e) {
-          cli_abort(
-            "'average.fx' slots are filled with vectors of unequal length in step ",
-            s,
-            "channel",
-            c,
-            "."
-          )
+          Notice(object,
+                 what = c("E"),
+                 where = list(Step = s, Eye = e, Repeat = r),
+                 notice_text = c("x average.fx' slots are filled with vectors of unequal length."),
+                 help_page = "ERGtools2::ERGExam")
         }
       )
       if (!all(apply(feature.df, 1, function(x) {
         length(unique(x)) == 1
       }))) {
-        cli_abort(
-          "'average.fx' vectors are not identical across both eyes in step ",
-          s,
-          "channel",
-          c,
-          "."
-        )
+        Notice(object,
+               what = c("E"),
+               where = list(Step = s, Eye = e, Repeat = r),
+               notice_text = c("x 'average.fx' vectors are not identical across both eyes."),
+               help_page = "ERGtools2::ERGExam")
       }
     }
   }
@@ -213,7 +201,10 @@ validERGExam <- function(object) {
   if (object@Averaged){
     Trials<-unique(unlist(lapply(object@Data,function(x){dim(x)[2]})))
     if(length(Trials)!=1 || Trials != 1){
-      message("Object does not appear to contain averaged data. Multiple repeats observed. This message is likely irrelevant, as the 'Averaged' is obsolete.")
+      Notice(object,
+             what = c("I"),
+             notice_text = c("i Object does not appear to contain averaged data. Multiple repeats observed. This message is likely irrelevant, as the 'Averaged' is obsolete."),
+             help_page = "ERGtools2::ERGExam")
     }
   }
 
@@ -221,7 +212,10 @@ validERGExam <- function(object) {
   if (length(object@Measurements) != 0) {
     if (any(!("ERGMeasurements" %in% class(object@Measurements)),
             !validObject(object@Measurements))) {
-      cli_abort("'Measurements' slot must contain a valid ERGMeasurements object.")
+      Notice(object,
+             what = c("E"),
+             notice_text = c("x 'Measurements' slot must contain a valid ERGMeasurements object."),
+             help_page = "ERGtools2::ERGMeasurements-class")
     }
 
     # check if ChannelBinding matches Channel of Recording
@@ -229,22 +223,20 @@ validERGExam <- function(object) {
     for (r in unique(measurements$Recording)){
       cb<-unique(measurements$ChannelBinding[measurements$Recording ==r])
       if(length(cb)>1){
-        cli_abort(c(
-          "Measurements object malformed:",
-          "x Multiple Channel Bindings detected for recording {.val {r}}.",
-          "i The detected Channel Bindings are: {.val {cb}}.",
-          "i Expected exactly one Channel Binding per recording.",
-          "i For more information, see the help page: {.fun ERGtools2::ERGMeasurements-class}}"
-        ))
+        Notice(object,
+               what = c("E"),
+               notice_text = c("x Measurements object malformed: Multiple Channel Bindings detected for recording {.val {r}}.",
+                               "i The detected Channel Bindings are: {.val {cb}}.",
+                               "i Expected exactly one Channel Binding per recording."),
+               help_page = "ERGtools2::ERGMeasurements-class")
       }
       expected_channel <- Metadata(object)$Channel[r]
       if (expected_channel != cb) {
-        cli_abort(c(
-          "Channel mismatch detected:",
-          "x The Channel Binding stored in the Measurements slot ({.val {cb}}) does not match the channel of recording {.val {r}} as stored in the parent object ({.val {expected_channel}}).",
-          "i Please check the consistency between the Measurements slot and the parent object's metadata.",
-          "i For more information, see the help page: {.fun ERGtools2::ERGMeasurements-class}} and {.fun ERGtools2::ERGExam-class}}"
-        ))
+        Notice(object,
+               what = c("E"),
+               notice_text = c("x Channel mismatch detected: The Channel Binding stored in the Measurements slot ({.val {cb}}) does not match the channel of recording {.val {r}} as stored in the parent object ({.val {expected_channel}}).",
+                               "i Please check the consistency between the Measurements slot and the parent object's metadata."),
+               help_page = "ERGtools2::ERGMeasurements-class")
       }
     }
   }
@@ -256,32 +248,69 @@ validERGExam <- function(object) {
   if (!all(stimulus_steps %in% metadata_steps)) {
     # Identify which Step entries in Stimulus are missing from Metadata
     missing_steps <- stimulus_steps[!stimulus_steps %in% metadata_steps]
-    cli_alert_danger("Mismatch between Stimulus and Metadata Steps detected.")
-    cli_alert_info("Step entries in Stimulus table are: {.val {stimulus_steps}}.")
-    cli_alert_info("Steps contained in Metadata are: {.val {metadata_steps}}.")
+    Notice(
+      object,
+      what = c("E"),
+      notice_text = c(
+        "x Mismatch between Stimulus and Metadata Steps detected.",
+        "i Step entries in Stimulus table are: {.val {stimulus_steps}}.",
+        "i Steps contained in Metadata are: {.val {metadata_steps}}."
+      ),
+      help_page = "ERGtools2::ERGExam"
+    )
+
     if (length(missing_steps) > 0) {
-      cli_alert_warning("The following Steps in the Stimulus table are missing from Metadata: {.val {missing_steps}}.")
-    }
-    cli_abort(
-      c(
-        "x All stimuli described must correspond to a Step as defined in 'Metadata'.",
-        "i For more information, see the help page: {.fun ERGtools2::ERGMeasurements-class}} and {.fun ERGtools2::ERGExam-class}}"
+      Notice(
+        object,
+        what = c("W"),
+        notice_text = c(
+          "! The following Steps in the Stimulus table are missing from Metadata: {.val {missing_steps}}."
+        ),
+        help_page = "ERGtools2::ERGExam"
       )
+    }
+    Notice(
+      object,
+      what = c("E"),
+      notice_text = c(
+        "x All stimuli described must correspond to a Step as defined in 'Metadata'."
+      ),
+      help_page = "ERGtools2::ERGExam"
     )
   }
 
-  essential_columns <- c("Step", "Description", "Intensity", "Background", "Type")
+  essential_columns <- c("Step", "Description", "StimulusEnergy", "Background", "Type")
+
+  if (!all(essential_columns %in% colnames(object@Stimulus))) {
+   missing<-colnames(object@Stimulus)[!(essential_columns %in% colnames(object@Stimulus))]
+   Notice(
+     object,
+     what = c("E"),
+     notice_text = c(
+       "x Data.frame in the Stimulus slot does not contain all necessary columns.",
+       "i The essential columns of the Stimulus slot are: ('Step', 'Description', 'StimulusEnergy', 'Background', 'Type').",
+       "i The following column is missing: {.val {missing}}."
+     ),
+     help_page = "ERGtools2::ERGExam"
+   )
+  }
+
   missing_values <- is.na(object@Stimulus[, essential_columns])
   if (any(missing_values)) {
     columns_with_na <- essential_columns[apply(missing_values, 2, any)]
     rows_with_na <- which(rowSums(missing_values) > 0)
-    cli_alert_danger("Missing values detected in essential columns of the Stimulus slot.")
-    cli_alert_info("The following columns contain missing values: {.val {columns_with_na}}.")
-    cli_alert_warning("Missing values were found in the following rows: {.val {rows_with_na}}.")
-    cli_warn(c(
-      "x The essential columns of the Stimulus slot ('Step', 'Description', 'Intensity', 'Background', 'Type') should not contain missing values.",
-      "i Use 'Stimulus()' to check and adjust manually to ensure downstream methods won't fail."
-    ))
+    Notice(
+      object,
+      what = c("W"),
+      notice_text = c(
+        "x Missing values detected in essential columns of the Stimulus slot.",
+        "i The essential columns of the Stimulus slot ('Step', 'Description', 'StimulusEnergy', 'Background', 'Type') should not contain missing values.",
+        "i The following columns contain missing values: {.val {columns_with_na}}.",
+        "i Missing values were found in the following rows: {.val {rows_with_na}}.",
+        "i Use '{.run Stimulus({deparse(substitute(x))})}' to check and adjust manually to ensure downstream methods won't fail."
+      ),
+      help_page = "ERGtools2::ERGExam"
+    )
   }
 
   reserved_columns <- c(
@@ -289,47 +318,41 @@ validERGExam <- function(object) {
   )
   used_reserved_columns <- colnames(object@Stimulus)[colnames(object@Stimulus) %in% reserved_columns]
   if (length(used_reserved_columns) > 0) {
-    cli_alert_danger("Reserved column names detected in the Stimulus slot.")
-    cli_alert_info("The following reserved column names are being used in 'Stimulus': {.val {used_reserved_columns}}.")
-    cli_warn(c(
-      "x 'Channel', 'Repeat', 'Eye', 'Name', 'ChannelBinding', 'Relative', and 'Time' are reserved column names.",
-      "i These names should not be used as extra column names in 'Stimulus'. Please rename them to avoid conflicts."
-    ))
+    Notice(
+      object,
+      what = c("W"),
+      notice_text = c(
+        "! Reserved column names detected in the Stimulus slot. These are: {.val {used_reserved_columns}}",
+        "i 'Channel', 'Repeat', 'Eye', 'Name', 'ChannelBinding', 'Relative', and 'Time' are reserved column names.",
+        "i These names should not be used as extra column names in 'Stimulus'. Please rename them to avoid conflicts."
+      ),
+      help_page = "ERGtools2::ERGExam"
+    )
   }
 
   if (!("integer" %in% class(object@Stimulus$Step)) ||
-      !(any(c("numeric","integer") %in% class(object@Stimulus$Intensity)))) {
-    cli_abort(
-      "Stimulus slot columns 'Step' and 'Intensity' must be of class 'integer' and 'numeric' or 'integer', respectivley. They are: '",
-      class(object@Stimulus$Step),
-      "' and '",
-      class(object@Stimulus$Intensity),
-      "'."
+      !(any(c("numeric","integer") %in% class(object@Stimulus$StimulusEnergy)))) {
+    Notice(
+      object,
+      what = c("E"),
+      notice_text = c(
+        "i Stimulus slot columns 'Step' and 'StimulusEnergy' must be of class 'integer' and 'numeric' or 'integer', respectivley. They are: {.val {class(object@Stimulus$Step)}} and {.val {class(object@Stimulus$StimulusEnergy)}}."
+      ),
+      help_page = "ERGtools2::ERGExam"
     )
   }
 
   if (!("character" %in% class(object@Stimulus$Description)) ||
       !("character" %in% class(object@Stimulus$Background)) ||
     !("character" %in% class(object@Stimulus$Type))) {
-    cli_abort(
-      "Stimulus slot columns 'Description', 'Background' and 'Type' must be of class 'character'. They are: '",
-      class(object@Stimulus$Description),
-      "', '",
-      class(object@Stimulus$Background),
-      "' and '",
-      class(object@Stimulus$Type),
-      "', respectivley."
+    Notice(
+      object,
+      what = c("E"),
+      notice_text = c(
+        "i Stimulus slot columns 'Description', 'Background' and 'Type' must be of class 'character'. They are: {.val {class(object@Stimulus$Description)}}, {.val {class(object@Stimulus$Background)}} and {.val {class(object@Stimulus$Type)}}, respectivley."
+      ),
+      help_page = "ERGtools2::ERGExam"
     )
-  }
-
-
-  #Essential fields
-  if (!(
-    nzchar(object@SubjectInfo$Subject) &&
-    !is.na(object@SubjectInfo$DOB) &&
-    all(!is.na(object@ExamInfo$ExamDate))
-  )) {
-    cli_abort("Subject Name, DOB and ExamDate must be provided.")
   }
 
   # Dates
@@ -340,15 +363,36 @@ validERGExam <- function(object) {
   if (("Date" %in% class(dob)) &&
       ("POSIXct" %in% class(exam_date)) &&
       ("POSIXct" %in% class(imported_date))) {
-  if (!(as.POSIXct(dob) < min(exam_date) && max(exam_date) < min(imported_date))) {
-    cli_abort("Temporal sequence of 'DOB', 'ExamDate', and 'Imported' is impossible. ")
+    if (!(as.POSIXct(dob) < min(exam_date) &&
+          max(exam_date) < min(imported_date))) {
+      Notice(
+        object,
+        what = c("W"),
+        notice_text = c(
+          "i Temporal sequence of 'DOB' ({.val {dob}}), 'ExamDate' ({.val {exam_date}}), and 'Imported' ({.val {imported_date}}) is impossible."
+        ),
+        help_page = "ERGtools2::ERGExam"
+      )
     }
   } else {
-    cli_abort("DOB, ExamDate, and Imported should be of class Date ('DOB'), POSIXct.")
+    Notice(
+      object,
+      what = c("E"),
+      notice_text = c(
+        "i DOB, ExamDate, and Imported should be of class Date, POSIXct, and POSIXct. They are [{.val {class(dob)}}], [{.val {class(exam_date)}}], and [{.val {class(imported_date)}}], respectively."
+      ),
+      help_page = "ERGtools2::ERGExam"
+    )
   }
 
   if(object@Imported<"2024-02-01"){
-    message("This ERGExam object is outdated. Please run UpdateERGExam().")
+    Notice(
+      object,
+      what = c("I"),
+      notice_text = c(
+        "i This ERGExam object is outdated. Consider re-importing in case of errors." #Please run {.run UpdateERGExam({deparse(substitute(x))})}."
+      )
+    )
   }
   TRUE
 }
@@ -361,7 +405,7 @@ validERGExam <- function(object) {
 #' @slot Metadata  A data frame containing metadata information associated with the data in the Data slot, each row corresponds to one item in \code{data}.
 #' \describe{
 #'   \item{Step}{An integer vector containing the step index. A step describes data recorded in response to the same type of stimulus. This column links the Stimulus slot to the metadata}
-#'   \item{Eye}{A character vector. Possible values "RE" (right eye) and "LE" (left eye).}
+#'   \item{Eye}{A character vector. Possible standard values "RE" (right eye) , "LE" (left eye), and "BE" (bhot eyes). Possible non-standard values can be listed running \code{od_str}, \code{os_str} and \code{ou_str}, resp.. See: \link[=as.std.eyename]{as.std.eyename}.}
 #'   \item{Channel}{A character vector containing the channel name. This can be "ERG", "VEP" or "OP" for instance.}
 #'   \item{Repeat}{A numeric vector containing the indices of individual repeats contained in an ERG exam. E.g., if a recording to one identical stimulus is performed twice, these would be distinguished by different indices in the 'repeat' column. Warning: This is currently experimental}
 #' }
@@ -371,7 +415,7 @@ validERGExam <- function(object) {
 #' \describe{
 #'   \item{Step}{An integer vector row index. Will be removed in future versions.}
 #'   \item{Description}{A character vector describing the stimulus in a human-readable way.}
-#'   \item{Intensity}{A numeric vector representing the intensity of the stimulus.}
+#'   \item{StimulusEnergy}{A numeric vector representing the energy of the stimulus.}
 #'   \item{Background}{A character vector describing the adaptation state of the retina for that stimulus (DA or LA).}
 #'   \item{Type}{A character vector describing the type of the stimulus (e.g. Flash or Flicker).}
 #' }
@@ -442,7 +486,7 @@ ERGExam <- setClass(
     Stimulus = data.frame(
       Step = integer(),
       Description = character(),
-      Intensity = as_units(numeric(), unitless),
+      StimulusEnergy = as_units(numeric(), unitless),
       Background = character(),
       Type = character()
     ),
@@ -476,14 +520,14 @@ ERGExam <- setClass(
 #' @param skip.validation Do not test if object is valid. Default is \code{FALSE}. This can be helpful when creating import functions where incomplete datasets might exist.
 #' \describe{
 #'   \item{Step}{An integer vector pointing to a row index of the Stimulus table.}
-#'   \item{Eye}{A character vector containing the possible values "RE" (right eye) and "LE" (left eye).}
+#'   \item{Eye}{A character vector. Possible standard values "RE" (right eye) , "LE" (left eye), and "BE" (bhot eyes). Possible non-standard values can be listed running \code{od_str}, \code{os_str} and \code{ou_str}, resp.. See: \link[=as.std.eyename]{as.std.eyename}.}
 #'   \item{Channel}{A character vector containing the unique names of the third level of \code{Data}.}
 #' }
 #' @param Stimulus A data frame containing stimulus information associated with the data.
 #' \describe{
 #'   \item{Description}{A character vector describing the stimuli.}
-#'   \item{Background}{An integer vector representing the background intensity of the stimulus (unitless).}
-#'   \item{Intensity}{An numeric vector representing the intensity of the stimulus (unitless).}
+#'   \item{Background}{An integer vector representing the background luminance the stimulus is incident on (unitless).}
+#'   \item{StimulusEnergy}{An numeric vector representing the (flash) energy of the stimulus (unitless).}
 #' }
 #' @param Averaged A list of averaged data.
 #' @param Measurements An object of class \linkS4class{ERGMeasurements}.
@@ -523,7 +567,7 @@ ERGExam <- setClass(
 #'   data.frame(
 #'              Step = as.integer(c(1,1,2,2)),
 #'              Description = c("Stim1", "Stim2"),
-#'              Intensity = as.numeric(c(1,10)),
+#'              StimulusEnergy = as.numeric(c(1,10)),
 #'              Background = c("DA","DA"),
 #'              Type = c("Flash","Flash"))  # Example stimulus data
 #' ExamInfo <-
@@ -577,8 +621,8 @@ newERGExam <-
         cli_alert_info("Checking the 'Step' column in the stimulus table...")
         cli_abort(
           c(
-            "'Step' column contains invalid values.",
-            "The following entries could not be converted to integers: {invalid_values}.",
+            "i 'Step' column contains invalid values.",
+            "i The following entries could not be converted to integers: {invalid_values}.",
             "x Please ensure all values in the 'Step' column are numeric and contain no non-numeric characters."
           )
         )
@@ -633,7 +677,7 @@ setMethod("show",
             cli_text("{col_green('Exam Date:')} {as.character(ExamDate(object))}")
             cli_text("{col_green('Protocol:')} {object@ExamInfo$ProtocolName}")
             cli_text("{col_green('Steps:')}")
-            cli_ul(object@Stimulus$Description)
+            cli_ul(StimulusDescription(object))
             cli_text("{col_green('Eyes:')} {Eyes(object)}")
             cli_text("{col_green('Channels:')}")
             cli_ul({Channels(object)})
@@ -651,14 +695,21 @@ setMethod("show",
                 cli_alert_success("*Measurements imported from external source.*")
               }
             }
-            suppressWarnings({
-              fxSet <- CheckAvgFxSet(object)
-            })
+            if (!all(unlist(lapply(object@Data, function(x) {
+              dim(x)[2] == 1
+            })))) {
+              suppressWarnings({
+                fxSet <- CheckAvgFxSet(object)
+              })
 
-            if (!fxSet) {
-              cli_alert_warning("An average function has not been set for this object.")
+              if (!fxSet) {
+                cli_alert_warning("An average function has not been set for this object.")
+              } else {
+                cli_alert_success("An average function has been set for this object.")
+              }
             } else {
-              cli_alert_success("An average function has been set for this object.")
+              cli_alert_success("This object seems to contain averaged data or single traces.")
             }
+
             cli_text("Size: {format(object.size(object), 'auto')}\n")
           })

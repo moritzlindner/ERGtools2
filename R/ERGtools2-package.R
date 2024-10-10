@@ -28,7 +28,7 @@
 #'   \strong{\link[=Subset]{Subset}} \tab \linkS4class{ERGExam}  \tab Subsets an ERGExam object into a new object of the same class. \cr
 #'   \strong{\link[=as.data.frame]{as.data.frame}} \tab \linkS4class{ERGExam} , \link[=ERGProtocol]{ERGProtocol} \tab Returns data frame representing the ERGExam or ERGProtocol object in long format. \cr
 #'   \link[=Stimulus]{Stimulus} \tab \linkS4class{ERGExam}  \tab Returns selected rows of a stimulus table. \cr
-#'   \link[=StimulusDescription]{StimulusDescription}, \link[=StimulusIntensity]{StimulusIntensity}, \link[=StimulusBackground]{StimulusBackground}, \link[=StimulusType]{StimulusType} \tab \linkS4class{ERGExam}  \tab Returns details of stimulus description, intensity, background, and type. \cr
+#'   \link[=StimulusDescription]{StimulusDescription}, \link[=StimulusEnergy]{StimulusIntensity}, \link[=StimulusBackground]{StimulusBackground}, \link[=StimulusType]{StimulusType} \tab \linkS4class{ERGExam}  \tab Returns details of stimulus description, intensity, background, and type. \cr
 #'   \link[=MarkerNames]{MarkerNames} \tab \linkS4class{ERGExam} , \linkS4class{ERGMeasurements} \tab Returns the names of markers in the dataset. \cr
 #'   \link[=Markers]{Markers} \tab \linkS4class{ERGExam} , \linkS4class{ERGMeasurements} \tab Returns marker information from the dataset. \cr
 #'   \strong{\link[=Measurements]{Measurements}} \tab \linkS4class{ERGExam} , \linkS4class{ERGMeasurements} \tab Returns the Measurements table. \cr

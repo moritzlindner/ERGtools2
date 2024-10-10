@@ -7,10 +7,9 @@
 #' @inheritParams Measurements
 #' @param Markers Vector of markers to include in the plot.
 #'
-#' @return A data frame with measurements for plotting.#'
-#' @import dplyr
+#' @return A data frame with measurements for plotting.
 #' @importFrom EPhysData AverageFunction `AverageFunction<-` Rejected `Rejected<-` FilterFunction `FilterFunction<-`
-#' @importFrom utils txtProgressBar setTxtProgressBar
+#' @importFrom cli cli_abort cli_progress_bar cli_progress_update cli_progress_done
 #' @examples
 #' data(ERG)
 #' ERG<-SetStandardFunctions(ERG)
@@ -36,22 +35,28 @@ CollectMeasurements <- function(List,
         )
       )
     }
-    stop("'List' is not a list of ERGExams.")
+    cli_abort("'List' is not a list of ERGExams.")
   }
   # subset object
   List <- lapply(List, function(x) {
     if(!CheckAvgFxSet(x)){
-      stop("Average functions must be set for all objects in the list, but is missing for: ", Subject(x)," recorded on ", as.character(ExamDate(x)), ". ")
+      Notice(object,
+             what = c("Error"),
+             notice_text = c("x Average functions must be set for all objects in the list."),
+             help_page = "EPhysData::AverageFunction")
     }
     tryCatch({
       x <- Subset(x, where = where, Raw = T)
       return(x)
     }, error = function(e){
-      stop("Fetching Metadata and Stimulus values failed for ", Subject(x)," recorded on ", as.character(ExamDate(x)), " with error message: ", e)
+      Notice(object,
+             what = c("Error"),
+             notice_text = c("x Fetching Metadata and Stimulus values failed with error message {e} evoked by {.fun Subset}"),
+             help_page = "EPhysData::Subset")
     })
   })
   if(!quiet){
-    pb = txtProgressBar(min = 0, max = length(List), initial = 0)
+    cli_progress_bar("Collecting measurements", total = length(List),  clear = TRUE)
   }
   results <- list()
   for (i in 1: length(List)){
@@ -65,14 +70,21 @@ CollectMeasurements <- function(List,
           unique_recordings <- unique(df$Recording)
           filtered_recordings <- unique(df$Recording[df$Name == m])
           missing_recordings <- setdiff(unique_recordings, filtered_recordings)
-
-          warning(paste0("Marker ",m," missing for at least one of the recordings. Subj: ", Subject(x), "(", df$Group,"), Recording #", missing_recordings))
+          Notice(object,
+                 what = c("W"),
+                 where = missing_recordings,
+                 notice_text = c("x Marker {m} missing for at least one of the recordings."),
+                 help_page = "EPhysData::Subset")
         }
       }
 
       df<-df[,!(colnames(df) %in% ExtraMetaColumns(x))]
       if(nrow(df)==0){
-        message("No measurements found for, " ,Subject(x),". Consider running 'AutoPlaceMarkers()' first.")
+        Notice(object,
+               what = c("W"),
+               where = missing_recordings,
+               notice_text = c("x No measurements found."),
+               help_page = "ERGtools2::Measurements")
       }
 
       if(nrow(df)>0){
@@ -95,19 +107,22 @@ CollectMeasurements <- function(List,
               by.y = c("Step","Description"))
       results[[i]]<-df
     }, error = function(e){
-      stop("Fetching Measurements failed for ", Subject(x)," recorded on ", as.character(ExamDate(x)), " with error message: ", e)
+      Notice(object,
+             what = c("W"),
+             notice_text = c("x Fetching Measurements failed with error message '{e}'."),
+             help_page = "ERGtools2::Measurements")
     })
     if (!quiet) {
-      setTxtProgressBar(pb, i)
+      cli_progress_update()
     }
   }
 
   if (!quiet) {
-    close(pb)
+    cli_progress_done()
   }
   results <- do.call(rbind.data.frame, results)
   # type conversion and column names
-  colnames(results)[colnames(results) == "cd.s.m"] <- "Intensity"
+  colnames(results)[colnames(results) == "cd.s.m"] <- "StimulusEnergy"
   results$Step.y <- NULL
   results$Step <- iconv(results$Step, "ASCII//TRANSLIT", sub = '')
 

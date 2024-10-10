@@ -27,7 +27,7 @@ ERGChannel<-setClass(
   ),
   validity = function(object) {
     markers_valid <- all(sapply(object@Markers, function(m) inherits(m, "ERGMarker")))
-    eye_valid <- object@Eye %in% c("RE", "LE")
+    eye_valid <- is.std.eyename("both")
     # marker_warnings <- sapply(object@Markers, function(m) tryCatch({
     #   validObject(m, test=T)
     #   NULL
@@ -44,23 +44,18 @@ ERGChannel<-setClass(
       #   msg <- paste(msg, "\nMarker validity issues:", paste(marker_warnings, collapse = "; "))
       # }
       if (!eye_valid) {
-        msg <- paste(msg, "\nEye slot should be 'RE' or 'LE' but is ", object@Eye, ".")
+        msg <- paste(msg, "\nEye slot should be 'RE', 'LE' or 'BE' but is ", object@Eye, ".")
       }
       warning(msg)
       return(FALSE)
     } else {
       return(TRUE)
     }
-
-
     if (!all(sapply(object@Markers, function(m) inherits(m, "ERGMarker")))) {
       "Markers slot should contain only objects of class 'ERGMarker'"
     } else {
       TRUE
     }
-
-
-
   },
   prototype = list(
     Name = character(),
@@ -72,8 +67,6 @@ ERGChannel<-setClass(
     Markers = list()
   )
 )
-
-
 
 #' @noMd
 ERGStep<-setClass(
@@ -94,7 +87,6 @@ ERGStep<-setClass(
     Baselineenabled = "logical",
     Baselinepretrigger = "character",
     Baselinerange = "character",
-
     Channels = "list"  # Slot for a list of 'ERGChannel' objects
   ),
   validity = function(object) {

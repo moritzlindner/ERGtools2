@@ -13,7 +13,7 @@
 #' @name DropRecordings-method
 #' @examples
 #' data(ERG)
-#' tmp<-DropRecordings(ERG, where=list(Channel="ERG", Intensity=1))
+#' tmp<-DropRecordings(ERG, where=list(Channel="ERG", StimulusEnergy=1))
 #' @exportMethod DropRecordings
 setGeneric(
   name = "DropRecordings",

@@ -7,6 +7,8 @@
 \alias{StimulusDescription<-}
 \alias{StimulusIntensity}
 \alias{StimulusIntensity<-}
+\alias{StimulusEnergy}
+\alias{StimulusEnergy<-}
 \alias{StimulusBackground}
 \alias{StimulusBackground<-}
 \alias{StimulusType}
@@ -23,6 +25,10 @@ StimulusIntensity(X, where = NULL)
 
 StimulusIntensity(X, where = NULL) <- value
 
+StimulusEnergy(X, where = NULL)
+
+StimulusEnergy(X, where = NULL) <- value
+
 StimulusBackground(X, where = NULL)
 
 StimulusBackground(X, where = NULL) <- value
@@ -36,7 +42,7 @@ StimulusType(X, where = NULL) <- value
 
 \item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
 
-\item{full}{For \code{Stimulus} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \link{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.}
+\item{full}{For \code{Stimulus} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \link{MergeERGExams}) or only the main columns "Step", "Description", "StimulusEnergy", "Background" and "Type". Default is false.}
 
 \item{value}{For '<-' methods only. Vector of the same length as Stimuli selected by where containing the values to be assigned.}
 }
@@ -54,9 +60,13 @@ Methods acting on \linkS4class{ERGExam} to extract or replace parts.
 
 \item \code{StimulusDescription(X, where = NULL) <- value}: Sets the description of one or more selected stimuli.
 
-\item \code{StimulusIntensity()}: Returns the intensity value of one or more selected stimuli.
+\item \code{StimulusIntensity()}: DEPRECIATED. Use \code{StimulusEnergy} instead. Returns the energy value of one or more selected stimuli.
 
-\item \code{StimulusIntensity(X, where = NULL) <- value}: Sets the intensity value for one or more selected stimuli.
+\item \code{StimulusIntensity(X, where = NULL) <- value}: DEPRECIATED. Use \code{StimulusEnergy<-} instead. Sets the energy value for one or more selected stimuli.
+
+\item \code{StimulusEnergy()}: Returns the energy value of one or more selected stimuli.
+
+\item \code{StimulusEnergy(X, where = NULL) <- value}: Sets the energy value for one or more selected stimuli.
 
 \item \code{StimulusBackground()}: Returns the background value of one or more selected stimuli.
 

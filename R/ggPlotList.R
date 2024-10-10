@@ -16,7 +16,7 @@
 #' @importFrom ggplot2 ggplot aes geom_line geom_point geom_errorbar scale_x_log10 facet_wrap labs guides
 #' @importFrom ggpubr theme_pubr
 #' @importFrom tidyr %>%
-#' @importFrom dplyr summarise
+#' @importFrom dplyr summarise group_by n
 #' @seealso  \link[ggplot2:ggplot]{ggplot2:ggplot}
 #'
 #' @examples
@@ -39,7 +39,7 @@ ggIntensitySequence <-
            theme.base.size = 8) {
 
     # dplyr workaround
-    Group<-Name<-Intensity<-Voltage<-sd<-Time<-Amplitude<-sem<-ImplicitTime<-NULL
+    Group<-Name<-StimulusEnergy<-Voltage<-sd<-Time<-Amplitude<-sem<-ImplicitTime<-NULL
 
     # Extract Measurements and related info
     results <- CollectMeasurements(
@@ -52,7 +52,7 @@ ggIntensitySequence <-
 
     if (Parameter == "Amplitude") {
       results <-
-        results %>% group_by(Group, Name, Intensity, Channel) %>% summarise(
+        results %>% group_by(Group, Name, StimulusEnergy, Channel) %>% summarise(
           Amplitude = mean(Voltage),
           sem = sd(Voltage) / sqrt(n()),
           n =
@@ -63,7 +63,7 @@ ggIntensitySequence <-
     }
     if(Parameter =="Time"){
       results <-
-        results %>% group_by(Group, Name, Intensity, Channel) %>% summarise(
+        results %>% group_by(Group, Name, StimulusEnergy, Channel) %>% summarise(
           ImplicitTime = mean(Time),
           sem = sd(Time, na.rm = T) / sqrt(n()),
           n =
@@ -82,7 +82,7 @@ ggIntensitySequence <-
       if(Parameter == "Amplitude"){
         plt <- ggplot(data = results,
                       aes(
-                        x = Intensity,
+                        x = StimulusEnergy,
                         y = Amplitude ,
                         color = Group,
                         shape = Name
@@ -95,7 +95,7 @@ ggIntensitySequence <-
       if(Parameter == "Time"){
         plt <- ggplot(data = results,
                       aes(
-                        x = Intensity,
+                        x = StimulusEnergy,
                         y = ImplicitTime,
                         color = Group,
                         shape = Name
@@ -114,7 +114,7 @@ ggIntensitySequence <-
       plt<-plt+
         theme_pubr(base_size = theme.base.size) +
         scale_x_log10() +
-        labs(x = "Intensity [cd*s/m^2]", shape = "Marker")
+        labs(x = "Stimulus Energy [cd*s/m^2]", shape = "Marker")
 
       if(length(unique(results$Group))==1){
         plt<-plt+
@@ -146,7 +146,8 @@ PlotIntensitySequence<-ggIntensitySequence
 #'
 #' @importFrom ggplot2 ggplot aes geom_line geom_point geom_errorbar scale_x_log10 facet_wrap labs
 #' @importFrom ggpubr theme_pubr
-#' @import dplyr
+#' @importFrom tidyr %>%
+#' @importFrom dplyr group_by summarise
 #' @seealso \link[ggplot2:ggplot]{ggplot2:ggplot}
 #'
 #' @examples
@@ -167,7 +168,7 @@ ggStepSequence <-
   {
 
     #dplyr workaround
-    Step<-Group<-Name<-Intensity<-Voltage<-sd<-Time<-Amplitude<-sem<-ImplicitTime<-NULL
+    Step<-Group<-Name<-StimulusEnergy<-Voltage<-sd<-Time<-Amplitude<-sem<-ImplicitTime<-NULL
 
 
     # Extract Measurements and related info
@@ -230,6 +231,7 @@ PlotStepSequence<-ggStepSequence
 #' @importFrom ggpubr theme_pubclean
 #' @importFrom stringr str_detect
 #' @importFrom units drop_units as_units
+#' @importFrom cli cli_abort cli_inform cli_progress_bar cli_progress_update cli_progress_done
 #' @examples
 #' # Example usage:
 #' data(ERG)
@@ -248,11 +250,15 @@ ggPlotRecordings <- function(List,
   # ggplot workaround
   Time<-Value<-Eye<-Repeat<-NULL
   commoncolnames<-c("Step","Channel","Repeat","Eye","Repeat","Time")
-  message("Running 'ggPlotRecordings()'. This may take a while for long ERGExam lists. ")
+  cli_inform(c(
+    "Running {.fun ggPlotRecordings}. This may take a while for long ERGExam lists."
+  ))
 
-  results <- lapply(List, function(x) {
+  results<-list()
+  cli_progress_bar("Preparing data", total = length(List),  clear = TRUE)
+  for (h in seq_along(List)) {
+    x <- List[[h]]
     tryCatch({
-
       x<-Subset(x,where=where, Raw = T)
       x<-Downsample(x, n = downsample)
       x<-SetSIPrefix(x,"u")
@@ -296,16 +302,21 @@ ggPlotRecordings <- function(List,
       tab$Description <-
         iconv(tab$Description, "ASCII//TRANSLIT", sub = '')
       df <- merge(df, tab)
+      results[[i]] <- df
     }, error = function (e){
-      stop("Gathering data failed for ", Subject(x), ", ", ProtocolName(x), " with error message: ", e)
+      cli_abort(c(
+        "Gathering data failed for subject '{.strong {Subject(x)}}' and protocol '{.strong {ProtocolName(x)}}'.",
+        "Error message: {.val {e}}"
+      ))
     })
-
-  })
+    cli_progress_update()
+  }
+  cli_progress_done()
 
   results <- do.call(rbind.data.frame, results)
   # type conversion and column names
   colnames(results)[str_detect(colnames(results), "cd.s.m")] <-
-    "Intensity"
+    "StimulusEnergy"
   results$Step <- iconv(results$Step, "ASCII//TRANSLIT", sub = '')
 
   # define faceting variables
@@ -313,7 +324,7 @@ ggPlotRecordings <- function(List,
     non_unary_columns <- columns[sapply(df[columns], function(x) length(unique(x)) > 1)]
     return(non_unary_columns)
   }
-  rows <- get_non_unary_columns(results, c("Type", "Background", "Intensity", "Channel"))
+  rows <- get_non_unary_columns(results, c("Type", "Background", "StimulusEnergy", "Channel"))
   if(length(rows)==0){
     rows<-"1"
   }
@@ -347,7 +358,7 @@ ggPlotRecordings <- function(List,
     #labs(x = paste0("Time [", si_x, "]"), y = paste0("Voltage [", si_y, "]")) +
     scale_color_manual(values = c("RE" = "darkred", "LE" = "darkblue","OD" = "darkred", "OS" = "darkblue")) +
     scale_fill_manual(values = c("RE" = "darkred", "LE" = "darkblue","OD" = "darkred", "OS" = "darkblue")) +
-    theme(panel.grid.major = element_line(size = .1))+
+    theme(panel.grid.major = element_line(linewidth = .1))+
     guides(fill = "none")
 }
 

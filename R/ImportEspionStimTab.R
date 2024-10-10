@@ -1,5 +1,6 @@
 #' @describeIn ImportEspion Read the Stimulus information stored in an Espion Exam file
 #' @importFrom utils read.csv
+#' @importFrom cli cli_warn cli_abort cli_inform
 #' @examples
 #' \dontrun{
 #' # Import stimulus information from a *.csv file exported from the Diagnosys Espion™ software.
@@ -17,10 +18,14 @@ ImportEspionStimTab <- function(filename,
         if (!(all(unlist(lapply(Protocol, function(x) {
           inherits(x, "ERGProtocol")
         }))))) {
-          stop("'Protocol' must be an object of class 'Protocol' or a list thereof.")
+          cli_abort(c(
+            "'{.strong Protocol}' must be an object of class 'Protocol' or a list thereof."
+          ))
         }
       } else{
-        stop("'Protocol' must be an object of class 'Protocol' or a list thereof.")
+        cli_abort(c(
+          "'{.strong Protocol}' must be an object of class 'Protocol' or a list thereof."
+        ))
       }
     }
   }
@@ -29,7 +34,7 @@ ImportEspionStimTab <- function(filename,
     stop("File ", filename, " does not exist")
   }
   if (sep != "\t") {
-    message("Import using fiels separators other than '\t' untested.")
+    cli_inform("Import of files using separaotrs other than '\t' is experimental.")
   }
 
   # load
@@ -37,24 +42,26 @@ ImportEspionStimTab <- function(filename,
                header = F,
                sep = sep,
                nrow = 1)[[1]] != "Contents Table") {
-    stop(paste(filename, " does not begin with a table of content."))
+    cli_abort("{.file {filename}} does not begin with a table of content.")
   }
   # get Table of content
   toc <- get_toc(filename, sep = sep)
 
-  if (!all(c(
-    "Header Table",
-    "Stimulus Table"
-  ) %in% (rownames(toc)))) {
-    stop(
-      "'Header Table' and 'Stimulus Table' must be included in the data set (even if they should not be imported). At least one of these is missing."
-    )
+  missing_tables <- c("Header Table", "Stimulus Table")[!(c("Header Table", "Stimulus Table") %in% rownames(toc))]
+  if (length(missing_tables) > 0) {
+    cli_abort(c(
+      "'{.strong Header Table}' and '{.strong Stimulus Table}' must be included in the data set (even if they should not be imported).",
+      "The following table(s) are missing: {.val {missing_tables}}."
+    ))
   }
 
   # get protocol info
   recording_info <- ImportEspionInfo(filename)
   if (!"Protocol" %in%  names(recording_info)) {
-    stop("Table of content incomplete. Does not contain protocol name.")
+    cli_abort(c(
+      "Table of content incomplete.",
+      "Does not contain protocol name."
+    ))
   }
 
   # Get Protocol info
@@ -65,15 +72,16 @@ ImportEspionStimTab <- function(filename,
         x@Name
       })))
       if (length(idx) == 0) {
-        stop("Required protocol not in list.")
+        cli_abort("Required protocol not in the list.")
       }
       if (length(idx) > 1) {
-        stop("Duplicate protocol entry in 'Protocols' list.")
+        cli_abort("Duplicate protocol entry in the 'Protocols' list.")
       }
       Protocol <- Protocol[[idx]]
     } else{
       if (Protocol@Name != tmp1) {
-        stop("Provided protocol is not the required.")
+        cli_abort("Provided protocol is not the required one.")
+
       }
     }
   }

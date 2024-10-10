@@ -2,7 +2,7 @@
 #'
 #' Methods acting on \linkS4class{ERGExam} to extract or replace parts.
 #' @inheritParams Where
-#' @param full For \code{Stimulus} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \link{MergeERGExams}) or only the main columns "Step", "Description", "Intensity", "Background" and "Type". Default is false.
+#' @param full For \code{Stimulus} only. Whether to return the full stimulus table (i.e. also any additional data that might have been added by the user or when merging single \linkS4class{ERGExam} using \link{MergeERGExams}) or only the main columns "Step", "Description", "StimulusEnergy", "Background" and "Type". Default is false.
 #' @param value For '<-' methods only. Vector of the same length as Stimuli selected by where containing the values to be assigned.
 #' @returns For '<-' methods: an updated \linkS4class{ERGExam} object. For others: a vector containing the extracted values.
 #' @examples
@@ -58,7 +58,7 @@ setMethod("StimulusTable",
           function(X,
                    full = F) {
             if(!full){
-              return(X@Stimulus[, c("Step", "Description", "Intensity", "Background", "Type")])
+              return(X@Stimulus[, c("Step", "Description", "StimulusEnergy", "Background", "Type")])
             }else{
               return(X@Stimulus)
 
@@ -105,7 +105,7 @@ setMethod("Stimulus",
             step<-unique(Metadata(X)$Step[idx])
             out<-X@Stimulus[X@Stimulus$Step %in% step,]
             if(!full){
-              return(out[, c("Step", "Description", "Intensity", "Background", "Type")])
+              return(out[, c("Step", "Description", "StimulusEnergy", "Background", "Type")])
             }else{
               return(out)
 
@@ -241,7 +241,7 @@ setMethod("StimulusDescription<-",
 
 
 
-#' @describeIn StimulusTableMethods Returns the intensity value of one or more selected stimuli.
+#' @describeIn StimulusTableMethods DEPRECIATED. Use \code{StimulusEnergy} instead. Returns the energy value of one or more selected stimuli.
 #' @exportMethod StimulusIntensity
 setGeneric(
   name = "StimulusIntensity",
@@ -257,10 +257,10 @@ setMethod("StimulusIntensity",
           "ERGExam",
           function(X,
                    where = NULL) {
-            return(StimulusX(X, where = where, what = "Intensity"))
+            return(StimulusX(X, where = where, what = "StimulusEnergy"))
           })
 
-#' @describeIn StimulusTableMethods Sets the intensity value for one or more selected stimuli.
+#' @describeIn StimulusTableMethods DEPRECIATED. Use \code{StimulusEnergy<-} instead. Sets the energy value for one or more selected stimuli.
 #' @exportMethod StimulusIntensity<-
 setGeneric(
   name = "StimulusIntensity<-",
@@ -278,10 +278,51 @@ setMethod("StimulusIntensity<-",
           function(X,
                    where = NULL,
                    value) {
-            StimulusX(X, where = where, what = "Intensity")<-value
+            StimulusX(X, where = where, what = "StimulusEnergy")<-value
             return(X)
           })
 
+
+#' @describeIn StimulusTableMethods Returns the energy value of one or more selected stimuli.
+#' @exportMethod StimulusEnergy
+setGeneric(
+  name = "StimulusEnergy",
+  def = function(X,
+                 where = NULL)
+  {
+    standardGeneric("StimulusEnergy")
+  }
+)
+
+#' @noMd
+setMethod("StimulusEnergy",
+          "ERGExam",
+          function(X,
+                   where = NULL) {
+            return(StimulusX(X, where = where, what = "StimulusEnergy"))
+          })
+
+#' @describeIn StimulusTableMethods Sets the energy value for one or more selected stimuli.
+#' @exportMethod StimulusEnergy<-
+setGeneric(
+  name = "StimulusEnergy<-",
+  def = function(X,
+                 where = NULL,
+                 value)
+  {
+    standardGeneric("StimulusEnergy<-")
+  }
+)
+
+#' @noMd
+setMethod("StimulusEnergy<-",
+          "ERGExam",
+          function(X,
+                   where = NULL,
+                   value) {
+            StimulusX(X, where = where, what = "StimulusEnergy")<-value
+            return(X)
+          })
 
 
 #' @describeIn StimulusTableMethods Returns the background value of one or more selected stimuli.

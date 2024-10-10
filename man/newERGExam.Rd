@@ -23,8 +23,8 @@ newERGExam(
 \item{Stimulus}{A data frame containing stimulus information associated with the data.
 \describe{
 \item{Description}{A character vector describing the stimuli.}
-\item{Background}{An integer vector representing the background intensity of the stimulus (unitless).}
-\item{Intensity}{An numeric vector representing the intensity of the stimulus (unitless).}
+\item{Background}{An integer vector representing the background luminance the stimulus is incident on (unitless).}
+\item{StimulusEnergy}{An numeric vector representing the (flash) energy of the stimulus (unitless).}
 }}
 
 \item{Averaged}{A list of averaged data.}
@@ -52,7 +52,7 @@ newERGExam(
 \item{skip.validation}{Do not test if object is valid. Default is \code{FALSE}. This can be helpful when creating import functions where incomplete datasets might exist.
 \describe{
 \item{Step}{An integer vector pointing to a row index of the Stimulus table.}
-\item{Eye}{A character vector containing the possible values "RE" (right eye) and "LE" (left eye).}
+\item{Eye}{A character vector. Possible standard values "RE" (right eye) , "LE" (left eye), and "BE" (bhot eyes). Possible non-standard values can be listed running \code{od_str}, \code{os_str} and \code{ou_str}, resp.. See: \link[=as.std.eyename]{as.std.eyename}.}
 \item{Channel}{A character vector containing the unique names of the third level of \code{Data}.}
 }}
 }
@@ -82,7 +82,7 @@ Stimulus <-
   data.frame(
              Step = as.integer(c(1,1,2,2)),
              Description = c("Stim1", "Stim2"),
-             Intensity = as.numeric(c(1,10)),
+             StimulusEnergy = as.numeric(c(1,10)),
              Background = c("DA","DA"),
              Type = c("Flash","Flash"))  # Example stimulus data
 ExamInfo <-

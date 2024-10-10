@@ -35,7 +35,8 @@
 #' @importFrom EPhysData as.data.frame lapply
 #' @importFrom stringr str_detect
 #' @importFrom units set_units
-#' @import dplyr
+#' @importFrom tidyr %>%
+#' @importFrom dplyr group_by mutate ungroup group_by_at row_number
 #' @seealso \linkS4class{ERGExam} \link[ggplot2:ggplot]{ggplot2:ggplot}
 #'
 #' @exportMethod ggERGExam
@@ -104,13 +105,13 @@ setMethod(
           curr <- curr[curr$Repeat == 1,]
 
           defining <-
-            unique(curr[, c("Intensity", "Description")])
+            unique(curr[, c("StimulusEnergy", "Description")])
           defining <-
             apply(defining, 2, function(x) {
               length(unique(x))
             }) == nrow(defining)
-          if (defining["Intensity"]) {
-            colourby = "Intensity"
+          if (defining["StimulusEnergy"]) {
+            colourby = "StimulusEnergy"
           } else{
             colourby = "Description"
           }
