@@ -1,7 +1,40 @@
+#' Check the validity of an ERGExam object
+#'
+#' This function validates the structure and integrity of an \code{ERGExam} object by ensuring that all required fields
+#' are present, correctly formatted, and contain appropriate values. It checks the validity of subject information,
+#' metadata, and measurements, ensuring consistency across the various components of the object.
+#'
+#' @param object An \code{ERGExam} object to validate.
+#' @param non.fatal A string specifying the severity level for certain notices. Can be "Error", "Warning", or "Information".
+#'   Defaults to "Error".
+#'
+#' @details
+#' This function performs the following checks:
+#' \itemize{
+#'   \item Ensures essential subject identifiers (e.g., subject name, date of birth) and exam information (e.g., exam date) are present.
+#'   \item Verifies that the \code{Metadata} slot contains required columns: "Step", "Eye", "Channel", and "Repeat". It also checks their class types.
+#'   \item Ensures that the \code{Metadata} slot does not contain any missing values in its essential columns and that reserved column names are not used.
+#'   \item Checks the validity of \code{Eye} entries in the \code{Metadata} slot against predefined valid identifiers.
+#'   \item Ensures that data consistency is maintained across steps, eyes, and repeats in the \code{Data} slot for certain fields like "Rejected", "filter.fx", and "average.fx".
+#'   \item Validates the \code{Measurements} slot to ensure it contains a valid \code{ERGMeasurements} object and that channel binding matches the metadata.
+#'   \item Checks the \code{Stimulus} slot for required columns and the presence of valid data in essential columns like "Step", "Description", and "StimulusEnergy".
+#'   \item Ensures temporal consistency among the \code{DOB}, \code{ExamDate}, and \code{Imported} dates.
+#' }
+#'
+#' The function generates \code{Notice} messages if any issues are found, which could include errors, warnings, or information based on the provided \code{non.fatal} argument.
+#'
+#' @return Returns \code{TRUE} if the \code{ERGExam} object passes all validation checks. Otherwise, it issues \code{Notice} messages with specific instructions for resolving issues.
+#'
+#' @examples
+#' \dontrun{
+#' validERGExam(myERGExam)
+#' }
+#'
 #' @importFrom EPhysData Rejected FilterFunction AverageFunction
 #' @importFrom stats var
 #' @importFrom cli cli_abort cli_inform cli_alert_warning cli_warn
-validERGExam <- function(object) {
+#' @export
+validERGExam <- function(object, non.fatal = "Error") {
 
   # essential identifiers
   #Essential fields
@@ -53,7 +86,7 @@ validERGExam <- function(object) {
 
   if (length(missing_indices) > 0) {
     Notice(object,
-           what = c("W"),
+           what = c(non.fatal),
            notice_text = c("! The essential columns of the Metadata slot ('Step', 'Eye', 'Channel', 'Repeat') contain missing values.",
                            "i Missing values detected at: {paste(missing_info, collapse = '; ')}.",
                            "! Run {.run Metadata({deparse(substitute(x))})} to identify and address these missing values in order to avoid potential issues in downstream methods."),
@@ -69,7 +102,7 @@ validERGExam <- function(object) {
 
   if (length(used_reserved_columns) > 0) {
     Notice(object,
-           what = c("W"),
+           what = c(non.fatal),
            notice_text = c("! The following reserved column names are being used in 'Metadata': {paste(used_reserved_columns, collapse = ', ')}.",
                            "i 'Description', 'StimulusEnergy', 'Background', 'Type', 'Name', 'ChannelBinding', 'Relative', and 'Time' are reserved column names.",
                            "! These names should not be used as extra column names in 'Metadata' to avoid potential conflicts."),
@@ -124,7 +157,7 @@ validERGExam <- function(object) {
           }
         }))) {
           Notice(object,
-                 what = c("W"),
+                 what = c(non.fatal),
                  where = list(Step = s, Eye = e, Repeat = r),
                  notice_text = c("! 'Rejected' vectors are not identical across channels."),
                  help_page = "ERGtools2::ERGExam")
@@ -262,7 +295,7 @@ validERGExam <- function(object) {
     if (length(missing_steps) > 0) {
       Notice(
         object,
-        what = c("W"),
+        what = c(non.fatal),
         notice_text = c(
           "! The following Steps in the Stimulus table are missing from Metadata: {.val {missing_steps}}."
         ),
@@ -301,7 +334,7 @@ validERGExam <- function(object) {
     rows_with_na <- which(rowSums(missing_values) > 0)
     Notice(
       object,
-      what = c("W"),
+      what = c(non.fatal),
       notice_text = c(
         "x Missing values detected in essential columns of the Stimulus slot.",
         "i The essential columns of the Stimulus slot ('Step', 'Description', 'StimulusEnergy', 'Background', 'Type') should not contain missing values.",
@@ -320,7 +353,7 @@ validERGExam <- function(object) {
   if (length(used_reserved_columns) > 0) {
     Notice(
       object,
-      what = c("W"),
+      what = c(non.fatal),
       notice_text = c(
         "! Reserved column names detected in the Stimulus slot. These are: {.val {used_reserved_columns}}",
         "i 'Channel', 'Repeat', 'Eye', 'Name', 'ChannelBinding', 'Relative', and 'Time' are reserved column names.",
@@ -367,7 +400,7 @@ validERGExam <- function(object) {
           max(exam_date) < min(imported_date))) {
       Notice(
         object,
-        what = c("W"),
+        what = c(non.fatal),
         notice_text = c(
           "i Temporal sequence of 'DOB' ({.val {dob}}), 'ExamDate' ({.val {exam_date}}), and 'Imported' ({.val {imported_date}}) is impossible."
         ),
@@ -508,45 +541,50 @@ ERGExam <- setClass(
     ),
     Imported = as.POSIXct(integer())
   ),
-  validity = validERGExam
+  validity = function(object) {
+    validERGExam(object)
+  }
 )
 
 #' Create an instance of the ERGExam class
 #'
 #' @description This function creates an instance of the \linkS4class{ERGExam} class.
 #'
-#' @param Data A list of \linkS4class{EPhysData::EPhysData} objects.
-#' @param Metadata A data frame containing metadata information associated with the data, each row corresponds to one list item.
-#' @param skip.validation Do not test if object is valid. Default is \code{FALSE}. This can be helpful when creating import functions where incomplete datasets might exist.
+#' @param Data Data A list of \link[EPhysData:EPhysData]{EPhysData::EPhysData} objects. Each item containing a recording in response to a particular Stimulus ("Step"), from a particular eye and data Channel (e.g. ERG or OP), as defined in the corresponding Metadata.
+#' @param Metadata  A data frame containing metadata information associated with the data in the Data slot, each row corresponds to one item in \code{data}.
 #' \describe{
-#'   \item{Step}{An integer vector pointing to a row index of the Stimulus table.}
+#'   \item{Step}{An integer vector containing the step index. A step describes data recorded in response to the same type of stimulus. This column links the Stimulus slot to the metadata}
 #'   \item{Eye}{A character vector. Possible standard values "RE" (right eye) , "LE" (left eye), and "BE" (bhot eyes). Possible non-standard values can be listed running \code{od_str}, \code{os_str} and \code{ou_str}, resp.. See: \link[=as.std.eyename]{as.std.eyename}.}
-#'   \item{Channel}{A character vector containing the unique names of the third level of \code{Data}.}
+#'   \item{Channel}{A character vector containing the channel name. This can be "ERG", "VEP" or "OP" for instance.}
+#'   \item{Repeat}{A numeric vector containing the indices of individual repeats contained in an ERG exam. E.g., if a recording to one identical stimulus is performed twice, these would be distinguished by different indices in the 'repeat' column. Warning: This is currently experimental}
 #' }
-#' @param Stimulus A data frame containing stimulus information associated with the data.
+#' @param Stimulus A data frame containing stimulus information.
 #' \describe{
-#'   \item{Description}{A character vector describing the stimuli.}
-#'   \item{Background}{An integer vector representing the background luminance the stimulus is incident on (unitless).}
-#'   \item{StimulusEnergy}{An numeric vector representing the (flash) energy of the stimulus (unitless).}
+#'   \item{Step}{An integer vector row index. Will be removed in future versions.}
+#'   \item{Description}{A character vector describing the stimulus in a human-readable way.}
+#'   \item{StimulusEnergy}{A numeric vector representing the energy of the stimulus.}
+#'   \item{Background}{A character vector describing the adaptation state of the retina for that stimulus (DA or LA).}
+#'   \item{Type}{A character vector describing the type of the stimulus (e.g. Flash or Flicker).}
 #' }
-#' @param Averaged A list of averaged data.
+#' @param Averaged TRUE if the object was created from averaged data, FALES indicates object contains raw traces.
 #' @param Measurements An object of class \linkS4class{ERGMeasurements}.
 #' @param ExamInfo A list containing exam-related information.
 #' \describe{
 #'   \item{ProtocolName}{A character vector indicating the name of the protocol.}
 #'   \item{Version}{Optional: A character vector indicating the version of the protocol.}
-#'   \item{ExamDate}{A \code{POSIXct} timestamp representing the date of the exam.}
-#'   \item{Filename}{Optional: A character vector indicating the filename associated with the exam data.}
-#'   \item{RecMode}{Optional: A character vector indicating the recording mode during the exam.}
+#'   \item{ExamDate}{A \code{POSIXct} The date of the exam.}
+#'   \item{Filename}{Optional: The filename associated where exam raw data have been imported from.}
+#'   \item{RecMode}{Optional: A character vector indicating the recording mode.}
 #'   \item{Investigator}{Optional: A character vector indicating the name of the investigator conducting the exam.}
 #' }
 #' @param SubjectInfo A list containing subject-related information.
 #' \describe{
-#'   \item{Subject}{A character vector (required) indicating the name of the patient.}
-#'   \item{DOB}{A \code{Date} object  (required) indicating the date of birth of the patient.}
-#'   \item{Gender}{Optional: A character vector indicating the gender of the patient.}
-#'   \item{Group}{Optional: A character vector indicating the group to which the patient belongs.}
+#'   \item{Subject}{A character vector indicating the name of the subject}
+#'   \item{DOB}{A \code{Date} object indicating the date of birth of the subject}
+#'   \item{Gender}{Optional: A character vector indicating the gender of the subject}
+#'   \item{Group}{Optional: A character vector indicating the study group to which the subject belongs.}
 #' }
+#' @param skip.validation Do not test if object is valid. Default is \code{FALSE}. This can be helpful when creating import routines that might sometimes be called on incomplete/faulty datasets.
 #' @examples
 #' # Create example data and metadata
 #' Data <-

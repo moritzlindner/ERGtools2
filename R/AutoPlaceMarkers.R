@@ -2,16 +2,17 @@
 #'
 #' These methods automatically place markers for ERG/VEP recordings in an \linkS4class{ERGExam} object.
 #'
-#' @inheritParams UpdateProcessingMethods
+#' @inheritParams SetStandardFunctions
 #' @param X An \linkS4class{ERGExam} object for \code{AutoPlaceMarkers()} or an \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} object for the lower level methods \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} or \link[=AutoPlaceVEP]{AutoPlaceVEP}.
-#' @param Channel.names A \code{pairlist} specifying channel names.
-#' @param robust.peak.filter.bands A numeric vector of length 2 specifying the lower and upper bounds of the frequency band used for initial peak idetification n the lowe-level methods
-#' @param true.peak.tolerance A vector of class units and length 2 specifying the tolerance range around true peaks. Must be time values (i.e. a unit convertibel into 'seconds').
+#' @param Channel.names A \code{pairlist} specifying channel identifiers
+#' @param robust.peak.filter.bands A numeric vector of  of class units (\link[units:units]{units::units}  and length 2 specifying the lower and upper bounds of the frequency band used for initial peak identification. Must be in unit H).
+#' @param true.peak.tolerance A vector of class units (\link[units:units]{units::units}  and length 2 specifying the tolerance range around true peaks. Must be time values (i.e. a unit convertible into 'seconds').
+#' @param Param.list A named list to override default parameters for the lower-level marker placement methods. The list must contain named elements corresponding to one or more of the lower-level methods: \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker}, or \link[=AutoPlaceVEP]{AutoPlaceVEP}. Each element in the list must be a named list containing specific parameters for that method, such as `robust.peak.filter.bands` or `true.peak.tolerance`. If not provided, the default values for each method will be used. If a method is not specified in `Param.list`, its default parameters will be applied.
 #' @importFrom cli cli_progress_bar cli_progress_update cli_progress_done
 #'
 #' @details These methods are used to automatically place markers for ERGs/VEPs.\cr\cr
-#' \code{AutoPlaceMarkers()} sets markers depending on the channel (E.g. ERG, VEP, OP,...) and stimulus type (Flash, Flicker), defined via the \code{Channel.names} and \code{Stimulus.type.names} arguments. Markers are placed using the lower level methods \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} or \link[=AutoPlaceVEP]{AutoPlaceVEP} function depending on the stimulus type.\cr\cr
-#'  \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} and \link[=AutoPlaceVEP]{AutoPlaceVEP} are the lower level functions which perform the actual marker placement on the \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} objects contained in the \linkS4class{ERGExam} object. These methods are usually not called directly by a user, unless she/he wants to perform or re-run marker placement only on certain recordings while leaving previously set markers unchanged for the others.
+#' \code{AutoPlaceMarkers()} sets markers depending on the channel (E.g. ERG, VEP, OP,...) and stimulus type (Flash, Flicker), defined via the \code{Channel.names} and \code{Stimulus.type.names} arguments. Markers are placed using the lower level methods \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} or \link[=AutoPlaceVEP]{AutoPlaceVEP} function depending on the provided combination of \code{Channel.names} and \code{Stimulus.type.names}.\cr\cr
+#'  \link[=AutoPlaceAB]{AutoPlaceAB}, \link[=AutoPlaceFlicker]{AutoPlaceFlicker} and \link[=AutoPlaceVEP]{AutoPlaceVEP} are the lower level functions which perform the actual marker placement on the \link[EPhysData:EPhysData-class]{EPhysData::EPhysData-class} objects contained in the \linkS4class{ERGExam} object. Those methods are usually not called directly by a user, unless she/he wants to perform or re-run marker placement only on certain recordings while leaving previously set markers unchanged for the others.
 #'  There working principle is that they apply robust peak filtering within defined frequency bands (low frequency band by default) to locate the gross position of the most prominent peaks peaks and then look for the peak in data using the preset filter function (\link{FilterFunction}) to accurately identify the actual peak position. \cr\cr
 #'  Currently, supported are:
 #' * a and B waves for Flash ERG
@@ -21,6 +22,7 @@
 #' @return An updated \code{ERGExam} object with markers placed.
 #'
 #' @examples
+#' # Preparing data
 #' data(ERG)
 #' ERG<-SetStandardFunctions(ERG)
 #' imported_Markers<-Measurements(ERG)
@@ -28,13 +30,31 @@
 #' ERG<-ClearMeasurements(ERG)
 #' imported_Markers_cleared<-Measurements(ERG)
 #' head(imported_Markers_cleared)
+#' # Using the top-level AutoPlaceMarkers method without manually setting peak detection parameters
 #' ERG<-AutoPlaceMarkers(ERG, Channel.names = pairlist(ERG = "ERG"))
 #' autoplaced_Markers<-Measurements(ERG)
 #' head(autoplaced_Markers)
+#' ggERGExam(ERG)
+#' # Using the top-level AutoPlaceMarkers method without manually setting peak detection parameters
+#' ERG <-
+#'   AutoPlaceMarkers(
+#'     ERG,
+#'     Channel.names = pairlist(ERG = "ERG"),
+#'     Param.list <- list(
+#'       AutoPlaceAB = list (
+#'         robust.peak.filter.bands = as_units(c(5, 75), "Hz"),
+#'         true.peak.tolerance = as_units(c(5, 5), "ms")
+#'       )
+#'     )
+#'   )
+#' autoplaced_Markers<-Measurements(ERG)
+#' head(autoplaced_Markers)
+#' ggERGExam(ERG)
 #'
 #' # Calling AutoPlaceAB() directly
 #' X<-ERG@Data[[1]] # get first recording
 #' AutoPlaceAB(X)
+
 #' @name AutoPlaceMarkers
 NULL
 #' @describeIn AutoPlaceMarkers Automatically sets markers depending on the channel (E.g. ERG, VEP, OP,...) and stimulus type (Flash, FLicker).
@@ -45,7 +65,8 @@ setGeneric(
                  Channel.names = pairlist(ERG = "ERG",
                                           VEP = "VEP"),
                  Stimulus.type.names = pairlist(Flash = "Flash",
-                                                Flicker = "Flicker")) {
+                                                Flicker = "Flicker"),
+                 Param.list = list()) {
     standardGeneric("AutoPlaceMarkers")
   }
 )
@@ -58,9 +79,62 @@ setMethod(
                         Channel.names = pairlist(ERG = "ERG",
                                                  VEP = "VEP"),
                         Stimulus.type.names = pairlist(Flash = "Flash",
-                                                       Flicker = "Flicker")) {
+                                                       Flicker = "Flicker"),
+                        Param.list = list()) {
+
 
     stopifnot(CheckAvgFxSet(X))
+
+    default.param.list <- list(
+      AutoPlaceAB = list (
+        robust.peak.filter.bands = as_units(c(5, 75), "Hz"),
+        true.peak.tolerance = as_units(c(70, 30), "ms")
+      ),
+      AutoPlaceFlicker = list (
+        robust.peak.filter.bands = as_units(c(.5, 300), "Hz"),
+        true.peak.tolerance = as_units(c(12, 15), "ms")
+      ),
+      AutoPlaceVEP = list (
+        robust.peak.filter.bands = as_units(c(1, 75), "Hz"),
+        true.peak.tolerance = as_units(c(80, 20), "ms")
+      )
+    )
+    if (length(Param.list)!=0){
+
+      if (!all(unique(unlist(lapply(Param.list, names))) %in% "robust.peak.filter.bands",
+               "true.peak.tolerance")) {
+        Notice(X,
+               what = "E",
+               notice_text = "AutoPlaceMarkers failed. Param.list contains the subitems that do not match the names of the parameters of the three low-level marker placement methods ({.fun AutoPlaceAB}, {.fun AutoPlaceFlicker} or {.fun AutoPlaceVEP}). Allowed values are: 'robust.peak.filter.bands' and 'true.peak.tolerance'",
+               help_page = "ERGtools2::AutoPlaceMarkers")
+      }
+
+      for (n in names(Param.list)) {
+        if(n %in% names(default.param.list)){
+          if (all(c("robust.peak.filter.bands","true.peak.tolerance") %in% names(default.param.list[[n]]))){
+            if (all(lapply(default.param.list[[n]], length))) {
+              default.param.list[[n]] <- Param.list[[n]]
+            } else {
+              Notice(X,
+                     what = "E",
+                     notice_text = "AutoPlaceMarkers failed. For list entry {.val {n}} in Param.list two vectors ('robust.peak.filter.bands' and 'true.peak.tolerance') of length two are expected. however, lengths were {.val lapply(default.param.list[[n]], length)}",
+                     help_page = "ERGtools2::AutoPlaceMarkers")
+            }
+          } else {
+            Notice(X,
+                   what = "E",
+                   notice_text = "AutoPlaceMarkers failed. For list entry {.val {n}} in Param.list two vectors named 'robust.peak.filter.bands' and 'true.peak.tolerance' are expected. however, names encounterd were {.val names(default.param.list[[n]])}",
+                   help_page = "ERGtools2::AutoPlaceMarkers")
+          }
+        } else {
+          Notice(X,
+                 what = "E",
+                 notice_text = "AutoPlaceMarkers failed. Param.list contains the named list item {.val {n}}. However, list item names must be either of the names of the three low-level marker placement methods ({.fun AutoPlaceAB}, {.fun AutoPlaceFlicker} or {.fun AutoPlaceVEP})",
+                 help_page = "ERGtools2::AutoPlaceMarkers")
+        }
+        Param.list<-default.param.list
+      }
+    }
 
     markerlist <- list()
     Md <- merge(Metadata(X), StimulusTable(X))
@@ -72,7 +146,12 @@ setMethod(
       tryCatch({
         if (Md$Channel[i] %in% Channel.names$ERG &
             Md$Type[i]  %in%  Stimulus.type.names$Flash) {
-          Markers <- AutoPlaceAB(x)
+          Markers <-
+            AutoPlaceAB(
+              x,
+              robust.peak.filter.bands = default.param.list$AutoPlaceAB$robust.peak.filter.bands,
+              true.peak.tolerance = default.param.list$AutoPlaceAB$true.peak.tolerance
+            )
           if (nrow(Markers) > 0) {
             update <- T
           }
@@ -80,7 +159,11 @@ setMethod(
         # Flicker ERGs
         if (Md$Channel[i] %in% Channel.names$ERG &
             Md$Type[i]  %in%  Stimulus.type.names$Flicker) {
-          Markers <- AutoPlaceFlicker(x)
+          Markers <- AutoPlaceFlicker(
+            x,
+            robust.peak.filter.bands = default.param.list$AutoPlaceFlicker$robust.peak.filter.bands,
+            true.peak.tolerance = default.param.list$AutoPlaceFlicker$true.peak.tolerance
+          )
           if (nrow(Markers) > 0) {
             update <- T
           }
@@ -88,7 +171,11 @@ setMethod(
         # Flash VEP
         if (Md$Channel[i] %in% Channel.names$VEP &
             Md$Type[i]  %in%  Stimulus.type.names$Flash) {
-          Markers <- AutoPlaceVEP(x)
+          Markers <- AutoPlaceVEP(
+            x,
+            robust.peak.filter.bands = default.param.list$AutoPlaceVEP$robust.peak.filter.bands,
+            true.peak.tolerance = default.param.list$AutoPlaceVEP$true.peak.tolerance
+          )
           if (nrow(Markers) > 0) {
             update <- T
           }
@@ -124,7 +211,7 @@ setMethod(
         Notice(X,
                where = i,
                what = "E",
-               notice_text = "Auto placement of markers failed with error message {.val e}")
+               notice_text = "Auto placement of markers failed with error message: {.emph {e}}")
       })
       cli_progress_update()
     }
@@ -138,7 +225,7 @@ setMethod(
 setGeneric(
   name = "AutoPlaceAB",
   def = function(X,
-                 robust.peak.filter.bands = c(5, 75),
+                 robust.peak.filter.bands = as_units(c(5, 75), "Hz"),
                  true.peak.tolerance = as_units(c(70, 30), "ms")) {
     standardGeneric("AutoPlaceAB")
   }
@@ -149,26 +236,29 @@ setMethod(
   "AutoPlaceAB",
   signature = "EPhysData",
   definition = function(X,
-                        robust.peak.filter.bands = c(5, 75),
+                        robust.peak.filter.bands = as_units(c(5, 75), "Hz"),
                         true.peak.tolerance = as_units(c(70, 30), "ms")) {
     if (!("units" %in% class(true.peak.tolerance))) {
       stop("'true.peak.tolerance' must be of class units.")
     }
+    if (!("units" %in% class(robust.peak.filter.bands))) {
+      message("Its recommended that 'robust.peak.filter.bands' is of class units. Auto-setting it to unit 'Hz'")
+      robust.peak.filter.bands<-as_units(robust.peak.filter.bands,"Hz")
+    }
 
-    convertibel.to.s <- tryCatch({
-      set_units(true.peak.tolerance, "s")
-      TRUE
-    }, error = function(e) {
-      FALSE
-    })
-    if (!convertibel.to.s) {
+    if (!units.is.convertible(robust.peak.filter.bands, "Hz")) {
+      stop("'robust.peak.filter.bands' must be of convertible to Hertz")
+    }
+    if (!units.is.convertible(true.peak.tolerance, "s")) {
       stop("'true.peak.tolerance' must be of convertible to seconds.")
     }
+
+    robust.peak.filter.bands<-convert_to_unit(robust.peak.filter.bands,"Hz")
+    true.peak.tolerance<-convert_to_unit(true.peak.tolerance,"s")
 
     dat <- as.data.frame(X, Raw = F)
     sample.rate <- mean(diff(TimeTrace(X)))
     sample.rate <- set_units(sample.rate,"s")
-    true.peak.tolerance <- set_units(true.peak.tolerance,"s")
 
     cutoff <-
       freq.to.w(x = robust.peak.filter.bands, time.trace = TimeTrace(X))
@@ -243,6 +333,17 @@ setMethod(
     if (!("units" %in% class(true.peak.tolerance))) {
       stop("'true.peak.tolerance' must be of class units.")
     }
+    if (!("units" %in% class(robust.peak.filter.bands))) {
+      message("Its recommended that 'robust.peak.filter.bands' is of class units. Auto-setting it to unit 'Hz'")
+      robust.peak.filter.bands<-as_units(robust.peak.filter.bands,"Hz")
+    }
+
+    if (!units.is.convertible(robust.peak.filter.bands, "Hz")) {
+      stop("'robust.peak.filter.bands' must be of convertible to Hertz")
+    }
+    if (!units.is.convertible(true.peak.tolerance, "s")) {
+      stop("'true.peak.tolerance' must be of convertible to seconds.")
+    }
 
     robust.peak.filter.bands<-convert_to_unit(robust.peak.filter.bands,"Hz")
     true.peak.tolerance<-convert_to_unit(true.peak.tolerance,"s")
@@ -282,7 +383,7 @@ setMethod(
       domfreq <- fft_short[[1]]$freq[which.max(fur)]
     }
 
-    #FIXME Implement options to chech for loss of power over repeats
+    #todo: Implement options to chech for loss of power over repeats
 
     peak_interval <- 1/sample.rate / set_units(domfreq,"1/s")
     peak_interval <-
@@ -367,7 +468,7 @@ setMethod(
 setGeneric(
   name = "AutoPlaceVEP",
   def = function(X,
-                 robust.peak.filter.bands = c(3, 75),
+                 robust.peak.filter.bands = as_units(c(3, 75), "Hz"),
                  true.peak.tolerance = as_units(c(80, 20), "ms")) {
     standardGeneric("AutoPlaceVEP")
   }
@@ -379,21 +480,25 @@ setMethod(
   "AutoPlaceVEP",
   signature = "EPhysData",
   definition = function(X,
-                        robust.peak.filter.bands = c(1, 75),
+                        robust.peak.filter.bands = as_units(c(1, 75), "Hz"),
                         true.peak.tolerance = as_units(c(80, 20), "ms")) {
     if (!("units" %in% class(true.peak.tolerance))) {
       stop("'true.peak.tolerance' must be of class units.")
     }
+    if (!("units" %in% class(robust.peak.filter.bands))) {
+      message("Its recommended that 'robust.peak.filter.bands' is of class units. Auto-setting it to unit 'Hz'")
+      robust.peak.filter.bands<-as_units(robust.peak.filter.bands,"Hz")
+    }
 
-    convertibel.to.s <- tryCatch({
-      set_units(true.peak.tolerance, "s")
-      TRUE
-    }, error = function(e) {
-      FALSE
-    })
-    if (!convertibel.to.s) {
+    if (!units.is.convertible(robust.peak.filter.bands, "Hz")) {
+      stop("'robust.peak.filter.bands' must be of convertible to Hertz")
+    }
+    if (!units.is.convertible(true.peak.tolerance, "s")) {
       stop("'true.peak.tolerance' must be of convertible to seconds.")
     }
+
+    robust.peak.filter.bands<-convert_to_unit(robust.peak.filter.bands,"Hz")
+    true.peak.tolerance<-convert_to_unit(true.peak.tolerance,"s")
 
     dat <- as.data.frame(X, Raw = F)
     sample.rate <- mean(diff(TimeTrace(X)))
@@ -461,3 +566,15 @@ setMethod(
     return(out)
   }
 )
+
+#' @importFrom units set_units
+#' @keywords internal
+units.is.convertible <- function(x, to) {
+  # this function will mote to EPhysMethods in future
+  tryCatch({
+    set_units(x, "s")
+    TRUE
+  }, error = function(e) {
+    FALSE
+  })
+}

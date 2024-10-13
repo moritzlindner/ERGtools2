@@ -16,18 +16,26 @@ newERGExam(
 )
 }
 \arguments{
-\item{Data}{A list of \linkS4class{EPhysData::EPhysData} objects.}
+\item{Data}{Data A list of \link[EPhysData:EPhysData]{EPhysData::EPhysData} objects. Each item containing a recording in response to a particular Stimulus ("Step"), from a particular eye and data Channel (e.g. ERG or OP), as defined in the corresponding Metadata.}
 
-\item{Metadata}{A data frame containing metadata information associated with the data, each row corresponds to one list item.}
-
-\item{Stimulus}{A data frame containing stimulus information associated with the data.
+\item{Metadata}{A data frame containing metadata information associated with the data in the Data slot, each row corresponds to one item in \code{data}.
 \describe{
-\item{Description}{A character vector describing the stimuli.}
-\item{Background}{An integer vector representing the background luminance the stimulus is incident on (unitless).}
-\item{StimulusEnergy}{An numeric vector representing the (flash) energy of the stimulus (unitless).}
+\item{Step}{An integer vector containing the step index. A step describes data recorded in response to the same type of stimulus. This column links the Stimulus slot to the metadata}
+\item{Eye}{A character vector. Possible standard values "RE" (right eye) , "LE" (left eye), and "BE" (bhot eyes). Possible non-standard values can be listed running \code{od_str}, \code{os_str} and \code{ou_str}, resp.. See: \link[=as.std.eyename]{as.std.eyename}.}
+\item{Channel}{A character vector containing the channel name. This can be "ERG", "VEP" or "OP" for instance.}
+\item{Repeat}{A numeric vector containing the indices of individual repeats contained in an ERG exam. E.g., if a recording to one identical stimulus is performed twice, these would be distinguished by different indices in the 'repeat' column. Warning: This is currently experimental}
 }}
 
-\item{Averaged}{A list of averaged data.}
+\item{Stimulus}{A data frame containing stimulus information.
+\describe{
+\item{Step}{An integer vector row index. Will be removed in future versions.}
+\item{Description}{A character vector describing the stimulus in a human-readable way.}
+\item{StimulusEnergy}{A numeric vector representing the energy of the stimulus.}
+\item{Background}{A character vector describing the adaptation state of the retina for that stimulus (DA or LA).}
+\item{Type}{A character vector describing the type of the stimulus (e.g. Flash or Flicker).}
+}}
+
+\item{Averaged}{TRUE if the object was created from averaged data, FALES indicates object contains raw traces.}
 
 \item{Measurements}{An object of class \linkS4class{ERGMeasurements}.}
 
@@ -35,26 +43,21 @@ newERGExam(
 \describe{
 \item{ProtocolName}{A character vector indicating the name of the protocol.}
 \item{Version}{Optional: A character vector indicating the version of the protocol.}
-\item{ExamDate}{A \code{POSIXct} timestamp representing the date of the exam.}
-\item{Filename}{Optional: A character vector indicating the filename associated with the exam data.}
-\item{RecMode}{Optional: A character vector indicating the recording mode during the exam.}
+\item{ExamDate}{A \code{POSIXct} The date of the exam.}
+\item{Filename}{Optional: The filename associated where exam raw data have been imported from.}
+\item{RecMode}{Optional: A character vector indicating the recording mode.}
 \item{Investigator}{Optional: A character vector indicating the name of the investigator conducting the exam.}
 }}
 
 \item{SubjectInfo}{A list containing subject-related information.
 \describe{
-\item{Subject}{A character vector (required) indicating the name of the patient.}
-\item{DOB}{A \code{Date} object  (required) indicating the date of birth of the patient.}
-\item{Gender}{Optional: A character vector indicating the gender of the patient.}
-\item{Group}{Optional: A character vector indicating the group to which the patient belongs.}
+\item{Subject}{A character vector indicating the name of the subject}
+\item{DOB}{A \code{Date} object indicating the date of birth of the subject}
+\item{Gender}{Optional: A character vector indicating the gender of the subject}
+\item{Group}{Optional: A character vector indicating the study group to which the subject belongs.}
 }}
 
-\item{skip.validation}{Do not test if object is valid. Default is \code{FALSE}. This can be helpful when creating import functions where incomplete datasets might exist.
-\describe{
-\item{Step}{An integer vector pointing to a row index of the Stimulus table.}
-\item{Eye}{A character vector. Possible standard values "RE" (right eye) , "LE" (left eye), and "BE" (bhot eyes). Possible non-standard values can be listed running \code{od_str}, \code{os_str} and \code{ou_str}, resp.. See: \link[=as.std.eyename]{as.std.eyename}.}
-\item{Channel}{A character vector containing the unique names of the third level of \code{Data}.}
-}}
+\item{skip.validation}{Do not test if object is valid. Default is \code{FALSE}. This can be helpful when creating import routines that might sometimes be called on incomplete/faulty datasets.}
 }
 \value{
 An object of class \code{ERGExam}.

@@ -6,6 +6,7 @@
 #' @param X An \linkS4class{ERGExam} object
 #' @inheritParams Where
 #' @param Stimulus.type.names A \link[base:pairlist]{base::pairlist} specifying the names identifying the different stimulus types, e.g., \code{Flash="Flash"} or \code{Flash="Blitz"}.
+#' @param Channel.hierarchy The hierarchy of channels to choose by which to set the rejection parameter. Explanation: If a recording consists of more than one channel, the same trials should be rejected for each channel to ensure downstream analyses for all channels is performed on a consistent data basis. See also \link[EPhysData:Rejected]{EPhysData::Rejected}
 #' @return An updated ERGExan object.
 #'
 #' @examples
@@ -46,7 +47,8 @@ setGeneric(
   name = "SetStandardFunctions",
   def = function(X,
                  Stimulus.type.names = pairlist(Flash = "Flash",
-                                           Flicker = "Flicker")) {
+                                           Flicker = "Flicker"),
+                 Channel.hierarchy = c("VEP","ERG","OP")) {
     standardGeneric("SetStandardFunctions")
   }
 )
@@ -58,16 +60,27 @@ setMethod(
   signature = "ERGExam",
   definition = function(X,
                         Stimulus.type.names = pairlist(Flash = "Flash",
-                                                  Flicker = "Flicker")) {
+                                                  Flicker = "Flicker"),
+                        Channel.hierarchy = c("VEP","ERG","OP")) {
     Md <- merge(Metadata(X), StimulusTable(X))
+
     for (i in 1:nrow(Md)) {
       AverageFunction(X@Data[[i]]) <- mean
       FilterFunction(X@Data[[i]]) <- filter.lin.detrend
-      if (Md$Type[i] %in% Stimulus.type.names$Flash) {
-        Rejected(X@Data[[i]]) <- autoreject.by.distance  # select by signal amplitude???
-      }
-      if (Md$Type[i] %in% Stimulus.type.names$Flicker) {
-        Rejected(X@Data[[i]]) <- autoreject.by.distance
+    }
+
+    for (s in unique(Md$Step)) {
+      for (r in unique(Md$Repeat[Md$Step == s])) {
+        for (e in unique(Md$Eye[Md$Step == s & Md$Repeat == r])) {
+          Channels <- Md$Channel[Md$Step == s & Md$Repeat == r & Md$Eye == e]
+          lead.channel<-Channels[which.min(as.numeric(ordered(Channels,levels=Channel.hierarchy)))]
+          other.channels<-Channels[!(Channels %in% lead.channel)]
+          Rejected(X@Data[[Where(X, where = list(Step = s, Repeat = r, Eye = e, Channel = lead.channel))]]) <- autoreject.by.distance
+          for (c in other.channels){
+            Rejected(X@Data[[Where(X, where = list(Step = s, Repeat = r, Eye = e, Channel = c))]])<- Rejected(X@Data[[Where(X, where = list(Step = s, Repeat = r, Eye = e, Channel = lead.channel))]], return.fx = F)
+          }
+
+        }
       }
     }
     return(X)
