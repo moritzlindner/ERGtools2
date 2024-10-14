@@ -40,7 +40,7 @@ CollectMeasurements <- function(List,
   # subset object
   List <- lapply(List, function(x) {
     if(!CheckAvgFxSet(x)){
-      Notice(object,
+      Notice(x,
              what = c("Error"),
              notice_text = c("x Average functions must be set for all objects in the list."),
              help_page = "EPhysData::AverageFunction")
@@ -49,7 +49,7 @@ CollectMeasurements <- function(List,
       x <- Subset(x, where = where, Raw = T)
       return(x)
     }, error = function(e){
-      Notice(object,
+      Notice(x,
              what = c("Error"),
              notice_text = c("x Fetching Metadata and Stimulus values failed with error message {e} evoked by {.fun Subset}"),
              help_page = "EPhysData::Subset")
@@ -70,17 +70,17 @@ CollectMeasurements <- function(List,
           unique_recordings <- unique(df$Recording)
           filtered_recordings <- unique(df$Recording[df$Name == m])
           missing_recordings <- setdiff(unique_recordings, filtered_recordings)
-          Notice(object,
+          Notice(x,
                  what = c("W"),
                  where = missing_recordings,
                  notice_text = c("x Marker {m} missing for at least one of the recordings."),
-                 help_page = "EPhysData::Subset")
+                 help_page = "EPhysData::Measurements")
         }
       }
 
       df<-df[,!(colnames(df) %in% ExtraMetaColumns(x))]
       if(nrow(df)==0){
-        Notice(object,
+        Notice(x,
                what = c("W"),
                where = missing_recordings,
                notice_text = c("x No measurements found."),
@@ -107,7 +107,7 @@ CollectMeasurements <- function(List,
               by.y = c("Step","Description"))
       results[[i]]<-df
     }, error = function(e){
-      Notice(object,
+      Notice(x,
              what = c("W"),
              notice_text = c("x Fetching Measurements failed with error message '{e}'."),
              help_page = "ERGtools2::Measurements")
