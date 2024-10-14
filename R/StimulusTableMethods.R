@@ -18,7 +18,7 @@
 #' descriptions
 #'
 #' # Extracting the intensity value of selected stimuli
-#' intensity <- StimulusIntensity(ERG, where = list(Type = "Flash"))
+#' intensity <- StimulusEnergy(ERG, where = list(Type = "Flash"))
 #' intensity
 #'
 #' # Extracting the background value of selected stimuli

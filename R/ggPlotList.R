@@ -302,12 +302,12 @@ ggPlotRecordings <- function(List,
       tab$Description <-
         iconv(tab$Description, "ASCII//TRANSLIT", sub = '')
       df <- merge(df, tab)
-      results[[i]] <- df
+      results[[h]] <- df
     }, error = function (e){
-      cli_abort(c(
-        "Gathering data failed for subject '{.strong {Subject(x)}}' and protocol '{.strong {ProtocolName(x)}}'.",
-        "Error message: {.val {e}}"
-      ))
+      Notice(object,
+             what = c("Error"),
+             notice_text = c("x Gathering data failed with Error message: {.val {e}}"),
+             help_page = "ERGtools2::ERGExam")
     })
     cli_progress_update()
   }

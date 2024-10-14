@@ -122,7 +122,7 @@ validERGExam <- function(object, non.fatal = "Error") {
 
   }
 
-  # Rejected (inEPhysRaw) - must be the same across all channels within one eye
+  # Rejected (in EPhysRaw) - must be the same across all channels within one step and eye
   for (s in unique(object@Metadata$Step)) {
     for (e in unique(object@Metadata$Eye[object@Metadata$Step == s])) {
       for (r in unique(object@Metadata$Repeat[object@Metadata$Step == s &
@@ -157,7 +157,7 @@ validERGExam <- function(object, non.fatal = "Error") {
           }
         }))) {
           Notice(object,
-                 what = c(non.fatal),
+                 what = c("W"), #this will be replaced by "non.fatal" in future
                  where = list(Step = s, Eye = e, Repeat = r),
                  notice_text = c("! 'Rejected' vectors are not identical across channels."),
                  help_page = "ERGtools2::ERGExam")

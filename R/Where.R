@@ -50,6 +50,8 @@ Where.generic <- function(MD,
                           expected.length = NULL
                           ) {
 
+  # for backwards compatibility, convert Intensity to StimulusEnergy
+
   if (!is.list(where)) {
     if (is.null(where)) {
       # if all should be returned
@@ -89,6 +91,14 @@ Where.generic <- function(MD,
     # if all should be returned
     idx <- 1:nrow(MD)
   } else {
+    if ("Intensity" %in% names(where)) {
+      if (!("" %in% c(colnames(STIMTAB), colnames(MD)))) {
+        warning(
+          "Standard column name 'Intensity' has been replaced by 'StimulusEnergy' in ERGtools2 v0.8.0. Assuming you refer to 'StimulusEnergy'..."
+        )
+        names(where)[names(where) == "Intensity"] <- "StimulusEnergy"
+      }
+    }
 
     if (!(all(names(where) %in% c(colnames(STIMTAB), colnames(MD))))) {
       not.found<-names(where)[!(names(where) %in% c(colnames(STIMTAB), colnames(MD)))]

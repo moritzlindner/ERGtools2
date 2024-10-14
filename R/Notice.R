@@ -47,7 +47,7 @@ setMethod("Notice",
               md <- Metadata(X)[idx, ]
               base_message <- paste(
                 base_message,
-                "in Step {.emph {md[,'Step']}}, Channel {.emph {md[,'Channel']}}, Repeat {.emph {md[,'Repeat']}}, Eye {.emph {md[,'Eye']}} (Simulus {.emph {StimulusDescription(X)[idx]}})"
+                "in Step {.emph {unique(md[,'Step'])}}, Channel {.emph {unique(md[,'Channel'])}}, Repeat {.emph {unique(md[,'Repeat'])}}, Eye {.emph {unique(md[,'Eye'])}} (Simulus {.emph {StimulusDescription(X, where=idx)}})"
               )
             }
 
