@@ -31,7 +31,7 @@ setMethod("FilterFunction<-", signature = "ERGExam", function(X, where, value) {
   # one channel and eye:same average function
   # FilterFunction set in presence of Rejected function:update rejected from lead channel
   if (any(unlist(lapply(X, function(x) {
-    any(Rejected)
+    any(Rejected(x))
   })))
   ){
     Notice(object,
