@@ -24,21 +24,24 @@ NULL
 
 
 #' @describeIn UpdateProcessingMethods Update the FilterFunction for all Recordings in an \linkS4class{ERGExam}, or only those slected using \code{where}.
+#' @importFrom EPhysData Rejected
 #' @exportMethod FilterFunction<-
 setMethod("FilterFunction<-", signature = "ERGExam", function(X, where, value) {
   # one channel:same filter function
   # one channel and eye:same fliter function
   # one channel and eye:same average function
   # FilterFunction set in presence of Rejected function:update rejected from lead channel
-  if (any(unlist(lapply(X, function(x) {
+  if (any(unlist(lapply(X@Data, function(x) {
     any(Rejected(x))
   })))
   ){
-    Notice(object,
-           what = c("W"),
-           notice_text = c("! You are trynig to update the filter functions for an object that already has a Rejected function set (at least for some recordings).",
-                           "i This can be problematic as it changes the data basis the rejection function chooses the rials to reject by only for the particular recording that you are changing the filter function for now. If other recordings exist for the the same channel and eye trials rejected might not match anymore."),
-           help_page = "ERGtools2::SetStandardFunctions")
+    if (length(X)>1){
+      Notice(X,
+             what = c("W"),
+             notice_text = c("! You are trynig to update the filter functions for an object that already has a Rejected function set (at least for some recordings).",
+                             "i This can be problematic as it changes the rejection function that is applied after filtering. Thus it may change which trials are marked as rejected. If other recordings exist for the the same channel and eye trials rejected for those might not match anymore, resulting in potential data integrity issues for downstream analyses."),
+             help_page = "ERGtools2::SetStandardFunctions")
+    }
   }
   return(functionupdater(X, where, value, "FilterFunction<-"))
 })
@@ -83,7 +86,9 @@ setMethod(
       FilterFunction(X@Data[[i]]) <- filter.lin.detrend
     }
     X <- rejectedUpdater(X, where= NULL, Channel.hierarchy, fx = autoreject.by.distance)
-    return(X)
+    if(validERGExam(X)){
+      return(X)
+    }
   }
 )
 
@@ -106,12 +111,16 @@ functionupdater <- function(X, where, value, what) {
         AverageFunction(X@Data[[i]]) <- value
       }
     }, error = function(e){
-      pos<-Metadata(X)[i,c("Step","Channel","Eye","Repeat")]
-      stop(what, " failed for ", Subject(X), " in Step ", pos$Step, ", Ch. ", pos$Channel, ",  Eye ", pos$Eye, ", Repeat ", pos$Repeat, " with error message: ", e)
+      Notice(object,
+             what = c("E"),
+             where= i,
+             notice_text = c("x Running {.val {what}} on ERGExam object faild.",
+                             "i Error message {.val {e}}."),
+             help_page = "ERGtools2::SetStandardFunctions")
     })
 
   }
-  if (validObject(X)){
+  if(validERGExam(X)){
     return(X)
   }
 }
