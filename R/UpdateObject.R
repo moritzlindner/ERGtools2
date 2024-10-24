@@ -15,7 +15,7 @@ setGeneric(
 setMethod("UpdateERGExam",
           "ERGExam",
           function(X) {
-            if ("Intensity" %in% colnames(ERG@Stimulus)) {
+            if ("Intensity" %in% colnames(X@Stimulus)) {
               Notice(X, what = "I", notice_text = "i Old Stimulus table column name 'Intensity detected. Will be updated to 'StimulusEnergy'")
               colnames(X@Stimulus)[colnames(X@Stimulus) %in% "Intensity"] <-
                 "StimulusEnergy"

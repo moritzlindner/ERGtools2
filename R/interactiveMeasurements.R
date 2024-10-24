@@ -45,14 +45,16 @@ setMethod("interactiveMeasurements",
               # internal functions
               interact_plot <- function(erg.obj) {
                 trace <- as.data.frame(erg.obj)
+                trace <-
+                  merge(trace, Stimulus(erg.obj)[c("Step", "Description")], by = "Step")
                 trace$Value <- set_units(trace$Value, "uV")
+                trace$Description <- factor(trace$Description, levels = unique(trace$Description[order(trace$Step)]),
+                                            ordered = TRUE)
 
                 markers <-
                   Measurements(erg.obj, measure.absolute = T)
                 colnames(markers)[colnames(markers) == "Voltage"] <-
                   "Value"
-                trace <-
-                  merge(trace, Stimulus(erg.obj)[c("Step", "Description")], by = "Step")
 
                 g <- ggplot(trace,
                             aes(
@@ -491,7 +493,7 @@ setMethod("interactiveMeasurements",
                 #Display the measurement results
                 output$measurement_output <-
                   renderDataTable({
-                    mes <-Measurements(CURR$data,TimesOnly=T,quiet = T)[,c("Step","Eye","Repeat","Name","Time")]
+                    mes <-Measurements(CURR$data,TimesOnly=T,quiet = T)[,c("Step","Description","Channel","Eye","Repeat","Name","Time")]
                     mes<-mes[with(mes, order(Step, Eye, Repeat)), ]
                     mes<<-mes
                     datatable(mes, selection = "single")
