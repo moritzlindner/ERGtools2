@@ -3,12 +3,13 @@
 #' This method allows interactive marker placement on \linkS4class{ERGExam} objects using  \link[shiny:shiny]{shiny:shiny-package}
 #'
 #' @inheritParams  Subset-method
+#' @param downsample Use peak preserving downsampling, this may accelerate potting time for large objects.
 #' @return An object of class 'ERGExam' with the new measurements added.
 #' @export
 #' @importFrom plotly ggplotly event_data plotlyOutput renderPlotly event_register
 #' @importFrom shiny fluidPage titlePanel fluidRow column verticalLayout tags validate HTML h4 actionButton selectInput textInput
-#' @importFrom DT dataTableOutput renderDataTable datatable
 #' @importFrom shiny modalDialog modalButton showModal removeModal observeEvent reactive stopApp runApp onSessionEnded shinyApp
+#' @importFrom DT dataTableOutput renderDataTable datatable
 #' @importFrom shinyjs useShinyjs extendShinyjs
 #' @importFrom stringr str_split
 #' @importFrom ggplot2 aes geom_line geom_text facet_grid labs theme_minimal element_text geom_vline label_wrap_gen
@@ -32,7 +33,8 @@ setGeneric(
   name = "interactiveMeasurements",
   def = function(X,
                  Channel = "ERG",
-                 Eye = Eyes(X)) {
+                 Eye = Eyes(X),
+                 downsample = F) {
     standardGeneric("interactiveMeasurements")
   }
 )
@@ -42,10 +44,15 @@ setMethod("interactiveMeasurements",
           "ERGExam", {
             function(X,
                      Channel = "ERG",
-                     Eye = Eyes(X)) {
+                     Eye = Eyes(X),
+                     downsample = F) {
               # internal functions
-              interact_plot <- function(erg.obj) {
+              interact_plot <- function(erg.obj, downsample = F) {
                 trace <- as.data.frame(erg.obj)
+                if (downsample){
+                  idx.keep<-which(diff(sign(diff(trace$Value))) %in% c(-2,2))+1
+                  trace<-trace[idx.keep,]
+                }
                 trace <-
                   merge(trace, Stimulus(erg.obj)[c("Step", "Description")], by = "Step")
                 trace$Value <- set_units(trace$Value, "uV")
@@ -126,10 +133,6 @@ setMethod("interactiveMeasurements",
 
 
               markers <- Markers(curr)
-              if (nrow(markers) == 0) {
-                curr <- AutoPlaceMarkers(curr)
-                markers <- Markers(curr)
-              }
               if (nrow(markers) > 0) {
                 for (i in nrow(Markers(curr)):1) {
                   markers$ChannelBinding[i]
@@ -141,7 +144,6 @@ setMethod("interactiveMeasurements",
                   }
                 }
               }
-
 
               # prepare ERGExam Object
               curr@Stimulus$Description <-
@@ -226,12 +228,13 @@ setMethod("interactiveMeasurements",
 
               # Define the server for the application
               server <- function(input, output, session) {
+
                 out <- curr
                 CURR <- reactiveValues(data = curr)
 
                 # Render the interactive plot
                 output$trace_plot <- renderPlotly({
-                  ggplotly(interact_plot(CURR$data),
+                  ggplotly(interact_plot(CURR$data, downsample = downsample),
                            width = (80 + (300 * length(Eyes(
                              curr
                            ))))) %>%
@@ -286,9 +289,7 @@ setMethod("interactiveMeasurements",
 
                                      existing <- Markers(CURR$data)
                                      canupdate = F
-                                     print(existing)
                                      if (!is.na(existing$Relative[existing$Name == curr_marker])) {
-                                       print("REL")
                                        if (nrow(
                                          Measurements(
                                            X = CURR$data,
@@ -298,7 +299,6 @@ setMethod("interactiveMeasurements",
                                            TimesOnly = T
                                          )
                                        ) != 0) {
-                                         print("Parent Present")
                                          canupdate = T
                                        }
                                      } else {
@@ -333,7 +333,7 @@ setMethod("interactiveMeasurements",
                                      # update the plot
                                      output$trace_plot <-
                                        renderPlotly({
-                                         ggplotly(interact_plot(CURR$data),
+                                         ggplotly(interact_plot(CURR$data, downsample = downsample),
                                                   width = (80 + (300 * length(
                                                     Eyes(curr)
                                                   ))))
@@ -417,7 +417,6 @@ setMethod("interactiveMeasurements",
                 # Observe delete Measurement Button
                 observeEvent(input$INP_measurement_delete, {
                   if (!is.null(measurement.sel.idx)) {
-                    print(measurement.sel.idx)
                     if (all(measurement.sel.idx %in% 1:nrow(CURR$data@Measurements@Measurements))) {
                       cli_warn(c("Deleting Measurments interactively is experimental."))
                       # needs to implement checks to ensure data dropped have no depending or call Measurements()<-NULL
@@ -499,9 +498,9 @@ setMethod("interactiveMeasurements",
                     mes <-Measurements(CURR$data,TimesOnly=T,quiet = T)[,c("Step","Description","Channel","Eye","Repeat","Name","Time")]
                     mes<-mes[with(mes, order(Step, Eye, Repeat)), ]
                     mes<<-mes
-                    datatable(mes, selection = "single")
-                  }, width = "100%", selection = "single",
-                  options = list(dom = 't'))
+                    mes
+                  }, width = "100%" , selection = "single",
+                   options = list(dom = 't'))
               }
 
               # Make the application
@@ -536,6 +535,7 @@ setMethod("interactiveMeasurements",
                                                                                                                                                 "Repeat",
                                                                                                                                                 "Name",
                                                                                                                                                 "Channel")]
+
               ## update and add
               new.measurements <-
                 merge(
@@ -570,10 +570,10 @@ setMethod("interactiveMeasurements",
                 cli_progress_done()
               }
 
-              ## drop removed
+              ## drop removed measurements
               if (nrow(removed.measurements) > 0) {
-                removed.measurements<-removed.measurements[order(is.na(removed.measurements$Relative), decreasing = T),]
-                print(head(removed.measurements))
+                removed.measurements<-merge(removed.measurements,X@Measurements@Marker, by.x=c("Name","Channel"), by.y=c("Name","ChannelBinding"))
+                removed.measurements<-removed.measurements[order(removed.measurements$Relative, decreasing = F),]#[order(is.na(removed.measurements$Relative), decreasing = F),]
                 cli_progress_bar("Deleting removed measurements", total = nrow(new.measurements),  clear = TRUE, auto_terminate = T)
                 for (m in 1:nrow(removed.measurements)) {
                   curr.m <- removed.measurements[m, ]
@@ -597,6 +597,35 @@ setMethod("interactiveMeasurements",
                 }
                 cli_progress_done()
               }
+              ## drop removed measurements
+              old.markers <- Markers(X)
+             # old.markers <- old.markers[order(is.na(old.markers$Relative)),]
+              new.markers<-Markers(out)
+              if (nrow(old.markers) > 0) {
+                for (i in nrow(old.markers):1) {
+                  idx.new <-
+                    which(
+                      new.markers$Name == old.markers$Name[i] &
+                        new.markers$ChannelBinding == old.markers$ChannelBinding[i]
+                    )
+                  print(idx.new)
+
+                  if (length(idx.new) == 0) {
+                    X <- DropMarker(X, old.markers$Name[i], old.markers$ChannelBinding[i], drop.dependent = FALSE)
+                  }
+                  if (length(idx.new) == 1) {
+                    if(!(X@Measurements@Marker$Relative[i] %in% out@Measurements@Marker$Relative[idx.new])){
+                      Notice(X,
+                             what = "W",
+                             notice_text = "Updating marker 'relative' setting for marker {.val {old.markers$Name[i]}} in Channel {.val {old.markers$ChannelBinding[i]}}",
+                             help_page = "ERGtools2::Markers")
+                      X@Measurements@Marker$Relative[i]<-out@Measurements@Marker$Relative[idx.new]
+                    }
+                  }
+                }
+              }
+
+              ## Validate
               if (validObject(X)) {
                 return(X)
               }

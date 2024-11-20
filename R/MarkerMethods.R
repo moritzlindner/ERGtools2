@@ -172,7 +172,10 @@ setMethod("AddMarker",
 setMethod("AddMarker", "ERGExam",
           function(X, Marker, Relative, ChannelBinding) {
             if (!(ChannelBinding %in% Channels(X))){
-              stop("'ChannelBinding' must describe a valid channel contained in X.")
+              Notice(X,
+                     what = c("Error"),
+                     notice_text = c("x 'ChannelBinding' must describe a valid channel contained in the object. ChannelBinding is {.val {ChannelBinding}, while available channels are {.val {Channels(X)}}"),
+                     help_page = "ERGtools2::AddMarker")
             }
             X@Measurements <- AddMarker(X@Measurements, Marker, Relative, ChannelBinding)
             validObject(X)
@@ -271,11 +274,16 @@ setMethod("DropMarker",
           function(X, Marker, ChannelBinding = Channels(X), drop.dependent = FALSE) {
             X@Measurements <-
               DropMarker(X@Measurements , Marker, ChannelBinding, drop.dependent)
-            if(validObject(X)){
-              return(X)
-            } else {
-              stop("Object validation failed after dropping Markers")
-            }
+
+            tryCatch({
+              validObject(X)
+            }, error = function(e) {
+              Notice(X,
+                     what = c("Error"),
+                     notice_text = c("x Object validation failed with error message: {.val {e}}."),
+                     help_page = "ERGtools2::DropMarker")
+            })
+            return(X)
           })
 
 #' @describeIn Marker-Methods Renames a marker within an ERGMeasurements object according to the specified channel binding.

@@ -147,8 +147,15 @@ setMethod("Measurements",
 
               }
             }
+            tryCatch({
 
-            measurements <- Measurements(X@Measurements, where, Fetch, quiet)
+              measurements <- Measurements(X@Measurements, where, Fetch, quiet)
+            }, error = function(e){
+              Notice(X,
+                     what = "E",
+                     notice_text = "Fetching Markers failed with error message:  {.val {e}}",
+                     help_page = "ERGtools2::Measurements")
+            })
             if (nrow(measurements) != 0) {
               extracols<-ExtraMetaColumns(X)
               measurements <-
@@ -299,7 +306,7 @@ setMethod("Measurements<-",
                 marker.idx <- which(Markers(X)$Name == Marker)
               }
               if(length(marker.idx)!=1){
-                stop("Marker is not unabiguously defined by the given paramaters ('Marker' and possibly 'ChannelBinding').")
+                stop("Marker is not unabiguously defined by the given paramaters ('Marker' and possibly 'ChannelBinding'). ChannelBinding: ",cb," Marker: ",Marker,".")
               }
               return(marker.idx)
             }
@@ -418,20 +425,34 @@ setMethod("Measurements<-",
                    ChannelBinding = NULL,
                    value){
 
-            Measurements(X@Measurements,
-                         Marker = Marker,
-                         where = Where(X,where = where),
-                         create.marker.if.missing = create.marker.if.missing,
-                         Relative = Relative,
-                         ChannelBinding = ChannelBinding
-            ) <- value
 
-            if (validObject(X)) {
-              return(X)
-            }else{
-              stop("Object validation failed for unknown reason.")
-            }
-
+            tryCatch({
+              Measurements(
+                X@Measurements,
+                Marker = Marker,
+                where = Where(X, where = where),
+                create.marker.if.missing = create.marker.if.missing,
+                Relative = Relative,
+                ChannelBinding = ChannelBinding
+              ) <- value
+            }, error = function(e) {
+              Notice(
+                X,
+                where = where,
+                what = c("Error"),
+                notice_text = c("x Updating marker failed with error message: {.val {e}}."),
+                help_page = "ERGtools2::Measurements"
+              )
+            })
+            tryCatch({
+              validObject(X)
+            }, error = function(e) {
+              Notice(X,
+                     what = c("Error"),
+                     notice_text = c("x Object validation failed with error message: {.val {e}}."),
+                     help_page = "ERGtools2::AddMarker")
+            })
+            return(X)
           })
 #' @describeIn Measurements-Methods Remove a measurement from the Measurements slot of an \linkS4class{ERGExam} object
 #' @noMd
