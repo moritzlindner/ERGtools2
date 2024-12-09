@@ -304,7 +304,7 @@ ggPlotRecordings <- function(List,
       df <- merge(df, tab)
       results[[h]] <- df
     }, error = function (e){
-      Notice(object,
+      Notice(x,
              what = c("Error"),
              notice_text = c("x Gathering data failed with Error message: {.val {e}}"),
              help_page = "ERGtools2::ERGExam")
