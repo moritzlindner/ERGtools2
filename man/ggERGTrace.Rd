@@ -7,7 +7,7 @@
 ggERGTrace(X, where, Interactive = F, SetSIPrefix = "auto", Raw = T)
 }
 \arguments{
-\item{X}{An \linkS4class{ERGExam}}
+\item{X}{An \linkS4class{ERGExam}, \linkS4class{ERGMeasurements}, or \linkS4class{ERGElectrode} object.}
 
 \item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
 

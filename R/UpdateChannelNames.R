@@ -73,6 +73,6 @@ setMethod("UpdateChannelNames",
               # Apply the update only where all conditions are met
               X@Metadata$Channel[matching_channels & matching_steps & matching_eyes] <- to[i]
             }
-
+            X<-LogChange(X)
             return(X)
           })

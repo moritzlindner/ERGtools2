@@ -50,6 +50,20 @@ setMethod("as.data.frame",
             return(out)
           })
 
+#' @describeIn as.data.frame Method for ERGElectrode
+#' @exportMethod as.data.frame
+setMethod("as.data.frame", "ERGElectrode", function(x, row.names = NULL, optional = FALSE, ...) {
+  # Retrieve all slot names from the ERGElectrode object
+  slots <- slotNames(x)
+  # Extract each slot's content into a list
+  data_list <- lapply(slots, function(s) slot(x, s))
+  names(data_list) <- slots
+  # Convert the list to a data.frame; each slot becomes a column
+  df <- as.data.frame(data_list, stringsAsFactors = FALSE)
+  if (!is.null(row.names)) rownames(df) <- row.names
+  return(df)
+})
+
 #' @describeIn as.data.frame Method for ERGChannel
 #' @exportMethod as.data.frame
 setMethod("as.data.frame",

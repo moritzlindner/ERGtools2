@@ -34,11 +34,13 @@ setMethod("DropRecordings",
             if (is.numeric(toExclude)) {
               if (!all(toExclude %in% 1:nrow(Metadata(X)))) {
                 stop("Not all values in 'where' are valid indices for data in 'X'.")
+                Notice(X, what = "E", notice_text = "Not all values in 'where' are valid indices for data in 'X'.")
+
               }
               # Create a logical vector to select non-excluded recordings
               Recording <- !(1:length(X) %in% toExclude)
             } else {
-              stop("Invalid result from 'Where'. Expected numeric indices.")
+              Notice(X, what = "E", notice_text = "Invalid result from 'Where'. Expected numeric indices.")
             }
 
             # subset measurements slot
@@ -71,6 +73,6 @@ setMethod("DropRecordings",
             if(validObject(newX)){
               return(newX)
             } else {
-              stop("Invalid ERGExam object created.")
+              Notice(X, what = "E", notice_text = "Invalid ERGExam object created.")
             }
           })

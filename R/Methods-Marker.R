@@ -179,6 +179,7 @@ setMethod("AddMarker", "ERGExam",
             }
             X@Measurements <- AddMarker(X@Measurements, Marker, Relative, ChannelBinding)
             validObject(X)
+            X<-LogChange(X)
             return(X)
           })
 
@@ -283,6 +284,7 @@ setMethod("DropMarker",
                      notice_text = c("x Object validation failed with error message: {.val {e}}."),
                      help_page = "ERGtools2::DropMarker")
             })
+            X<-LogChange(X)
             return(X)
           })
 

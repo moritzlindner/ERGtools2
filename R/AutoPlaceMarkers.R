@@ -216,6 +216,7 @@ setMethod(
       cli_progress_update()
     }
     cli_progress_done()
+    X<-LogChange(X)
     return(X)
   }
 )
@@ -569,10 +570,10 @@ setMethod(
 
 #' @importFrom units set_units
 #' @keywords internal
-units.is.convertible <- function(x, to) {
+units.is.convertible <- function(x, to = "s") {
   # this function will mote to EPhysMethods in future
   tryCatch({
-    set_units(x, "s")
+    units(x)<-to
     TRUE
   }, error = function(e) {
     FALSE

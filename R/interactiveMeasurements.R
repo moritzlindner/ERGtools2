@@ -625,6 +625,7 @@ setMethod("interactiveMeasurements",
 
               ## Validate
               if (validObject(X)) {
+                X<-LogChange(X)
                 return(X)
               }
             }

@@ -388,6 +388,31 @@ validERGExam <- function(object, non.fatal = "Error") {
     )
   }
 
+  # Electrodes Slot
+
+  if (!is.null(object@ExamInfo)) {
+    if (!is.list(object@ExamInfo))
+      msg <- c(msg, "ExamInfo must be a list")
+    else {
+      # Check that ExamInfo$Electrodes is either NULL/empty or a list of ERGElectrode objects
+      if (!is.null(object@ExamInfo$Electrodes) && length(object@ExamInfo$Electrodes) > 0) {
+        if (!is.list(object@ExamInfo$Electrodes))
+          msg <- c(msg, "ExamInfo$Electrodes must be a list")
+        else {
+          for (i in seq_along(object@ExamInfo$Electrodes)) {
+            el <- object@ExamInfo$Electrodes[[i]]
+            if (!is(el, "ERGElectrode"))
+              msg <- c(msg, paste("Element", i, "of ExamInfo$Electrodes is not an ERGElectrode object"))
+          }
+          electrode_names <- sapply(object@ExamInfo$Electrodes, function(x) x@Name)
+          if (!all(names(object@ExamInfo$Electrodes) == electrode_names))
+            msg <- c(msg, "Names of ExamInfo$Electrodes list entries must match their ERGElectrode@Name value")
+        }
+      }
+    }
+  }
+
+
   # Dates
   dob <- object@SubjectInfo$DOB
   exam_date <- object@ExamInfo$ExamDate
@@ -465,9 +490,13 @@ validERGExam <- function(object, non.fatal = "Error") {
 #'   \item{ProtocolName}{A character vector indicating the name of the protocol.}
 #'   \item{Version}{Optional: A character vector indicating the version of the protocol.}
 #'   \item{ExamDate}{A \code{POSIXct} The date of the exam.}
-#'   \item{Filename}{Optional: The filename associated where exam raw data have been imported from.}
+#'   \item{Filename}{Optional: The filename from which the exam raw data were imported.}
 #'   \item{RecMode}{Optional: A character vector indicating the recording mode.}
 #'   \item{Investigator}{Optional: A character vector indicating the name of the investigator conducting the exam.}
+#'   \item{Stimulator}{Optional: A character vector specifying the stimulator used during the exam, including model or manufacturer details if available.}
+#'   \item{Amplifier}{Optional: A character vector specifying the amplifier used during the exam, detailing the model or type of the device.}
+#'   \item{Recorder}{Optional: A character vector specifying the recorder used during the exam, including model or manufacturer information.}
+#'   \item{Electrodes}{Optional: A list of \code{ERGElectrode} objects representing the electrodes used in the exam. If provided, the names of the list entries must exactly match the corresponding \code{ERGElectrode} name, as provided in the \linkS4class{ERGElectrode} object.}
 #' }
 #'
 #' @slot SubjectInfo
@@ -477,10 +506,20 @@ validERGExam <- function(object, non.fatal = "Error") {
 #'   \item{DOB}{A \code{Date} object indicating the date of birth of the subject}
 #'   \item{Gender}{Optional: A character vector indicating the gender of the subject}
 #'   \item{Group}{Optional: A character vector indicating the study group to which the subject belongs.}
+#'   \item{Genus}{A character vector indicating the genus of the subject, based on NCBI taxonomy.}
+#'   \item{Species}{A character vector indicating the species of the subject, based on NCBI taxonomy.}
+#'   \item{Strain}{Optional: A character vector indicating the strain or genetic variant of the subject.}
+#'   \item{Genotype}{Optional: A character vector detailing the genotype of the subject, including genetic characteristics such as polymorphisms and disease alleles.}
+#'   \item{Disease}{Optional: A character vector indicating the disease state of the subject (e.g., 'normal' if no disease is present).}
+#'   \item{Development}{Optional: A character vector describing the developmental stage of the subject.}
+#'   \item{Lable}{Optional: A character vector representing any chemical label or staining applied to the subject.}
+#'   \item{ID}{A unique character vector identifier assigned to the subject.}
+#'   \item{Details}{Optional: A character vector providing additional details about the subject, such as associated clinical or subject-specific information.}
 #' }
 #'
 #' @slot Imported
 #' A \code{POSIXct} timestamp indicating when the object was imported.
+#' @slot Changelog Any method called modifying the data is logged here.
 #'
 #' @name ERGExam
 #' @seealso \link[EPhysData:EPhysData]{EPhysData::EPhysData-package} \link[EPhysData:EPhysData]{EPhysData::EPhysData-class} \link[EPhysData:EPhysSet]{EPhysData::EPhysSet-class}
@@ -506,7 +545,8 @@ ERGExam <- setClass(
     # ExamInfo is a list
     SubjectInfo = "list",
     # SubjectInfo is a list
-    Imported = "POSIXct"
+    Imported = "POSIXct",
+    Changelog = "character"
   ),
   prototype = list(
     Data = list(NULL),
@@ -531,15 +571,29 @@ ERGExam <- setClass(
       ExamDate = as.POSIXct(integer()),
       Filename = character(),
       RecMode = character(),
-      Investigator = character()
+      Investigator = character(),
+      Stimulator = character(),
+      Amplifier = character(),
+      Recorder = character(),
+      Electrodes = list()
     ),
     SubjectInfo = list(
       Subject = character(),
       DOB = as.Date(x = integer(0), origin = "1970-01-01"),
       Gender = character(),
-      Group = character()
+      Group = character(),
+      Genus = character(),
+      Species = character(),
+      Strain = character(),
+      Genotype = character(),
+      Disease = character(),
+      Development = character(),
+      Lable = character(),
+      ID = character(),
+      Details = character()
     ),
-    Imported = as.POSIXct(integer())
+    Imported = as.POSIXct(integer()),
+    Changelog = character()
   ),
   validity = function(object) {
     validERGExam(object)
@@ -688,6 +742,8 @@ newERGExam <-
 
     # Set default values for other slots
     obj@Imported <- as.POSIXct(Sys.time())
+
+    obj@Changelog<-paste0(format(Sys.time(), "%Y%m%d %H:%M:%S"), " - ","Object Created.\n")
 
     # Call the validity method to check if the object is valid
     if (skip.validation){

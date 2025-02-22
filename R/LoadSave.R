@@ -58,7 +58,12 @@ setMethod("Save",
             con[["ExamInfo_Content"]] <- names(X@ExamInfo)
             E_SLOT <- con$create_group("ExamInfo")
             for (i in 1:length(X@ExamInfo)){
-              E_SLOT[[names(X@ExamInfo)[i]]] <- X@ExamInfo[[i]]
+              if(names(X@ExamInfo)[[i]] !=  "Electrodes") {
+                E_SLOT[[names(X@ExamInfo)[i]]] <- X@ExamInfo[[i]]
+              } else {
+                E_SLOT$create_dataset("Electrodes", Electrodes(X),gzip_level = 9)
+                E_SLOT[["ImpedanceUnit"]] <- deparse_unit(Electrodes(X)$Impedance)
+              }
             }
 
             con[["SubjectInfo_Content"]] <- names(X@SubjectInfo)
@@ -137,7 +142,17 @@ Load.ERGExam <- function(filename) {
   ExamInfo <- list()
   E_SLOT <- con$open("ExamInfo")
   for (i in ExamInfo_Content) {
-    ExamInfo[[i]] <- E_SLOT$open(i)$read()
+    if(i != "Electrodes"){
+      ExamInfo[[i]] <- E_SLOT$open(i)$read()
+    } else {
+      electrodes<- E_SLOT$open("Electrodes")$read()
+      electrodes$Impedance<-as_units(electrodes$Impedance,E_SLOT$open("ImpedanceUnit")$read())
+      electrodes.list<-list()
+      for(j in 1:nrow(electrodes)){
+        electrodes.list[[electrodes[j,1]]]<-newERGElectrode(electrodes[j,1],electrodes[j,2],electrodes[j,3],electrodes[j,4])
+      }
+      ExamInfo[[i]]<-electrodes.list
+    }
   }
   ExamInfo$ExamDate <-
     as.POSIXct(ExamInfo$ExamDate, origin = "1970-01-01")

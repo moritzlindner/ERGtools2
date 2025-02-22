@@ -87,6 +87,7 @@ setMethod(
     }
     X <- rejectedUpdater(X, where= NULL, Channel.hierarchy, fx = autoreject.by.distance)
     if(validERGExam(X)){
+      X<-LogChange(X)
       return(X)
     }
   }

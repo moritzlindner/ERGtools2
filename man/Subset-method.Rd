@@ -15,7 +15,7 @@
 )
 }
 \arguments{
-\item{X}{An \linkS4class{ERGExam}}
+\item{X}{An \linkS4class{ERGExam}, \linkS4class{ERGMeasurements}, or \linkS4class{ERGElectrode} object.}
 
 \item{Time}{Numeric vector of length 2 representing the time range for data extraction.
 Default is the entire time range (i.e., keep all data).}

@@ -113,7 +113,7 @@ setMethod("Stimulus",
           })
 
 
-#' @describeIn StimulusTableMethods INTRNAL Gets a column of a stimulus table.
+#' @describeIn StimulusTableMethods INTERNAL Gets a column of a stimulus table.
 #' @keywords internal
 #' @noRd
 setGeneric(
@@ -134,10 +134,10 @@ setMethod("StimulusX",
                    where = NULL,
                    what = NULL) {
             if(length(what)!=1 || !is.character(what)){
-              stop(paste0("malformatted column selector. 'what' is '", what, "'."))
+              Notice(X, what = "E", notice_text = paste0("malformatted column selector. 'what' is '", what, "'."))
             }
             if (!(what %in% colnames(StimulusTable(X)))) {
-              stop(paste0("Column '", what, "' is not a valid column of the stimuls table."))
+              Notice(X, what = "E", notice_text = paste0("Column '", what, "' is not a valid column of the stimuls table."))
             }
             idx<-Where(X,where = where)
             step<-unique(Metadata(X)$Step[idx])
@@ -174,15 +174,16 @@ setMethod("StimulusX<-",
               stop(paste0("Column '", what, "' is not a valid column of the stimuls table."))
             }
             if(class(value) != class(StimulusTable(X)[,what])){
-              stop(
-                paste0(
+              Notice(
+                X,
+                what = "E",
+                notice_text = paste0(
                   "Incorrect class for 'value'. Is ",
                   class(value),
                   " but column '",
                   what,
                   "' in the stimulus table is of class '",
-                  class(StimulusTable(X)[,what])
-                  ,
+                  class(StimulusTable(X)[, what]),
                   "'."
                 )
               )
@@ -190,7 +191,7 @@ setMethod("StimulusX<-",
             idx<-Where(X,where = where)
             step<-unique(Metadata(X)$Step[idx])
             if(length(step)!=length(value)  && length(value!=1)){
-              stop(paste0("Number of items selected is ", length(step), " but ",length(value), " values are given for replacement."))
+              Notice(X, what = "E", notice_text = paste0("Number of items selected is ", length(step), " but ", length(value), " values are given for replacement."))
             }
             X@Stimulus[X@Stimulus$Step %in% step,what]<-value
             if(validObject(X)){
@@ -279,6 +280,7 @@ setMethod("StimulusIntensity<-",
                    where = NULL,
                    value) {
             StimulusX(X, where = where, what = "StimulusEnergy")<-value
+            X<-LogChange(X)
             return(X)
           })
 
@@ -321,6 +323,7 @@ setMethod("StimulusEnergy<-",
                    where = NULL,
                    value) {
             StimulusX(X, where = where, what = "StimulusEnergy")<-value
+            X<-LogChange(X)
             return(X)
           })
 
@@ -363,6 +366,7 @@ setMethod("StimulusBackground<-",
                    where = NULL,
                    value) {
             StimulusX(X, where = where, what = "Background")<-value
+            X<-LogChange(X)
             return(X)
           })
 
@@ -406,5 +410,6 @@ setMethod("StimulusType<-",
                    where = NULL,
                    value) {
             StimulusX(X, where = where, what = "Type")<-value
+            X<-LogChange(X)
             return(X)
           })

@@ -2,106 +2,188 @@
 % Please edit documentation in R/Get-methods.R
 \name{Get}
 \alias{Get}
-\alias{Eyes}
+\alias{Age}
+\alias{Amplifier}
 \alias{Channels}
-\alias{Steps}
-\alias{Repeats}
-\alias{Subject}
-\alias{MarkerNames}
-\alias{ProtocolName}
-\alias{GroupName}
-\alias{ExamDate}
+\alias{Details}
+\alias{Development}
+\alias{Disease}
 \alias{DOB}
-\title{Accession methods for metadata from ERGExam objects}
+\alias{Electrodes}
+\alias{ExamDate}
+\alias{Eyes}
+\alias{Filename}
+\alias{Genotype}
+\alias{Genus}
+\alias{GroupName}
+\alias{ID}
+\alias{Investigator}
+\alias{Label}
+\alias{ProtocolName}
+\alias{ProtocolVersion}
+\alias{RecMode}
+\alias{Recorder}
+\alias{Repeats}
+\alias{Species}
+\alias{Steps}
+\alias{Stimulator}
+\alias{Subject}
+\alias{Strain}
+\alias{MarkerNames}
+\title{Accession methods for metadata from ERGExam, ERGMeasurements, and ERGElectrode classes}
 \usage{
-Eyes(X)
+Age(X)
+
+Amplifier(X)
 
 Channels(X)
 
-Steps(X)
+Details(X)
 
-Repeats(X)
+Development(X)
 
-Subject(X)
+Disease(X)
 
-MarkerNames(X)
+DOB(X)
 
-ProtocolName(X)
-
-GroupName(X)
+Electrodes(X)
 
 ExamDate(X)
 
-DOB(X)
+Eyes(X)
+
+Filename(X)
+
+Genotype(X)
+
+Genus(X)
+
+GroupName(X)
+
+ID(X)
+
+Investigator(X)
+
+Label(X)
+
+ProtocolName(X)
+
+ProtocolVersion(X)
+
+RecMode(X)
+
+Recorder(X)
+
+Repeats(X)
+
+Species(X)
+
+Steps(X)
+
+Stimulator(X)
+
+Subject(X)
+
+Strain(X)
+
+MarkerNames(X)
 }
 \arguments{
-\item{X}{An \linkS4class{ERGExam}}
+\item{X}{An \linkS4class{ERGExam}, \linkS4class{ERGMeasurements}, or \linkS4class{ERGElectrode} object.}
 }
 \value{
-A vector. For 'StimulusTable()' a data.frame and a function for 'GetFilterFunction()' and 'GetAverageFunction()'.
-FIXME: Return is not up to date
-FIXME not only for Class ERGExma
+A vector (or a data.frame for \code{Electrodes()}). For some functions (e.g., \code{GetFilterFunction()} or \code{GetAverageFunction()}), a function is returned.
 }
 \description{
-These methods are used to access metadata information from \linkS4class{ERGExam} objects.
-}
-\details{
-These methods can be used to access metadata information stored in \linkS4class{ERGExam} objects. \cr \cr
+These methods are used to access metadata information from \linkS4class{ERGExam}, \linkS4class{ERGMeasurements}, or \linkS4class{ERGElectrode} objects.
 }
 \section{Functions}{
 \itemize{
-\item \code{Eyes()}: Returns a the eyes of which the data has been recorded.
+\item \code{Age()}: Returns the age of the subject.
+
+\item \code{Amplifier()}: Returns the Amplifier information.
 
 \item \code{Channels()}: Returns the Channel names.
 
-\item \code{Steps()}: Returns the steps of the exam
+\item \code{Details()}: Returns the Details information.
 
-\item \code{Repeats()}: Returns the indices of individual repeats contained in an ERG exam.
+\item \code{Development()}: Returns the Development information.
 
-\item \code{Subject()}: Returns the subject's name
+\item \code{Disease()}: Returns the Disease information.
 
-\item \code{MarkerNames()}: Returns the measurement parameter names (e.g: 'a','B','N1','P1').
+\item \code{DOB()}: Returns the Date of Birth (DOB) information.
 
-\item \code{ProtocolName()}: Returns the recording protocol name.
-
-\item \code{GroupName()}: Returns the group name.
+\item \code{Electrodes()}: Returns the Electrodes information as a combined data frame.
+Each entry in the ExamInfo "Electrodes" list is converted using as.data.frame and the results are row-bound.
 
 \item \code{ExamDate()}: Returns the exam date.
 
-\item \code{DOB()}: Returns the date of birth.
+\item \code{Eyes()}: Returns the eyes of which the data has been recorded.
+
+\item \code{Filename()}: Returns the source filename.
+
+\item \code{Genotype()}: Returns the Genotype information.
+
+\item \code{Genus()}: Returns the Genus information.
+
+\item \code{GroupName()}: Returns the group name.
+
+\item \code{ID()}: Returns the ID information.
+
+\item \code{Investigator()}: Returns the Investigator.
+
+\item \code{Label()}: Returns the Label information.
+
+\item \code{ProtocolName()}: Returns the recording protocol name.
+
+\item \code{ProtocolVersion()}: Returns the Protocol Version.
+
+\item \code{RecMode()}: Returns the Recording Mode.
+
+\item \code{Recorder()}: Returns the Recorder information.
+
+\item \code{Repeats()}: Returns the indices of individual repeats contained in an ERG exam.
+
+\item \code{Species()}: Returns the Species information.
+
+\item \code{Steps()}: Returns the steps of the exam.
+
+\item \code{Stimulator()}: Returns the Stimulator information.
+
+\item \code{Subject()}: Returns the subject's name.
+
+\item \code{Strain()}: Returns the Strain information.
+
+\item \code{MarkerNames()}: Returns the measurement parameter names (e.g., 'a', 'B', 'N1', 'P1'). For \linkS4class{ERGMeasurements} objects.
 
 }}
 \examples{
-# Get Data to work with
 data(ERG)
-
-# Accessing eyes from ERGExam object
-Eyes(ERG)
-
-# Accessing channels from ERGExam object
+Amplifier(ERG)
 Channels(ERG)
-
-# Accessing steps from ERGExam object
-Steps(ERG)
-
-# Accessing steps from ERGExam object
-Repeats(ERG)
-
-# Accessing subject from ERGExam object
-Subject(ERG)
-
-# Accessing protocol name from ERGExam object
-ProtocolName(ERG)
-
-# Accessing group name from ERGExam object
-GroupName(ERG)
-
-# Accessing exam date from ERGExam object
-ExamDate(ERG)
-
-# Accessing date of birth from ERGExam object
+Details(ERG)
+Development(ERG)
+Disease(ERG)
 DOB(ERG)
-
+Electrodes(ERG)
+ExamDate(ERG)
+Eyes(ERG)
+Filename(ERG)
+Genotype(ERG)
+Genus(ERG)
+GroupName(ERG)
+ID(ERG)
+Investigator(ERG)
+Label(ERG)
+MarkerNames(ERG)
+ProtocolName(ERG)
+ProtocolVersion(ERG)
+RecMode(ERG)
+Recorder(ERG)
+Repeats(ERG)
+Species(ERG)
+Steps(ERG)
+Stimulator(ERG)
+Subject(ERG)
+Strain(ERG)
 }
-\concept{ERGExam functions}
-\concept{ERGMeasurements functions}

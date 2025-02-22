@@ -36,14 +36,16 @@ After setting the functions, the accession methods inherited from \link[EPhysDat
 \strong{Function/Method} \tab \strong{Classes} \tab \strong{Description} \cr
 \strong{\link[=Where]{Where}} \tab \linkS4class{ERGExam}  \tab Returns the recording index for those recordings matching the given criteria. \cr
 \strong{\link[=Subset]{Subset}} \tab \linkS4class{ERGExam}  \tab Subsets an ERGExam object into a new object of the same class. \cr
-\strong{\link[=as.data.frame]{as.data.frame}} \tab \linkS4class{ERGExam} , \link[=ERGProtocol]{ERGProtocol} \tab Returns data frame representing the ERGExam or ERGProtocol object in long format. \cr
+\strong{\link[=as.data.frame]{as.data.frame}} \tab \linkS4class{ERGExam}, \link[=ERGElectrode]{ERGElectrode}, \link[=ERGProtocol]{ERGProtocol} \tab Returns data frame representing the \linkS4class{ERGExam},\linkS4class{ERGElectrode}  or \linkS4class{ERGProtocol} object in long format. \cr
 \link[=Stimulus]{Stimulus} \tab \linkS4class{ERGExam}  \tab Returns selected rows of a stimulus table. \cr
 \link[=StimulusDescription]{StimulusDescription}, \link[=StimulusEnergy]{StimulusEnergy}, \link[=StimulusBackground]{StimulusBackground}, \link[=StimulusType]{StimulusType} \tab \linkS4class{ERGExam}  \tab Returns details of stimulus description, energy, background, and type. \cr
 \link[=MarkerNames]{MarkerNames} \tab \linkS4class{ERGExam} , \linkS4class{ERGMeasurements} \tab Returns the names of markers in the dataset. \cr
 \link[=Markers]{Markers} \tab \linkS4class{ERGExam} , \linkS4class{ERGMeasurements} \tab Returns marker information from the dataset. \cr
 \strong{\link[=Measurements]{Measurements}} \tab \linkS4class{ERGExam} , \linkS4class{ERGMeasurements} \tab Returns the Measurements table. \cr
-\link[=DOB]{DOB}, \link[=ExamDate]{ExamDate}, \link[=GroupName]{GroupName}, \link[=ProtocolName]{ProtocolName} \tab \linkS4class{ERGExam}  \tab Returns information on the exam and the examined subject. \cr
+\link[=DOB]{DOB}, \link[=ExamDate]{ExamDate}, \link[=GroupName]{GroupName}, \link[=ProtocolName]{ProtocolName} \tab \linkS4class{ERGExam} and several others  \tab Returns information on the exam and the examined subject. \cr
 \link[=Eyes]{Eyes}, \link[=Steps]{Steps}, \link[=Channels]{Channels}, \link[=Repeats]{Repeats} \tab \linkS4class{ERGExam}  \tab Returns information on the Recordings contained in the dataset. \cr
+\link[=Changelog]{Changelog} Returns the Changelog of the object. \cr
+\link[=MINI]{MINI} Returns the  the minimum information required to report the use of electrophysiology in a neuroscience study, as suggested by the CARMEN consortium. \cr
 }
 }
 

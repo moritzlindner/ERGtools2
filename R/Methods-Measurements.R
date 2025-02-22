@@ -452,6 +452,7 @@ setMethod("Measurements<-",
                      notice_text = c("x Object validation failed with error message: {.val {e}}."),
                      help_page = "ERGtools2::AddMarker")
             })
+            X<-LogChange(X)
             return(X)
           })
 #' @describeIn Measurements-Methods Remove a measurement from the Measurements slot of an \linkS4class{ERGExam} object
@@ -475,6 +476,7 @@ setMethod("DropMeasurement",
                    Marker,
                    where = NULL,
                    ChannelBinding = NULL){
+            X<-LogChange(X)
             Measurements(X = X, Marker = Marker, where = where, create.marker.if.missing = T, Relative = NULL, ChannelBinding = ChannelBinding)<-NULL
           })
 
@@ -583,6 +585,7 @@ setMethod("ClearMeasurements",
           function(X) {
             X@Measurements <- new("ERGMeasurements")
             if (validObject(X)) {
+              X<-LogChange(X)
               return(X)
             }
           })

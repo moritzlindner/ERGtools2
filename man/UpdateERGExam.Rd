@@ -2,12 +2,12 @@
 % Please edit documentation in R/UpdateObject.R
 \name{UpdateERGExam}
 \alias{UpdateERGExam}
-\title{Update an old (v. 0.7) ERGExam object}
+\title{Update an old (v. 0.7 / 0.8) ERGExam object}
 \usage{
 UpdateERGExam(X)
 }
 \arguments{
-\item{X}{An \linkS4class{ERGExam}}
+\item{X}{An \linkS4class{ERGExam}, \linkS4class{ERGMeasurements}, or \linkS4class{ERGElectrode} object.}
 }
 \value{
 An updated  \linkS4class{ERGExam} object.

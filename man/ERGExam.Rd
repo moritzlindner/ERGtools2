@@ -39,9 +39,13 @@ A class representing an ERG (Electroretinogram) exam. This class extends the \li
 \item{ProtocolName}{A character vector indicating the name of the protocol.}
 \item{Version}{Optional: A character vector indicating the version of the protocol.}
 \item{ExamDate}{A \code{POSIXct} The date of the exam.}
-\item{Filename}{Optional: The filename associated where exam raw data have been imported from.}
+\item{Filename}{Optional: The filename from which the exam raw data were imported.}
 \item{RecMode}{Optional: A character vector indicating the recording mode.}
 \item{Investigator}{Optional: A character vector indicating the name of the investigator conducting the exam.}
+\item{Stimulator}{Optional: A character vector specifying the stimulator used during the exam, including model or manufacturer details if available.}
+\item{Amplifier}{Optional: A character vector specifying the amplifier used during the exam, detailing the model or type of the device.}
+\item{Recorder}{Optional: A character vector specifying the recorder used during the exam, including model or manufacturer information.}
+\item{Electrodes}{Optional: A list of \code{ERGElectrode} objects representing the electrodes used in the exam. If provided, the names of the list entries must exactly match the corresponding \code{ERGElectrode} name, as provided in the \linkS4class{ERGElectrode} object.}
 }}
 
 \item{\code{SubjectInfo}}{A list containing subject-related information.
@@ -50,9 +54,20 @@ A class representing an ERG (Electroretinogram) exam. This class extends the \li
 \item{DOB}{A \code{Date} object indicating the date of birth of the subject}
 \item{Gender}{Optional: A character vector indicating the gender of the subject}
 \item{Group}{Optional: A character vector indicating the study group to which the subject belongs.}
+\item{Genus}{A character vector indicating the genus of the subject, based on NCBI taxonomy.}
+\item{Species}{A character vector indicating the species of the subject, based on NCBI taxonomy.}
+\item{Strain}{Optional: A character vector indicating the strain or genetic variant of the subject.}
+\item{Genotype}{Optional: A character vector detailing the genotype of the subject, including genetic characteristics such as polymorphisms and disease alleles.}
+\item{Disease}{Optional: A character vector indicating the disease state of the subject (e.g., 'normal' if no disease is present).}
+\item{Development}{Optional: A character vector describing the developmental stage of the subject.}
+\item{Lable}{Optional: A character vector representing any chemical label or staining applied to the subject.}
+\item{ID}{A unique character vector identifier assigned to the subject.}
+\item{Details}{Optional: A character vector providing additional details about the subject, such as associated clinical or subject-specific information.}
 }}
 
 \item{\code{Imported}}{A \code{POSIXct} timestamp indicating when the object was imported.}
+
+\item{\code{Changelog}}{Any method called modifying the data is logged here.}
 }}
 
 \seealso{

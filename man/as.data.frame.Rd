@@ -5,6 +5,7 @@
 \alias{as.data.frame}
 \alias{as.data.frame,ERGMeasurements-method}
 \alias{as.data.frame,ERGMarker-method}
+\alias{as.data.frame,ERGElectrode-method}
 \alias{as.data.frame,ERGChannel-method}
 \alias{as.data.frame,ERGStep-method}
 \title{as.data.frame for ERGProtocol, ERGStep, ERGChannel and ERGMarker}
@@ -15,6 +16,8 @@ An object of class \code{character} of length 1.
 \S4method{as.data.frame}{ERGMeasurements}(x, row.names = NULL, optional = FALSE, ...)
 
 \S4method{as.data.frame}{ERGMarker}(x, row.names = NULL, optional = FALSE, ...)
+
+\S4method{as.data.frame}{ERGElectrode}(x, row.names = NULL, optional = FALSE, ...)
 
 \S4method{as.data.frame}{ERGChannel}(x, row.names = NULL, optional = FALSE, ...)
 
@@ -56,6 +59,8 @@ These data frames provide comprehensive representations of the respective ERG-re
 \item \code{as.data.frame(ERGMeasurements)}: Method for ERGMeasurements
 
 \item \code{as.data.frame(ERGMarker)}: Method for ERGMarker
+
+\item \code{as.data.frame(ERGElectrode)}: Method for ERGElectrode
 
 \item \code{as.data.frame(ERGChannel)}: Method for ERGChannel
 
