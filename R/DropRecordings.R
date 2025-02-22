@@ -70,7 +70,9 @@ setMethod("DropRecordings",
                         ExamInfo = X@ExamInfo,
                         SubjectInfo = X@SubjectInfo,
                         Imported = X@Imported)
+            newX@Changelog<-X@Changelog
             if(validObject(newX)){
+              newX<-LogChange(newX)
               return(newX)
             } else {
               Notice(X, what = "E", notice_text = "Invalid ERGExam object created.")

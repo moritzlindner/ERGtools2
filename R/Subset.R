@@ -99,6 +99,7 @@ setMethod("Subset",
                 Imported = X@Imported)
 
            if(validObject(out)){
+             out<-LogChange(out)
              return(out)
            }
           })

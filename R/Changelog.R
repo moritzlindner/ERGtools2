@@ -67,7 +67,7 @@ setGeneric("LogChange", function(X) standardGeneric("LogChange"))
 #' @describeIn LogChange Append a new log entry to the changelog slot if called directly by the user.
 setMethod("LogChange", "ERGExam",
           function(X) {
-            if (sys.nframe() == 5) {
+            if (sys.nframe() == 4) {
               # Format the current date/time as "YYYYMMDD HH:MM:SS"
               datetime <- format(Sys.time(), "%Y%m%d %H:%M:%S")
               # Construct the new log entry
