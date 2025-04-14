@@ -11,6 +11,7 @@
 #'                or a logical vector of the same length as repeats stored,
 #'                where `TRUE` indicates using that column for extraction. Default is the inverse of the \code{\link{Rejected-method}}(X) vector.
 #' @param Raw Logical indicating whether to get raw data or processed (filtered, averaged) data.
+#' @param skip.validation Do not validate the output object (e.g. to speed up execution when called from inside a robust function).
 #' @inheritParams Where
 #' @details The \code{Subset} function creates a new \code{ERGExam}  object containing a subset of the data from the original object, based on the provided parameters.
 #' @seealso \link[EPhysData:Subset]{EPhysData::Subset}
@@ -29,6 +30,7 @@ setMethod("Subset",
                    Trials = NULL,
                    Raw = TRUE,
                    where = NULL,
+                   skip.validation = F,
                    ...) {
 
             where = Where(X, where)
@@ -97,9 +99,15 @@ setMethod("Subset",
                 ExamInfo = X@ExamInfo,
                 SubjectInfo = X@SubjectInfo,
                 Imported = X@Imported)
+            if (!skip.validation) {
+              if(validObject(out)){
+                out<-LogChange(out)
+                return(out)
+              }
+            } else {
+              out<-LogChange(out)
+              return(out)
+            }
 
-           if(validObject(out)){
-             out<-LogChange(out)
-             return(out)
-           }
+
           })

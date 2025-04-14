@@ -91,8 +91,10 @@ setMethod(
         rows_to_keep <- which(dat$Background == b & dat$Type == t)
         curr <- dat[rows_to_keep, ]
         if (nrow(curr) > 0) {
-          curr.mes <-mes[mes$Background == b &
-                           mes$Type == t, ]
+          if(show.markers){
+            curr.mes <-mes[mes$Background == b &
+                             mes$Type == t, ]
+          }
           if (any(curr$Repeat != 1)) {
             for (s in unique(curr$Step[curr$Background == b &
                                        curr$Type == t])) {

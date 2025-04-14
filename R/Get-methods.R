@@ -3,6 +3,7 @@
 #' These methods are used to access metadata information from \linkS4class{ERGExam}, \linkS4class{ERGMeasurements}, or \linkS4class{ERGElectrode} objects.
 #' @param X An \linkS4class{ERGExam}, \linkS4class{ERGMeasurements}, or \linkS4class{ERGElectrode} object.
 #' @return A vector (or a data.frame for \code{Electrodes()}). For some functions (e.g., \code{GetFilterFunction()} or \code{GetAverageFunction()}), a function is returned.
+#' @importFrom units as_units
 #'
 #' @examples
 #' data(ERG)
@@ -42,7 +43,7 @@ setGeneric("Age", function(X) standardGeneric("Age"))
 #' @noMd
 setMethod("Age", "ERGExam", function(X) {
   if (!is.na(ExamDate(X)) && !is.na(DOB(X))) {
-    return(difftime(ExamDate(X), DOB(X), units = "days"))
+    return(as_units(difftime(ExamDate(X), DOB(X), units = "days")))
   } else {
     return(NA)
   }

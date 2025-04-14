@@ -12,7 +12,8 @@
 #' @param create.marker.if.missing Logical. If TRUE and the marker does not exist, it will be created. Dies nothing if value is set to \code{NULL}
 #' @param update.empty.relative Logical. If an empty relative value should be overwritten by an otherways matching marker.
 #' @param quiet For Measurements only. Logical. If TRUE, suppresses warnings and progress bars.
-#' @param TimesOnly For Measurements only. Logical. If TRUE, only fetches times, not amplitudes
+#' @param TimesOnly For Measurements only. Logical. If TRUE, only fetches times, not amplitudes#'
+#' @param skip.validation Do not validate the output object (e.g. to speed up execution when called from inside a robust function).
 #' @return An updated version of the object, except for Measurements, which returns a data.frame representing the Measurements stored in the Measurements slot of the \linkS4class{ERGExam} object or the \linkS4class{ERGMeasurements} object-
 #' @seealso \link[EPhysData:EPhysSet-class]{EPhysData::EPhysSet-class} \link{Measurements-Methods} \link{Get}
 #' @examples
@@ -279,6 +280,7 @@ setGeneric(
                  create.marker.if.missing = T,
                  Relative = NULL,
                  ChannelBinding = NULL,
+                 skip.validation = F,
                  value)
   {
     standardGeneric("Measurements<-")
@@ -296,6 +298,7 @@ setMethod("Measurements<-",
                    create.marker.if.missing = T,
                    Relative = NULL,
                    ChannelBinding = NULL,
+                   skip.validation = F,
                    value) {            #validity checks and marker Marker conversion
 
             # internal functions
@@ -404,11 +407,14 @@ setMethod("Measurements<-",
               rownames(X@Measurements)<-NULL
 
             }
-
-            if (validObject(X)) {
+            if(!skip.validation){
+              if (validObject(X)) {
+                return(X)
+              }else{
+                stop("object validation failed")
+              }
+            } else {
               return(X)
-            }else{
-              stop("object validation failed")
             }
           })
 
@@ -423,6 +429,7 @@ setMethod("Measurements<-",
                    create.marker.if.missing = T,
                    Relative = NULL,
                    ChannelBinding = NULL,
+                   skip.validation = F,
                    value){
 
 
@@ -433,7 +440,8 @@ setMethod("Measurements<-",
                 where = Where(X, where = where),
                 create.marker.if.missing = create.marker.if.missing,
                 Relative = Relative,
-                ChannelBinding = ChannelBinding
+                ChannelBinding = ChannelBinding,
+                skip.validation = skip.validation
               ) <- value
             }, error = function(e) {
               Notice(
@@ -444,14 +452,16 @@ setMethod("Measurements<-",
                 help_page = "ERGtools2::Measurements"
               )
             })
-            tryCatch({
-              validObject(X)
-            }, error = function(e) {
-              Notice(X,
-                     what = c("Error"),
-                     notice_text = c("x Object validation failed with error message: {.val {e}}."),
-                     help_page = "ERGtools2::AddMarker")
-            })
+            if(!skip.validation){
+              tryCatch({
+                validObject(X)
+              }, error = function(e) {
+                Notice(X,
+                       what = c("Error"),
+                       notice_text = c("x Object validation failed with error message: {.val {e}}."),
+                       help_page = "ERGtools2::AddMarker")
+              })
+            }
             X<-LogChange(X)
             return(X)
           })
@@ -463,7 +473,8 @@ setGeneric(
   def = function(X,
                  Marker,
                  where,
-                 ChannelBinding = NULL)
+                 ChannelBinding = NULL,
+                 skip.validation = F)
   {
     standardGeneric("DropMeasurement")
   }
@@ -475,9 +486,10 @@ setMethod("DropMeasurement",
           function(X,
                    Marker,
                    where = NULL,
-                   ChannelBinding = NULL){
+                   ChannelBinding = NULL,
+                   skip.validation = F){
             X<-LogChange(X)
-            Measurements(X = X, Marker = Marker, where = where, create.marker.if.missing = T, Relative = NULL, ChannelBinding = ChannelBinding)<-NULL
+            Measurements(X = X, Marker = Marker, where = where, create.marker.if.missing = T, Relative = NULL, ChannelBinding = ChannelBinding, skip.validation = skip.validation)<-NULL
           })
 
 

@@ -12,6 +12,7 @@
 #' @param Import A list of character vectors specifying which parts of the data to import.
 #'   Possible elements are "Raw" - for importing the raw recordings, "Averaged" - for importing the averaged recordings ("Results"), and "Measurements" - for importing the measured markers. Either of "Raw" or "Averaged" must be selected.
 #' @param Protocol An S4 object of class \link[Protocol]{ERGProtocol()} or a list thereof.
+#' @param skip.validation Do not validate the output object (can be helpful for troubleshooting).
 #' @inheritParams Where
 #' @inheritParams newERGExam
 #' @seealso \linkS4class{ERGExam} \link[Protocol]{ERGProtocol()}

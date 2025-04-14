@@ -39,7 +39,7 @@ Possible elements are "Raw" - for importing the raw recordings, "Averaged" - for
 
 \item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
 
-\item{skip.validation}{Do not test if object is valid. Default is \code{FALSE}. This can be helpful when creating import routines that might sometimes be called on incomplete/faulty datasets.}
+\item{skip.validation}{Do not validate the output object (can be helpful for troubleshooting).}
 }
 \value{
 For ImportEspion: A \linkS4class{ERGExam} object.

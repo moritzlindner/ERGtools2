@@ -33,7 +33,8 @@ Measurements(
   where,
   create.marker.if.missing = T,
   Relative = NULL,
-  ChannelBinding = NULL
+  ChannelBinding = NULL,
+  skip.validation = F
 ) <- value
 
 \S4method{Measurements}{ERGMeasurements}(
@@ -42,7 +43,8 @@ Measurements(
   where,
   create.marker.if.missing = T,
   Relative = NULL,
-  ChannelBinding = NULL
+  ChannelBinding = NULL,
+  skip.validation = F
 ) <- value
 
 \S4method{Measurements}{ERGExam}(
@@ -51,12 +53,19 @@ Measurements(
   where = NULL,
   create.marker.if.missing = T,
   Relative = NULL,
-  ChannelBinding = NULL
+  ChannelBinding = NULL,
+  skip.validation = F
 ) <- value
 
-DropMeasurement(X, Marker, where, ChannelBinding = NULL)
+DropMeasurement(X, Marker, where, ChannelBinding = NULL, skip.validation = F)
 
-\S4method{DropMeasurement}{ERGExam}(X, Marker, where = NULL, ChannelBinding = NULL)
+\S4method{DropMeasurement}{ERGExam}(
+  X,
+  Marker,
+  where = NULL,
+  ChannelBinding = NULL,
+  skip.validation = F
+)
 
 newERGMeasurements(data, update.empty.relative = F)
 
@@ -73,13 +82,15 @@ ClearMeasurements(X)
 
 \item{measure.absolute}{Logical, default: FALSE. If absolute amplitudes should be returned instead of amplitudes relative to the reference marker (where given).}
 
-\item{TimesOnly}{For Measurements only. Logical. If TRUE, only fetches times, not amplitudes}
+\item{TimesOnly}{For Measurements only. Logical. If TRUE, only fetches times, not amplitudes#'}
 
 \item{create.marker.if.missing}{Logical. If TRUE and the marker does not exist, it will be created. Dies nothing if value is set to \code{NULL}}
 
 \item{Relative}{For AddMarker and Measurements<- only. Index of the marker the new marker is relative to.}
 
 \item{ChannelBinding}{For AddMarker and DropMarker only. Channel to which the marker belongs. Usually defined by the Parent \linkS4class{ERGExam} object. Set to NA if not required.}
+
+\item{skip.validation}{Do not validate the output object (e.g. to speed up execution when called from inside a robust function).}
 
 \item{value}{For Measurements<- only. Plain numeric value or value of class units (\link[units:units]{units::units} with a time unit set. If \code{NULL} it will remove the indicated row.}
 
@@ -109,7 +120,8 @@ These methods enable modification of the marker measurements (hereafter short: m
   where,
   create.marker.if.missing = T,
   Relative = NULL,
-  ChannelBinding = NULL
+  ChannelBinding = NULL,
+  skip.validation = F
 ) <- value}: Update, add, or remove a line to the Measurements slot
 
 \item \code{Measurements(ERGMeasurements) <- value}: Update, add, or remove a measurement from an \linkS4class{ERGMeasurements} object

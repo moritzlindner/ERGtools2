@@ -34,7 +34,7 @@ setGeneric(
   def = function(X,
                  Channel = "ERG",
                  Eye = Eyes(X),
-                 downsample = F) {
+                 downsample = T) {
     standardGeneric("interactiveMeasurements")
   }
 )
@@ -45,57 +45,8 @@ setMethod("interactiveMeasurements",
             function(X,
                      Channel = "ERG",
                      Eye = Eyes(X),
-                     downsample = F) {
+                     downsample = T) {
               # internal functions
-              interact_plot <- function(erg.obj, downsample = F) {
-                trace <- as.data.frame(erg.obj)
-                if (downsample){
-                  idx.keep<-which(diff(sign(diff(trace$Value))) %in% c(-2,2))+1
-                  trace<-trace[idx.keep,]
-                }
-                trace <-
-                  merge(trace, Stimulus(erg.obj)[c("Step", "Description")], by = "Step")
-                trace$Value <- set_units(trace$Value, "uV")
-                trace$Description <- factor(trace$Description, levels = unique(trace$Description[order(trace$Step)]),
-                                            ordered = TRUE)
-
-                markers <-
-                  Measurements(erg.obj, measure.absolute = T)
-                colnames(markers)[colnames(markers) == "Voltage"] <-
-                  "Value"
-
-                g <- ggplot(trace,
-                            aes(
-                              x = Time,
-                              y = Value,
-                              color = factor(Repeat),
-                              customdata = key
-                            )) +
-                  geom_line()
-                if (nrow(markers) > 0) {
-                  g <- g +
-                    geom_vline(data = markers,
-                               aes(xintercept = Time),
-                               alpha = 0.1) +
-                    geom_text(data = markers,
-                              aes(
-                                x = Time,
-                                y = Value,
-                                label = Name
-                              ),
-                              color = "black")
-                }
-                g <- g +
-                  facet_grid(Description ~ Eye,
-                             scales = "free_y",
-                             labeller = label_wrap_gen(25)) +
-                  labs(title = "Trace Plots", x = "Time", y = "Amplitude") +
-                  theme_minimal() +
-                  theme(legend.position = "none",
-                        strip.text.y = element_text(angle = -90)) # Multi-ine labeller https://stackoverflow.com/questions/12673392/how-to-fit-strip-text-x-if-the-heading-string-is-too-long
-                return(g)
-              }
-
               shiny.style <- HTML(
                 "
                                     .highlight-row {
@@ -106,7 +57,6 @@ setMethod("interactiveMeasurements",
                                     }
                                  "
               )
-
               # Validity checks
               if (!all(Eye %in% Eyes(X))) {
                 missing<-Eye[!(Eye %in% Eyes(X))]
@@ -130,12 +80,18 @@ setMethod("interactiveMeasurements",
                              where = list(Channel = Channel,
                                           Eye =  Eye),
                              Raw = F)
+              if (downsample){
+                curr@Data <- lapply(curr@Data,function(x){
+                  trace <- as.data.frame(x)
+                  times.keep<-trace$Time[which(diff(sign(diff(trace$Value))) %in% c(-2,2))+1]
+                  x<-Subset(x,Time=times.keep,TimeExclusive=T)
+                })
+              }
 
 
               markers <- Markers(curr)
               if (nrow(markers) > 0) {
                 for (i in nrow(Markers(curr)):1) {
-                  markers$ChannelBinding[i]
                   if (!(markers$ChannelBinding[i] %in% Channel)) {
                     curr <- DropMarker(curr,
                                        markers$Name[i],
@@ -312,7 +268,8 @@ setMethod("interactiveMeasurements",
                                          where = click.idx,
                                          create.marker.if.missing = F,
                                          Relative = NULL,
-                                         ChannelBinding = NULL
+                                         ChannelBinding = NULL,
+                                         skip.validation = T
                                        ) <-
                                          as_units(click.coord$x, deparse_unit(TimeTrace(curr@Data[[click.idx]])))
                                      } else {
@@ -509,7 +466,7 @@ setMethod("interactiveMeasurements",
               # run
               message("Waiting for Marker placement app to finish....")
               out <- runApp(SetMarkersApp, launch.browser = T)
-              message("Finished. Please wait.")
+              message("Finished. Updating values. Please wait.")
 
               # merge measurements with unchanged part of object
               old.measurements <-
@@ -563,7 +520,8 @@ setMethod("interactiveMeasurements",
                     ),
                     create.marker.if.missing = T,
                     Relative = curr.m$Relative,
-                    ChannelBinding = curr.m$Channel
+                    ChannelBinding = curr.m$Channel,
+                    skip.validation = T
                   ) <- curr.m$Time
                   cli_progress_update()
                 }
@@ -591,7 +549,8 @@ setMethod("interactiveMeasurements",
                     ),
                     create.marker.if.missing = T,
                     Relative = curr.m$Relative,
-                    ChannelBinding = curr.m$ChannelBinding
+                    ChannelBinding = curr.m$ChannelBinding,
+                    skip.validation = T
                   ) <- NULL
                   cli_progress_update()
                 }
@@ -630,3 +589,52 @@ setMethod("interactiveMeasurements",
               }
             }
           })
+
+#' Internal fx for plotting interactive plots in interactiveMeasurements
+#' @keywords Internal
+#' @noMd
+#' @noRd
+interact_plot <- function(erg.obj, downsample = downsample) {
+  trace <- as.data.frame(erg.obj)
+  trace <-
+    merge(trace, Stimulus(erg.obj)[c("Step", "Description")], by = "Step")
+  trace$Value <- set_units(trace$Value, "uV")
+  trace$Description <- factor(trace$Description, levels = unique(trace$Description[order(trace$Step)]),
+                              ordered = TRUE)
+
+  markers <-
+    Measurements(erg.obj, measure.absolute = T)
+  colnames(markers)[colnames(markers) == "Voltage"] <-
+    "Value"
+
+  g <- ggplot(trace,
+              aes(
+                x = Time,
+                y = Value,
+                color = factor(Repeat),
+                customdata = key
+              )) +
+    geom_line()
+  if (nrow(markers) > 0) {
+    g <- g +
+      geom_vline(data = markers,
+                 aes(xintercept = Time),
+                 alpha = 0.1) +
+      geom_text(data = markers,
+                aes(
+                  x = Time,
+                  y = Value,
+                  label = Name
+                ),
+                color = "black")
+  }
+  g <- g +
+    facet_grid(Description ~ Eye,
+               scales = "free_y",
+               labeller = label_wrap_gen(25)) +
+    labs(title = "Trace Plots", x = "Time", y = "Amplitude") +
+    theme_minimal() +
+    theme(legend.position = "none",
+          strip.text.y = element_text(angle = -90)) # Multi-ine labeller https://stackoverflow.com/questions/12673392/how-to-fit-strip-text-x-if-the-heading-string-is-too-long
+  return(g)
+}

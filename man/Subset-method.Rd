@@ -11,6 +11,7 @@
   Trials = NULL,
   Raw = TRUE,
   where = NULL,
+  skip.validation = F,
   ...
 )
 }
@@ -30,6 +31,8 @@ where \code{TRUE} indicates using that column for extraction. Default is the inv
 \item{Raw}{Logical indicating whether to get raw data or processed (filtered, averaged) data.}
 
 \item{where}{A \link[base:list]{base::list} defining selection criteria. Tags/Keys in the names in the list must represent valid column names of \link{Metadata} or\link{StimulusTable}.}
+
+\item{skip.validation}{Do not validate the output object (e.g. to speed up execution when called from inside a robust function).}
 }
 \description{
 This method subsets an \code{ERGExam} object into a new object of the same class.
