@@ -7,11 +7,11 @@
 #' @return An object of class 'ERGExam' with the new measurements added.
 #' @export
 #' @importFrom plotly ggplotly event_data plotlyOutput renderPlotly event_register
-#' @importFrom shiny fluidPage titlePanel fluidRow column verticalLayout tags validate HTML h4 actionButton selectInput textInput
+#' @importFrom shiny fluidPage titlePanel fluidRow column verticalLayout tags validate HTML h4 h5 actionButton selectInput textInput
 #' @importFrom shiny modalDialog modalButton showModal removeModal observeEvent reactive stopApp runApp onSessionEnded shinyApp
 #' @importFrom DT dataTableOutput renderDataTable datatable
 #' @importFrom shinyjs useShinyjs extendShinyjs
-#' @importFrom stringr str_split
+#' @importFrom stringr str_split str_detect
 #' @importFrom ggplot2 aes geom_line geom_text facet_grid labs theme_minimal element_text geom_vline label_wrap_gen
 #' @importFrom units set_units deparse_unit
 #' @importFrom utils txtProgressBar setTxtProgressBar
@@ -55,8 +55,32 @@ setMethod("interactiveMeasurements",
                                       border-radius: 5px;
                                       margin: 10px 0;
                                     }
+                                    h4 {
+                                      font-size: 1.1em;
+                                      font-weight: bold;
+                                      font-style: italic;
+                                    }
+                                    h5 {
+                                      font-size: 1.1em;
+                                      font-weight: bold;
+                                    }
+                                    label.control-label, .selectize-control.single{
+                                      display: table-cell;
+                                      text-align: left;
+                                      vertical-align: middle;
+                                    }
+                                    .selectize-dropdown {
+                                        width: 90px !important;
+                                    }
+                                    .selectize {
+                                        width: 90px !important;
+                                    }
+                                    .form-group{
+                                      display: table-row;
+                                    }
                                  "
               )
+
               # Validity checks
               if (!all(Eye %in% Eyes(X))) {
                 missing<-Eye[!(Eye %in% Eyes(X))]
@@ -74,31 +98,17 @@ setMethod("interactiveMeasurements",
 
               stopifnot(CheckAvgFxSet(X))
 
+              marker.sel.idx<-0
+
               #Get Relevant subset of the ERGExam and keep avg and filter fx.
 
-              curr <- Subset(X,
-                             where = list(Channel = Channel,
-                                          Eye =  Eye),
-                             Raw = F)
+              suppressMessages(curr <- Subset(X, Raw = F, skip.validation = T))
               if (downsample){
                 curr@Data <- lapply(curr@Data,function(x){
                   trace <- as.data.frame(x)
                   times.keep<-trace$Time[which(diff(sign(diff(trace$Value))) %in% c(-2,2))+1]
-                  x<-Subset(x,Time=times.keep,TimeExclusive=T)
+                  suppressMessages(x<-Subset(x,Time = times.keep, TimeExclusive = T, skip.validation = T))
                 })
-              }
-
-
-              markers <- Markers(curr)
-              if (nrow(markers) > 0) {
-                for (i in nrow(Markers(curr)):1) {
-                  if (!(markers$ChannelBinding[i] %in% Channel)) {
-                    curr <- DropMarker(curr,
-                                       markers$Name[i],
-                                       markers$ChannelBinding[i],
-                                       drop.dependent = T)
-                  }
-                }
               }
 
               # prepare ERGExam Object
@@ -124,40 +134,55 @@ setMethod("interactiveMeasurements",
                 titlePanel(
                   paste0(
                     "Set Markers - Subject: ",
-                    Subject(X),
+                    Subject(curr),
                     ", DOE: ",
-                    ExamDate(X),
-                    ", Channel = ",
-                    Channel
+                    ExamDate(curr)
                   )
                 ),
                 sidebarLayout(
                   sidebarPanel(
                     verticalLayout(
                       fluidRow(class = "highlight-row",
-                               actionButton("finishBtn", "Finish")),
+                               h4("Channels"),
+                               selectInput(
+                                 "INP_channel_sel",
+                                 "Active Channel",
+                                 choices = c(Channels(curr)),
+                                 width = '70px',
+                                 selected = which(Channels(X) == Channel)
+                               )),
                       fluidRow(
                         class = "highlight-row",
-                        h4("Select active marker"),
-                        dataTableOutput("markerTable")
+                        h4("Markers"),
+                        verticalLayout(
+                          fluidRow(
+                            class = "highlight-row",
+                            h5("Select active marker"),
+                            dataTableOutput("markerTable")
+                          ),
+                          fluidRow(
+                            class = "highlight-row",
+                            actionButton("INP_marker_delete", "Delete active marker")
+                          ),
+                          fluidRow(
+                            class = "highlight-row",
+                            h5("Create new marker"),
+                            textInput("INP_marker_new",
+                                      "Name",
+                                      width = '100%'),
+                            selectInput(
+                              "INP_marker_new_rel",
+                              "Relative to",
+                              choices = c("", Markers(curr)$Name[Markers(curr)$Channelbinding == Channels(curr)[1]]),
+                              width = '100%',
+                              selected = 1
+                            ),
+                            actionButton("INP_marker_new_add", "<-- Add new marker")
+                          )
+                        )
                       ),
-                      fluidRow(
-                        class = "highlight-row",
-                        h4("Add new marker"),
-                        textInput("INP_marker_new", "Name"),
-                        selectInput(
-                          "INP_marker_new_rel",
-                          "Relative to",
-                          choices = c("", markers$Name),
-                          selected = 1
-                        ),
-                        actionButton("INP_marker_new_add", "<-- Add new marker")
-                      ),
-
-                      fluidRow(
-                        class = "highlight-row",
-                        actionButton("INP_marker_delete", "Delete selected marker")
-                      )
+                      fluidRow(class = "highlight-row",
+                               actionButton("finishBtn", "Finish"))
                     ),
                     width = 3
                   ),
@@ -189,13 +214,10 @@ setMethod("interactiveMeasurements",
                 CURR <- reactiveValues(data = curr)
 
                 # Render the interactive plot
-                output$trace_plot <- renderPlotly({
-                  ggplotly(interact_plot(CURR$data, downsample = downsample),
-                           width = (80 + (300 * length(Eyes(
-                             curr
-                           ))))) %>%
-                    event_register("plotly_click")
-                })
+                # output$trace_plot <- renderPlotly({
+                #   gglotly_wrapper(CURR$data, input$INP_channel_sel, downsample = downsample) %>%
+                #     event_register("plotly_click")
+                # })
 
                 #Display the available markers
                 output$markerTable <-
@@ -206,17 +228,17 @@ setMethod("interactiveMeasurements",
 
                 # Observe marker Select
                 observeEvent(input$markerTable_rows_selected, {
+                  existing <- currentmarkers(CURR$data,input$INP_channel_sel)
                   marker.sel.idx <<- isolate(input$markerTable_rows_selected)
                   curr_marker <<-
-                    Markers(CURR$data)$Name[marker.sel.idx]
+                    existing$Name[marker.sel.idx]
                   curr_marker_ref <<-
-                    Markers(CURR$data)$Relative[marker.sel.idx]
+                    existing$Relative[marker.sel.idx]
                 })
 
                 # Observe measurement Select
                 observeEvent(input$measurement_output_rows_selected, {
-                  measurement.sel.idx <<-
-                    isolate(input$measurement_output_rows_selected)
+                  measurement.sel.idx <<- isolate(input$measurement_output_rows_selected)
                 })
 
                 # Observe new marker position set
@@ -239,11 +261,11 @@ setMethod("interactiveMeasurements",
                                          CURR$data,
                                          Step = click.Step,
                                          Eye = click.Eye,
-                                         Channel = Channel,
+                                         Channel = isolate(input$INP_channel_sel),
                                          Repeat = click.Repeat
                                        )
 
-                                     existing <- Markers(CURR$data)
+                                     existing <- currentmarkers(CURR$data,input$INP_channel_sel)
                                      canupdate = F
                                      if (!is.na(existing$Relative[existing$Name == curr_marker])) {
                                        if (nrow(
@@ -290,18 +312,13 @@ setMethod("interactiveMeasurements",
                                      # update the plot
                                      output$trace_plot <-
                                        renderPlotly({
-                                         ggplotly(interact_plot(CURR$data, downsample = downsample),
-                                                  width = (80 + (300 * length(
-                                                    Eyes(curr)
-                                                  ))))
+                                         gglotly_wrapper(CURR$data, input$INP_channel_sel, downsample = downsample)
                                        })
                                      # reselect marker table
-                                     output$markerTable <-
-                                       renderDataTable({
-                                         Markers(CURR$data)[, c("Name", "Relative")]
-                                       }, selection = list(mode = "single",
-                                                           selected = marker.sel.idx),
-                                       options = list(dom = 't'))
+                                     output$markerTable <- markerTable_wrapper(CURR$data, input$INP_channel_sel, marker.sel.idx)
+                                     # update measurements table
+
+                                     output$measurement_output <- measurementTable_wrapper(CURR$data)
 
                                      out <<-
                                        reactiveValuesToList(CURR)$data
@@ -309,6 +326,36 @@ setMethod("interactiveMeasurements",
                                  }
                                }
                              })
+                # Observe Channel Select
+                observeEvent(input$INP_channel_sel, {
+                  active_channel <- isolate(input$INP_channel_sel)
+                  if (!is.null(active_channel) && active_channel %in% Channels(CURR$data)){
+                    # update the plot
+                    output$trace_plot <-
+                      renderPlotly({
+                        gglotly_wrapper(CURR$data, input$INP_channel_sel, downsample = downsample)
+                      })
+                    # reselect marker table
+                    output$markerTable <- markerTable_wrapper(CURR$data, input$INP_channel_sel, marker.sel.idx)
+
+                    # update relative markers
+                    updateSelectInput(session,
+                                      "INP_marker_new_rel",
+                                      choices = c("", existing <- currentmarkers(CURR$data,input$INP_channel_sel)$Name))
+
+                    output$measurement_output <- measurementTable_wrapper(CURR$data)
+
+                  } else {
+                    showModal(
+                      modalDialog(
+                        title = "Selecting active Channel failed.",
+                        paste0("The selected channel ", active_channel, " could not found in the object "),
+                        easyClose = TRUE,
+                        footer = NULL
+                      )
+                    )
+                  }
+                })
 
                 # Observe new Markers
                 observeEvent(input$INP_marker_new_add, {
@@ -323,11 +370,13 @@ setMethod("interactiveMeasurements",
                         CURR$data,
                         Marker = new_marker,
                         Relative = which(Markers(CURR$data)$Name == new_marker_rel),
-                        ChannelBinding = Channel
+                        ChannelBinding = isolate(input$INP_channel_sel)
                       )
                     updateSelectInput(session,
                                       "INP_marker_new_rel",
-                                      choices = c("", Markers(CURR$data)$Name))
+                                      choices = c("", existing <- currentmarkers(CURR$data,input$INP_channel_sel)$Name))
+                    # reselect marker table
+                    output$markerTable <- markerTable_wrapper(CURR$data, input$INP_channel_sel, marker.sel.idx)
 
                     out <<- reactiveValuesToList(CURR)$data
                   } else {
@@ -364,7 +413,7 @@ setMethod("interactiveMeasurements",
                     DropMarker(
                       CURR$data,
                       curr_marker,
-                      ChannelBinding = Channel,
+                      ChannelBinding = isolate(input$INP_channel_sel),
                       drop.dependent = T
                     )
                   out <<- reactiveValuesToList(CURR)$data
@@ -375,22 +424,28 @@ setMethod("interactiveMeasurements",
                 observeEvent(input$INP_measurement_delete, {
                   if (!is.null(measurement.sel.idx)) {
                     if (all(measurement.sel.idx %in% 1:nrow(CURR$data@Measurements@Measurements))) {
-                      cli_warn(c("Deleting Measurments interactively is experimental."))
                       # needs to implement checks to ensure data dropped have no depending or call Measurements()<-NULL
 
-                      tmp<-mes[measurement.sel.idx,]
-                      tryCatch(
+                      tryCatch({
+                        measurement.sel.row <- Measurements(CURR$data, quiet = T, TimesOnly = T)[measurement.sel.idx,]
                         Measurements(
                           CURR$data,
                           where = list(
-                            Step = tmp$Step,
-                            Eye = tmp$Eye,
-                            Repeat = tmp$Repeat
+                            Channel = measurement.sel.row$Channel,
+                            Step = measurement.sel.row$Step,
+                            Eye = measurement.sel.row$Eye,
+                            Repeat = measurement.sel.row$Repeat
                           ),
-                          Marker = tmp$Name,
-                          ChannelBinding = Channel
-                        ) <- NULL,
+                          Marker = measurement.sel.row$Name,
+                          ChannelBinding = isolate(input$INP_channel_sel)
+                        ) <- NULL
+
+                        output$measurement_output <- measurementTable_wrapper(CURR$data)
+                      },
                         error = function(e) {
+                          if (str_detect(as.character(e), "because other measurements depend on it")) {
+                            e <- "Other measurements depend on the measurement you are trying to delete. "
+                          }
                           showModal(
                             modalDialog(
                               title = "Deleting measurement failed.",
@@ -450,14 +505,7 @@ setMethod("interactiveMeasurements",
                 })
 
                 #Display the measurement results
-                output$measurement_output <-
-                  renderDataTable({
-                    mes <-Measurements(CURR$data,TimesOnly=T,quiet = T)[,c("Step","Description","Channel","Eye","Repeat","Name","Time")]
-                    mes<-mes[with(mes, order(Step, Eye, Repeat)), ]
-                    mes<<-mes
-                    mes
-                  }, width = "100%" , selection = "single",
-                   options = list(dom = 't'))
+                output$measurement_output <- measurementTable_wrapper(CURR$data)
               }
 
               # Make the application
@@ -468,119 +516,8 @@ setMethod("interactiveMeasurements",
               out <- runApp(SetMarkersApp, launch.browser = T)
               message("Finished. Updating values. Please wait.")
 
-              # merge measurements with unchanged part of object
-              old.measurements <-
-                Measurements(curr, TimesOnly = T, quiet = T)
-              new.measurements <-
-                Measurements(out, TimesOnly = T, quiet = T)
-              removed.measurements <-
-                old.measurements[!(do.call(paste, old.measurements[, c("Step",
-                                                                       "Eye",
-                                                                       "Recording",
-                                                                       "Repeat",
-                                                                       "Name",
-                                                                       "Channel",
-                                                                       "Relative")]) %in% do.call(paste, new.measurements[, c("Step",
-                                                                                                                              "Eye",
-                                                                                                                              "Recording",
-                                                                                                                              "Repeat",
-                                                                                                                              "Name",
-                                                                                                                              "Channel",
-                                                                                                                              "Relative")])), c("Step",
-                                                                                                                                                "Eye",
-                                                                                                                                                "Recording",
-                                                                                                                                                "Repeat",
-                                                                                                                                                "Name",
-                                                                                                                                                "Channel")]
 
-              ## update and add
-              new.measurements <-
-                merge(
-                  Measurements(out@Measurements),
-                  Metadata(out),
-                  by.x = "Recording",
-                  by.y = 0
-                )
-
-              if (nrow(new.measurements) > 0) {
-                cli_progress_bar("Updating measurements", total = nrow(new.measurements),  clear = TRUE, auto_terminate = T)
-                for (m in 1:nrow(new.measurements)) {
-                  curr.m <- new.measurements[m, ]
-                  Measurements(
-                    X,
-                    Marker = curr.m$Name,
-                    where = Where(
-                      X,
-                      where = list(
-                        Step = curr.m$Step,
-                        Eye = curr.m$Eye,
-                        Channel = curr.m$Channel,
-                        Repeat = curr.m$Repeat
-                      )
-                    ),
-                    create.marker.if.missing = T,
-                    Relative = curr.m$Relative,
-                    ChannelBinding = curr.m$Channel,
-                    skip.validation = T
-                  ) <- curr.m$Time
-                  cli_progress_update()
-                }
-                cli_progress_done()
-              }
-
-              ## drop removed measurements
-              if (nrow(removed.measurements) > 0) {
-                removed.measurements<-merge(removed.measurements,X@Measurements@Marker, by.x=c("Name","Channel"), by.y=c("Name","ChannelBinding"))
-                removed.measurements<-removed.measurements[order(removed.measurements$Relative, decreasing = F),]#[order(is.na(removed.measurements$Relative), decreasing = F),]
-                cli_progress_bar("Deleting removed measurements", total = nrow(new.measurements),  clear = TRUE, auto_terminate = T)
-                for (m in 1:nrow(removed.measurements)) {
-                  curr.m <- removed.measurements[m, ]
-                  Measurements(
-                    X,
-                    Marker = curr.m$Name,
-                    where = Where(
-                      X,
-                      where = list(
-                        Step = curr.m$Step,
-                        Eye = curr.m$Eye,
-                        Channel = curr.m$Channel,
-                        Repeat = curr.m$Repeat
-                      )
-                    ),
-                    create.marker.if.missing = T,
-                    Relative = curr.m$Relative,
-                    ChannelBinding = curr.m$ChannelBinding,
-                    skip.validation = T
-                  ) <- NULL
-                  cli_progress_update()
-                }
-                cli_progress_done()
-              }
-              ## drop removed measurements
-              old.markers <- Markers(X)
-             # old.markers <- old.markers[order(is.na(old.markers$Relative)),]
-              new.markers<-Markers(out)
-              if (nrow(old.markers) > 0) {
-                for (i in nrow(old.markers):1) {
-                  idx.new <-
-                    which(
-                      new.markers$Name == old.markers$Name[i] &
-                        new.markers$ChannelBinding == old.markers$ChannelBinding[i]
-                    )
-                  if (length(idx.new) == 0) {
-                    X <- DropMarker(X, old.markers$Name[i], old.markers$ChannelBinding[i], drop.dependent = FALSE)
-                  }
-                  if (length(idx.new) == 1) {
-                    if(!(X@Measurements@Marker$Relative[i] %in% out@Measurements@Marker$Relative[idx.new])){
-                      Notice(X,
-                             what = "W",
-                             notice_text = "Updating marker 'relative' setting for marker {.val {old.markers$Name[i]}} in Channel {.val {old.markers$ChannelBinding[i]}}",
-                             help_page = "ERGtools2::Markers")
-                      X@Measurements@Marker$Relative[i]<-out@Measurements@Marker$Relative[idx.new]
-                    }
-                  }
-                }
-              }
+              X@Measurements<-out@Measurements
 
               ## Validate
               if (validObject(X)) {
@@ -594,7 +531,8 @@ setMethod("interactiveMeasurements",
 #' @keywords Internal
 #' @noMd
 #' @noRd
-interact_plot <- function(erg.obj, downsample = downsample) {
+interact_plot <- function(erg.obj, channel, downsample = downsample, skip.validation = T) {
+  suppressMessages(erg.obj <- Subset(erg.obj, where = list (Channel = channel), skip.validation = skip.validation))
   trace <- as.data.frame(erg.obj)
   trace <-
     merge(trace, Stimulus(erg.obj)[c("Step", "Description")], by = "Step")
@@ -637,4 +575,56 @@ interact_plot <- function(erg.obj, downsample = downsample) {
     theme(legend.position = "none",
           strip.text.y = element_text(angle = -90)) # Multi-ine labeller https://stackoverflow.com/questions/12673392/how-to-fit-strip-text-x-if-the-heading-string-is-too-long
   return(g)
+}
+
+#' Internal fx for plotly in interactiveMeasurements
+#' @keywords Internal
+#' @importFrom plotly ggplotly
+#' @noMd
+#' @noRd
+gglotly_wrapper <- function(X, inp, downsample) {
+  ggplotly(interact_plot(X, channel = isolate(inp), downsample = downsample),
+           width = (80 + (300 * length(Eyes(
+             X
+           )))))
+}
+
+#' Internal fx for plotly in interactiveMeasurements
+#' @keywords Internal
+#' @importFrom DT dataTableOutput renderDataTable datatable
+#' @noMd
+#' @noRd
+markerTable_wrapper <- function (X, inp, sel) {
+  renderDataTable({
+    currentmarkers(X,inp)
+  }, selection = list(mode = "single",
+                      selected = sel),
+  options = list(dom = 't'), rownames = F)
+}
+
+#' Internal fx for plotly in interactiveMeasurements
+#' @keywords Internal
+#' @importFrom DT dataTableOutput renderDataTable datatable
+#' @noMd
+#' @noRd
+measurementTable_wrapper <- function (X) {
+  renderDataTable({
+    mes <-
+      Measurements(X, TimesOnly = T, quiet = T)[, c("Step",
+                                                            "Description",
+                                                            "Channel",
+                                                            "Eye",
+                                                            "Repeat",
+                                                            "Name",
+                                                            "Time")]
+    mes
+  }, width = "100%" , selection = "single",
+  options = list(paging = 't', searching = 't', pageLength = 10), rownames = F)
+}
+
+currentmarkers <- function (X, inp) {
+  marker.df <- Markers(X)[, c("Name", "Relative", "ChannelBinding")]
+  marker.df <-
+    marker.df[marker.df$ChannelBinding == isolate(inp), c("Name", "Relative")]
+  marker.df
 }

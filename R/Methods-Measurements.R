@@ -162,7 +162,7 @@ setMethod("Measurements",
               measurements <-
                 merge(measurements,
                       Metadata(X)[, c("Step", "Channel", "Repeat",  "Eye")],
-                      by =
+                      by.x =
                         "Recording",
                       by.y = 0)
               measurements <-
